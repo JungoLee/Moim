@@ -1,7 +1,7 @@
 # CLAUDE.md — Moim 공통 작업 규칙
 
 > 모든 세션(사람·에이전트)이 이 파일을 먼저 읽고 따른다.
-> 살아있는 할 일/상태·기능 로드맵·데이터 모델은 **[docs/PLAN.md](docs/PLAN.md)** 가 단일 출처. 셋업·실행은 **[README.md](README.md)** 참조.
+> 살아있는 할 일/상태·기능 로드맵·데이터 모델은 **[docs/PLAN.md](docs/PLAN.md)** 가 단일 출처. 리팩토링 절차는 **[docs/refactoring-guide.md](docs/refactoring-guide.md)**, 셋업·트러블슈팅은 **[docs/ONBOARDING.md](docs/ONBOARDING.md)**, 실행 요약은 **[README.md](README.md)** 참조.
 > **새 세션은 작업 시작 전 docs/PLAN.md 의 "현재 상태"와 "다음 작업" 절을 반드시 확인할 것.**
 
 ## 프로젝트 개요
