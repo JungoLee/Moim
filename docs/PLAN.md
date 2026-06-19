@@ -46,8 +46,13 @@
 - [x] 프론트: 로그인 랜딩, OAuth 콜백 토큰 수신, 대시보드(내 일정 CRUD), 친구(추가/요청/등급), 친구 캘린더 보기
 - [x] 핸드오프 문서: README / CLAUDE.md / 이 PLAN
 - [x] 빌드 검증: 프론트 `next build` 통과, 백엔드 `node --check` 통과
+- [x] 환경설정 파일 생성: `backend/.env`(JWT_SECRET 자동생성·콜백/CORS URL 채움) + `frontend/.env.local` (둘 다 gitignore)
 
-> **실행 전 필요**: `backend/.env` 에 실제 `MONGODB_URI` + Google OAuth 자격증명 입력해야 로그인 가능. (README 참고)
+> **🚦 실행하려면 남은 블로커 2개** (나머지 env·JWT·프론트 설정은 채워둠):
+> 1. **구글 OAuth** — `backend/.env` 의 `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` 두 줄 채우기. 콜백 URI `http://localhost:4000/api/auth/google/callback` 를 OAuth 클라이언트에 등록 + 본인 이메일을 테스트 사용자로 추가.
+> 2. **접속 가능한 MongoDB** — 이 PC엔 로컬 MongoDB 미설치(서비스 없음·포트 27017 닫힘). → **MongoDB Atlas 무료 클러스터**의 연결 문자열을 `MONGODB_URI` 에 넣는 게 가장 빠름(설치 불필요). 또는 로컬 MongoDB Community 설치 후 서비스 실행.
+>
+> 둘 다 채우면 루트에서 `npm run dev` → `localhost:3000` 로그인. (README "셋업 & 실행" 참고)
 
 ### 다음 작업 (Phase 1 마무리 — 바로 이어서 할 일)
 - [x] **달력 그리드 UI** — 월(月) 그리드 공용 컴포넌트 `frontend/src/components/Calendar.tsx` 추가. 대시보드(날짜 클릭 시 09~10시 프리필) + 친구 캘린더(`바쁨`/상세 칩)에 연결. (주(週) 뷰는 추후)
