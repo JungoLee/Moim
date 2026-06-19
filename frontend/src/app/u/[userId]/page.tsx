@@ -3,8 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
+import Calendar from '@/components/Calendar';
 import { api, getToken } from '@/lib/api';
-import { formatRange } from '@/lib/format';
 import type { MoimEvent, User } from '@/lib/types';
 
 export default function FriendCalendar() {
@@ -44,14 +44,8 @@ export default function FriendCalendar() {
         {tier === 'normal' && <p className="app-muted">이 친구는 바쁜 시간만 공개합니다.</p>}
         {tier === 'close' && <p className="app-muted">상세 일정을 볼 수 있습니다.</p>}
         {error && <p className="app-error">{error}</p>}
+        {!error && <Calendar events={events} />}
         {events.length === 0 && !error && <p className="app-muted">표시할 일정이 없습니다.</p>}
-        {events.map((ev) => (
-          <div className="app-card" key={ev._id}>
-            <div className="app-row">{ev.busy ? <strong className="app-muted">바쁨</strong> : <strong>{ev.title}</strong>}</div>
-            <div className="app-muted">{formatRange(ev.start, ev.end)}</div>
-            {ev.location && <div className="app-muted">📍 {ev.location}</div>}
-          </div>
-        ))}
       </main>
     </>
   );

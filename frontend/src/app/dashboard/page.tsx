@@ -4,9 +4,16 @@ import { useEffect, useState, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
+import Calendar from '@/components/Calendar';
 import { api, getToken } from '@/lib/api';
 import { formatRange } from '@/lib/format';
 import type { MoimEvent, User } from '@/lib/types';
+
+// Date → datetime-local 입력 형식(YYYY-MM-DDTHH:mm, 로컬 기준)
+function toLocalInput(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -58,6 +65,16 @@ export default function Dashboard() {
     load();
   }
 
+  // 캘린더에서 날짜 클릭 → 새 일정 시작/종료를 그 날 09~10시로 프리필
+  function pickDate(day: Date) {
+    const s = new Date(day);
+    s.setHours(9, 0, 0, 0);
+    const e = new Date(day);
+    e.setHours(10, 0, 0, 0);
+    setStart(toLocalInput(s));
+    setEnd(toLocalInput(e));
+  }
+
   return (
     <>
       <Nav />
@@ -84,6 +101,9 @@ export default function Dashboard() {
           </div>
         </form>
 
+        <Calendar events={events} onSelectDate={pickDate} />
+
+        <h3>일정 목록</h3>
         {events.length === 0 && <p className="app-muted">아직 일정이 없습니다.</p>}
         {events.map((ev) => (
           <div className="app-card" key={ev._id}>

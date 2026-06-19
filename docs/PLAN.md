@@ -50,7 +50,9 @@
 > **실행 전 필요**: `backend/.env` 에 실제 `MONGODB_URI` + Google OAuth 자격증명 입력해야 로그인 가능. (README 참고)
 
 ### 다음 작업 (Phase 1 마무리 — 바로 이어서 할 일)
-- [ ] **달력 그리드 UI** — 현재 일정은 목록(list)만. 주/월 캘린더 뷰 추가 (대시보드·친구 캘린더 공용 컴포넌트)
+- [x] **달력 그리드 UI** — 월(月) 그리드 공용 컴포넌트 `frontend/src/components/Calendar.tsx` 추가. 대시보드(날짜 클릭 시 09~10시 프리필) + 친구 캘린더(`바쁨`/상세 칩)에 연결. (주(週) 뷰는 추후)
+- [x] **루트 통합 실행** — 루트 `package.json`(`concurrently`)로 `npm run dev` 시 backend+frontend 동시 실행
+- [x] **백엔드 env 가드** — 시작 시 필수 환경변수 누락이면 친절히 안내 후 종료(cryptic crash 방지)
 - [ ] **로그인 직후 UX** — `/api/auth/me` 실패(토큰 만료) 시 자동 로그아웃 → 랜딩
 - [ ] 실제 OAuth 자격증명으로 **엔드투엔드 로그인 1회 검증** (사용자 환경에서)
 - [ ] 일정 수정(현재 생성/삭제만; PATCH API 는 있으나 UI 미연결)

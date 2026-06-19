@@ -1,0 +1,118 @@
+.calendar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.title {
+  font-size: 1.1rem;
+}
+
+.spacer {
+  margin-left: auto;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.sun {
+  color: var(--color-danger);
+}
+
+.sat {
+  color: var(--color-primary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.cell {
+  min-height: 92px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  overflow: hidden;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  border-color: var(--color-primary);
+}
+
+.outside {
+  opacity: 0.45;
+}
+
+.dayNum {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  width: 1.7em;
+  height: 1.7em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.today {
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  font-weight: 700;
+}
+
+.chips {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chip {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  padding: 1px var(--space-1);
+  border-radius: 4px;
+  background: rgba(108, 140, 255, 0.22);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.busy {
+  background: var(--color-surface);
+  color: var(--color-muted);
+  border: 1px dashed var(--color-border);
+}
+
+.more {
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  padding-left: var(--space-1);
+}
