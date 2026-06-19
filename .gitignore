@@ -1,0 +1,22 @@
+# 의존성
+node_modules/
+
+# 환경변수 (시크릿)
+.env
+.env.local
+.env.*.local
+
+# 빌드 산출물
+.next/
+out/
+dist/
+build/
+
+# Next 자동 생성
+next-env.d.ts
+*.tsbuildinfo
+
+# 로그/OS
+*.log
+.DS_Store
+Thumbs.db

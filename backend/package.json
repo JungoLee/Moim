@@ -1,0 +1,23 @@
+{
+  "name": "moim-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Moim 백엔드 — 친구 스케줄 공유/빈 시간 찾기 캘린더 API",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
