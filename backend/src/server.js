@@ -10,6 +10,15 @@ import eventRoutes from './routes/events.js';
 import friendRoutes from './routes/friends.js';
 import calendarRoutes from './routes/calendar.js';
 
+// 필수 환경변수 점검 — 없으면 cryptic crash(passport throw 등) 대신 친절히 안내하고 종료
+const REQUIRED_ENV = ['MONGODB_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_CALLBACK_URL'];
+const missingEnv = REQUIRED_ENV.filter((key) => !process.env[key]);
+if (missingEnv.length) {
+  console.error(`[server] 필수 환경변수가 비어 있어 시작할 수 없습니다: ${missingEnv.join(', ')}`);
+  console.error('[server] backend/.env 를 만들고 값을 채우세요. (양식: backend/.env.example)');
+  process.exit(1);
+}
+
 const app = express();
 
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000', credentials: true }));

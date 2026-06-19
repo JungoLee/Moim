@@ -25,22 +25,29 @@
 
 ## 셋업 & 실행
 
-### 1) 백엔드
+### 0) 최초 1회 — 설정 파일 + 의존성
 ```powershell
-cd backend
-Copy-Item .env.example .env   # 값 채우기 (MONGODB_URI, JWT_SECRET, GOOGLE_*)
+cd backend;  Copy-Item .env.example .env          # 값 채우기 (MONGODB_URI, JWT_SECRET, GOOGLE_*)
+cd ..\frontend; Copy-Item .env.local.example .env.local
+cd ..
 $env:NODE_OPTIONS="--use-system-ca"   # VPN 환경에서만 필요
-npm install
-npm run dev                   # http://localhost:4000
+npm run install:all                   # backend + frontend 의존성 한 번에 설치
 ```
 
-### 2) 프론트엔드 (새 터미널)
+### 1) 루트에서 두 서버 한 번에 (권장)
 ```powershell
-cd frontend
-Copy-Item .env.local.example .env.local
 $env:NODE_OPTIONS="--use-system-ca"   # VPN 환경에서만 필요
-npm install
-npm run dev                   # http://localhost:3000
+npm run dev
+```
+- backend(`:4000`) + frontend(`:3000`)를 한 콘솔에서 실행. 출력은 `[backend]`/`[frontend]` 로 구분.
+- **Ctrl+C** 한 번이면 두 서버가 함께 종료. 한쪽이 죽으면 나머지도 자동 정리(`concurrently`).
+
+### 1-b) 개별 실행 (디버깅 등 따로 띄우고 싶을 때)
+```powershell
+# 터미널 A
+cd backend;  $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localhost:4000
+# 터미널 B
+cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localhost:3000
 ```
 
 브라우저에서 `http://localhost:3000` → "구글로 시작하기".
