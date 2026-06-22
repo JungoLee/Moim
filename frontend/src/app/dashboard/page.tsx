@@ -29,18 +29,26 @@ export default function Dashboard() {
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [audienceTiers, setAudienceTiers] = useState<string[]>([]);
 
+  const loadTiers = useCallback(async () => {
+    try {
+      const tRes = await api<{ tiers: Tier[] }>('/api/tiers');
+      setTiers(tRes.tiers);
+    } catch {
+      /* 그룹 로드 실패는 일정 작성 흐름을 막지 않음 */
+    }
+  }, []);
+
   const load = useCallback(async () => {
     try {
       const meRes = await api<{ user: User }>('/api/auth/me');
       setUser(meRes.user);
       const evRes = await api<{ events: MoimEvent[] }>('/api/events');
       setEvents(evRes.events);
-      const tRes = await api<{ tiers: Tier[] }>('/api/tiers');
-      setTiers(tRes.tiers);
     } catch (e) {
       setError(e instanceof Error ? e.message : '불러오기 실패');
     }
-  }, []);
+    loadTiers();
+  }, [loadTiers]);
 
   useEffect(() => {
     if (!getToken()) {
@@ -104,7 +112,11 @@ export default function Dashboard() {
             <select
               className="app-select"
               value={visibility}
-              onChange={(e) => setVisibility(e.target.value as 'public' | 'private')}
+              onChange={(e) => {
+                const v = e.target.value as 'public' | 'private';
+                setVisibility(v);
+                if (v === 'private') loadTiers(); // 최근 만든 그룹까지 최신 반영
+              }}
             >
               <option value="public">공유(누구나)</option>
               <option value="private">비공개(선택 그룹)</option>
@@ -116,9 +128,10 @@ export default function Dashboard() {
 
           {visibility === 'private' && (
             <div className="app-row" style={{ marginTop: 'var(--space-2)' }}>
+              <span className="app-muted">공개할 그룹:</span>
               {tiers.length === 0 ? (
                 <span className="app-muted">
-                  공개할 그룹이 없습니다 — <Link href="/tiers">그룹 만들기</Link> (비우면 나만 봅니다)
+                  없음 — <Link href="/tiers">그룹 만들기</Link> (비우면 나만 봅니다)
                 </span>
               ) : (
                 tiers.map((t) => (
