@@ -225,7 +225,7 @@ export default function RoomPage() {
           <aside className="room-aside">
             <div className="app-card">
               <h3>댓글 ({comments.length})</h3>
-              <form className="app-row" onSubmit={addComment}>
+              <form className="app-row" style={{ flexWrap: 'nowrap' }} onSubmit={addComment}>
                 {mePicture && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={mePicture} alt="" className="app-avatar-sm" />
@@ -235,9 +235,9 @@ export default function RoomPage() {
                   placeholder="댓글 입력"
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, minWidth: 0 }}
                 />
-                <button className="app-btn" type="submit">
+                <button className="app-btn" style={{ flexShrink: 0 }} type="submit">
                   등록
                 </button>
               </form>

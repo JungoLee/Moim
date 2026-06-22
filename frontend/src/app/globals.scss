@@ -1,3 +1,14 @@
+/* 영문(라틴 알파벳) 전용 브랜드 폰트 — MOIM 로고와 동일한 Black Ops One.
+   unicode-range 로 A–Z·a–z 에만 적용 → 숫자·날짜·카운트·한글은 본문 폰트(Pretendard) 유지. */
+@font-face {
+  font-family: 'BrandEn';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/blackopsone/v21/qWcsB6-ypo7xBdr6Xshe96H3WDw.ttf') format('truetype');
+  unicode-range: U+0041-005A, U+0061-007A;
+}
+
 :root {
   /* 표면 — 깊은 슬레이트에 단계별 입체감 */
   --color-bg: #0a0d18;
@@ -59,8 +70,9 @@ body {
   background-image: radial-gradient(900px 500px at 15% -8%, rgba(124, 140, 255, 0.16), transparent 60%),
     radial-gradient(800px 480px at 100% 0%, rgba(122, 224, 208, 0.1), transparent 55%);
   background-attachment: fixed;
-  font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo',
-    'Noto Sans KR', sans-serif;
+  /* 'BrandEn'(Black Ops One)은 영문 글자에만 매칭(unicode-range), 그 외는 Pretendard 로 폴백 */
+  font-family: 'BrandEn', 'Pretendard', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic',
+    'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -151,6 +163,15 @@ h3 {
 .app-nav a:hover {
   color: var(--color-text);
   background: var(--color-surface-2);
+}
+/* 주 기능 강조(모임) */
+.app-nav a.app-nav-feature {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+.app-nav a.app-nav-feature:hover {
+  color: var(--color-accent);
+  background: rgba(70, 214, 194, 0.12);
 }
 .app-nav .brand-mark {
   margin-right: var(--space-3);
@@ -455,6 +476,11 @@ a.app-card:hover {
 }
 .app-muted {
   color: var(--color-muted);
+}
+/* 데이터성 영문(이메일 등)은 브랜드 영문 폰트(BrandEn)가 아닌 본문 폰트로 — 가독성 유지 */
+.app-plain {
+  font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic',
+    'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
 }
 .app-error {
   color: var(--color-danger);

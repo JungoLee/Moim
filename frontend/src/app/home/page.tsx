@@ -11,12 +11,12 @@ import { formatRange, displayName } from '@/lib/format';
 import type { MoimEvent, User, FriendRequest, RoomSummary } from '@/lib/types';
 import styles from './home.module.scss';
 
-// [경로, 아이콘, 라벨, 툴팁 설명]
-const TILES: Array<[string, IconName, string, string]> = [
+// [경로, 아이콘, 라벨, 툴팁 설명, 주요기능?]
+const TILES: Array<[string, IconName, string, string, boolean?]> = [
   ['/dashboard', 'calendar', '내 캘린더', '내 일정을 만들고 월/주 달력으로 관리해요'],
   ['/friends', 'users', '친구', '이메일로 친구를 추가하고 받은 요청을 수락해요'],
   ['/tiers', 'tag', '그룹', '공개 그룹을 만들어 비공개 일정을 그 그룹에만 공유해요'],
-  ['/rooms', 'calendar-check', '모임', '방을 만들어 친구를 초대하고 모두 되는 날을 찾아요'],
+  ['/rooms', 'calendar-check', '모임', '방을 만들어 친구를 초대하고 모두 되는 날을 찾아요', true],
   ['/tools/leave', 'sun', '연차', '주말·공휴일을 활용한 최적 연차 계획을 추천해요'],
 ];
 
@@ -66,9 +66,10 @@ export default function Home() {
         </div>
 
         <div className={styles.tiles}>
-          {TILES.map(([href, icon, label, desc]) => (
+          {TILES.map(([href, icon, label, desc, featured]) => (
             <Tooltip key={href} label={desc}>
-              <Link href={href} className={styles.tile}>
+              <Link href={href} className={featured ? `${styles.tile} ${styles.featured}` : styles.tile}>
+                {featured && <span className={styles.featuredBadge}>주요</span>}
                 <span className={styles.icon}>
                   <Icon name={icon} size={26} />
                 </span>
