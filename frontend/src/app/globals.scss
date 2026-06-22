@@ -366,6 +366,10 @@ input[type='radio'] {
 .fc .fc-daygrid-day.fc-day-today {
   background: var(--fc-today-bg-color);
 }
+/* 지난 날짜 비활성(흐리게) */
+.fc .fc-day-past {
+  opacity: 0.45;
+}
 .fc .fc-highlight {
   background: rgba(124, 140, 255, 0.25);
 }

@@ -55,6 +55,13 @@
 .outside {
   opacity: 0.4;
 }
+.past {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.past:hover {
+  border-color: var(--color-border-soft);
+}
 .dayNum {
   font-size: 0.8rem;
   color: var(--color-muted);

@@ -23,6 +23,7 @@ type Props = {
 };
 
 export default function AvailabilityCalendar({ myDates, counts, total, onToggle }: Props) {
+  const today = useMemo(() => startOfDay(new Date()), []);
   const [view, setView] = useState<Date>(() => startOfDay(new Date()));
 
   const monthStart = new Date(view.getFullYear(), view.getMonth(), 1);
@@ -70,11 +71,18 @@ export default function AvailabilityCalendar({ myDates, counts, total, onToggle 
           const count = counts[key] || 0;
           const mine = myDates.has(key);
           const all = total > 0 && count === total;
-          const cls = [styles.cell, inMonth ? '' : styles.outside, mine ? styles.mine : '', all ? styles.all : '']
+          const past = day.getTime() < today.getTime();
+          const cls = [
+            styles.cell,
+            inMonth ? '' : styles.outside,
+            past ? styles.past : '',
+            mine ? styles.mine : '',
+            all ? styles.all : '',
+          ]
             .filter(Boolean)
             .join(' ');
           return (
-            <button type="button" key={key} className={cls} onClick={() => onToggle(key)}>
+            <button type="button" key={key} className={cls} disabled={past} onClick={() => onToggle(key)}>
               <span className={styles.dayNum}>{day.getDate()}</span>
               {count > 0 && (
                 <span className={styles.count}>

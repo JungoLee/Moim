@@ -19,6 +19,12 @@ export default function Calendar({ events, onSelectRange }: Props) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  const today = useMemo(() => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  }, []);
+
   const fcEvents: EventInput[] = useMemo(
     () =>
       events.map((ev) => {
@@ -60,6 +66,7 @@ export default function Calendar({ events, onSelectRange }: Props) {
         events={fcEvents}
         selectable={!!onSelectRange}
         selectMirror
+        selectAllow={(arg) => arg.start.getTime() >= today.getTime()}
         select={onSelectRange ? handleSelect : undefined}
         dayMaxEvents={3}
         firstDay={0}

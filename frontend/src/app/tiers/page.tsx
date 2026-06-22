@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
+import CopyButton from '@/components/CopyButton';
 import { api, getToken } from '@/lib/api';
 import type { Tier } from '@/lib/types';
 
@@ -130,6 +131,7 @@ export default function Tiers() {
             <div className="app-row">
               <strong>{t.name}</strong>
               <span className="app-muted">코드: {t.code}</span>
+              <CopyButton text={t.code} label="복사" />
               <span className="app-spacer" />
               <button className="app-btn app-btn--ghost" onClick={() => deleteTier(t._id)}>
                 삭제

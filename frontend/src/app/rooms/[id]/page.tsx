@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import AvailabilityCalendar from '@/components/AvailabilityCalendar';
+import CopyButton from '@/components/CopyButton';
 import { api, getToken } from '@/lib/api';
 import type { RoomDetail, User } from '@/lib/types';
 
@@ -89,9 +90,12 @@ export default function RoomPage() {
       <Nav />
       <main className="app-container">
         <h2>{room.name}</h2>
-        <p className="app-muted">
-          초대 코드 <strong>{room.code}</strong> · 멤버 {total}명 — {room.members.map((m) => m.name).join(', ')}
-        </p>
+        <div className="app-row">
+          <span className="app-muted">초대 코드</span>
+          <strong>{room.code}</strong>
+          <CopyButton text={room.code} label="코드 복사" />
+        </div>
+        <p className="app-muted">멤버 {total}명 — {room.members.map((m) => m.name).join(', ')}</p>
 
         <div className="app-card">
           <div className="app-row">
