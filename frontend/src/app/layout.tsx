@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import './globals.scss';
 import { BRAND_NAME } from '@/lib/brand';
+import Toaster from '@/components/Toaster';
 
 export const metadata: Metadata = {
   title: BRAND_NAME,
@@ -17,7 +18,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* 브랜드 로고 아이덴티티 폰트 (Gilo와 동일: Black Ops One) */}
         <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

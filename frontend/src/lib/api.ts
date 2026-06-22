@@ -35,6 +35,13 @@ export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
     body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401) {
+    // 토큰 만료/무효 → 로그아웃 후 랜딩으로
+    clearToken();
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+      window.location.href = '/';
+    }
+  }
   if (!res.ok) {
     throw new Error((data as { message?: string })?.message || `요청 실패 (${res.status})`);
   }

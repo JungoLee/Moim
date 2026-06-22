@@ -8,6 +8,7 @@ import Calendar from '@/components/Calendar';
 import DatePicker from '@/components/DatePicker';
 import { api, getToken } from '@/lib/api';
 import { formatRange, displayName } from '@/lib/format';
+import { toast } from '@/lib/toast';
 import type { MoimEvent, Tier, User } from '@/lib/types';
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
@@ -133,21 +134,32 @@ export default function Dashboard() {
       else await api('/api/events', { method: 'POST', body });
       setOpen(false);
       load();
+      toast(mode === 'edit' ? '일정을 수정했습니다' : '일정을 추가했습니다', 'success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '저장 실패');
+      toast(err instanceof Error ? err.message : '저장 실패', 'error');
     }
   }
 
   async function deleteEvent() {
     if (!editId) return;
-    await api(`/api/events/${editId}`, { method: 'DELETE' });
-    setOpen(false);
-    load();
+    try {
+      await api(`/api/events/${editId}`, { method: 'DELETE' });
+      setOpen(false);
+      load();
+      toast('일정을 삭제했습니다');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : '삭제 실패', 'error');
+    }
   }
 
   async function removeFromList(id: string) {
-    await api(`/api/events/${id}`, { method: 'DELETE' });
-    load();
+    try {
+      await api(`/api/events/${id}`, { method: 'DELETE' });
+      load();
+      toast('일정을 삭제했습니다');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : '삭제 실패', 'error');
+    }
   }
 
   return (

@@ -377,6 +377,45 @@ input[type='radio'] {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  animation: app-pop-in 180ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* ── 인터랙션 애니메이션 ── */
+@keyframes app-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes app-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes app-slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.app-modal-backdrop,
+.app-drawer-backdrop {
+  animation: app-fade 150ms ease;
+}
+.app-drawer {
+  animation: app-slide-in 220ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+/* 클릭 가능한 카드(링크) 호버 */
+a.app-card {
+  transition: transform var(--transition), border-color var(--transition);
+}
+a.app-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+}
+/* prefers-reduced-motion 존중 */
+@media (prefers-reduced-motion: reduce) {
+  .app-modal,
+  .app-drawer,
+  .app-modal-backdrop,
+  .app-drawer-backdrop {
+    animation: none;
+  }
 }
 
 /* 유틸 */
