@@ -12,9 +12,11 @@ type Props = {
   events: MoimEvent[];
   /** 드래그/클릭으로 기간 선택 (대시보드: 새 일정 프리필). 없으면 읽기 전용. */
   onSelectRange?: (start: Date, end: Date) => void;
+  /** 일정 클릭 (대시보드: 수정 모달). */
+  onSelectEvent?: (id: string) => void;
 };
 
-export default function Calendar({ events, onSelectRange }: Props) {
+export default function Calendar({ events, onSelectRange, onSelectEvent }: Props) {
   // FullCalendar 는 클라이언트에서만 렌더 (SSR/하이드레이션 이슈 회피)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -66,8 +68,10 @@ export default function Calendar({ events, onSelectRange }: Props) {
         events={fcEvents}
         selectable={!!onSelectRange}
         selectMirror
+        unselectAuto={false}
         selectAllow={(arg) => arg.start.getTime() >= today.getTime()}
         select={onSelectRange ? handleSelect : undefined}
+        eventClick={onSelectEvent ? (info) => onSelectEvent(info.event.id) : undefined}
         dayMaxEvents={3}
         firstDay={0}
         fixedWeekCount={false}

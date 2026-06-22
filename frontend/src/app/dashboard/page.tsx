@@ -29,6 +29,14 @@ export default function Dashboard() {
   // 공개 범위: 'public'(누구나) | 'private'(나만) | 'tier:<id>'(특정 그룹에만)
   const [share, setShare] = useState<string>('public');
 
+  // 일정 수정 모달
+  const [editing, setEditing] = useState<MoimEvent | null>(null);
+  const [eTitle, setETitle] = useState('');
+  const [eStart, setEStart] = useState('');
+  const [eEnd, setEEnd] = useState('');
+  const [eMemo, setEMemo] = useState('');
+  const [eShare, setEShare] = useState('public');
+
   const loadTiers = useCallback(async () => {
     try {
       const tRes = await api<{ tiers: Tier[] }>('/api/tiers');
@@ -90,6 +98,54 @@ export default function Dashboard() {
     load();
   }
 
+  // 일정 클릭 → 수정 모달 열기
+  function openEdit(id: string) {
+    const ev = events.find((e) => e._id === id);
+    if (!ev) return;
+    setEditing(ev);
+    setETitle(ev.title || '');
+    setEStart(toLocalInput(new Date(ev.start)));
+    setEEnd(toLocalInput(new Date(ev.end)));
+    setEMemo(ev.memo || '');
+    setEShare(
+      ev.visibility === 'private'
+        ? ev.audienceTiers && ev.audienceTiers.length
+          ? `tier:${ev.audienceTiers[0]}`
+          : 'private'
+        : 'public'
+    );
+    loadTiers();
+  }
+
+  async function saveEdit(e: FormEvent) {
+    e.preventDefault();
+    if (!editing || !eStart || !eEnd) return;
+    let visibility: 'public' | 'private' = 'public';
+    let audienceTiers: string[] = [];
+    if (eShare === 'private') visibility = 'private';
+    else if (eShare.startsWith('tier:')) {
+      visibility = 'private';
+      audienceTiers = [eShare.slice(5)];
+    }
+    try {
+      await api(`/api/events/${editing._id}`, {
+        method: 'PATCH',
+        body: { title: eTitle.trim() || '새 일정', start: eStart, end: eEnd, memo: eMemo, visibility, audienceTiers },
+      });
+      setEditing(null);
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '수정 실패');
+    }
+  }
+
+  async function deleteEditing() {
+    if (!editing) return;
+    await api(`/api/events/${editing._id}`, { method: 'DELETE' });
+    setEditing(null);
+    load();
+  }
+
   // 캘린더에서 날짜 클릭/드래그 → 새 일정 기간 프리필 (시작일 09시 ~ 종료일 10시)
   function pickRange(startDay: Date, endDay: Date) {
     const s = new Date(startDay);
@@ -142,7 +198,7 @@ export default function Dashboard() {
           )}
         </form>
 
-        <Calendar events={events} onSelectRange={pickRange} />
+        <Calendar events={events} onSelectRange={pickRange} onSelectEvent={openEdit} />
 
         <h3>일정 목록</h3>
         {events.length === 0 && <p className="app-muted">아직 일정이 없습니다.</p>}
@@ -152,6 +208,9 @@ export default function Dashboard() {
               <strong>{ev.title}</strong>
               {ev.visibility === 'private' && <span className="app-muted">· 비공개</span>}
               <span className="app-spacer" />
+              <button className="app-btn app-btn--ghost" onClick={() => openEdit(ev._id)}>
+                수정
+              </button>
               <button className="app-btn app-btn--ghost" onClick={() => removeEvent(ev._id)}>
                 삭제
               </button>
@@ -159,6 +218,55 @@ export default function Dashboard() {
             <div className="app-muted">{formatRange(ev.start, ev.end)}</div>
           </div>
         ))}
+
+        {editing && (
+          <div className="app-modal-backdrop" onClick={() => setEditing(null)}>
+            <form className="app-modal" onClick={(e) => e.stopPropagation()} onSubmit={saveEdit}>
+              <h3>일정 수정</h3>
+              <input className="app-input" placeholder="제목" value={eTitle} onChange={(e) => setETitle(e.target.value)} />
+              <label className="app-muted">
+                시작{' '}
+                <input className="app-input" type="datetime-local" value={eStart} onChange={(e) => setEStart(e.target.value)} />
+              </label>
+              <label className="app-muted">
+                종료{' '}
+                <input className="app-input" type="datetime-local" value={eEnd} onChange={(e) => setEEnd(e.target.value)} />
+              </label>
+              <textarea
+                className="app-textarea"
+                placeholder="내용 (메모)"
+                value={eMemo}
+                onChange={(e) => setEMemo(e.target.value)}
+                rows={3}
+              />
+              <select className="app-select" value={eShare} onChange={(e) => setEShare(e.target.value)}>
+                <option value="public">공유 (누구나)</option>
+                <option value="private">비공개 (나만)</option>
+                {tiers.length > 0 && (
+                  <optgroup label="이 그룹에만 공개">
+                    {tiers.map((t) => (
+                      <option key={t._id} value={`tier:${t._id}`}>
+                        🔒 {t.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+              <div className="app-row">
+                <button className="app-btn" type="submit">
+                  저장
+                </button>
+                <button type="button" className="app-btn app-btn--ghost" onClick={() => setEditing(null)}>
+                  취소
+                </button>
+                <span className="app-spacer" />
+                <button type="button" className="app-btn app-btn--ghost" onClick={deleteEditing}>
+                  삭제
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
       </main>
     </>
   );
