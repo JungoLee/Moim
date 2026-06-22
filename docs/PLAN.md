@@ -59,7 +59,7 @@
 - [x] `Tier`(그룹) 모델: owner·name·고유 `code`·members[]. 라우트 `/api/tiers` (생성/삭제/멤버추가(이메일)/멤버제거/코드가입 `join`)
 - [x] Event 가시성 재정의: `public`(공유=친구 모두 상세) / `private`(비공개=선택 `audienceTiers` 멤버만 상세, 그 외 "바쁨"). 구 `default`→public 호환
 - [x] 캘린더 라우트: 친구면 열람, 일정별 public→상세 / private→내가 그 그룹 멤버일 때만 상세
-- [x] 프론트: `/tiers` 그룹 관리 페이지, 대시보드 공유/비공개+그룹 체크박스, 친구·친구캘린더 정리, Nav '그룹'
+- [x] 프론트: `/tiers` 그룹 관리 페이지, 대시보드 공개 드롭다운(공유/비공개/🔒그룹), 친구·친구캘린더 정리, Nav '그룹'
 - [x] 레거시 정리: 구 `Friendship.close/normal` 필드 + `/api/friends/:id/tier` 라우트 제거. UI 표기 '등급'→'그룹' 통일
 
 ## 부가 도구 — 연차 계산기 ✅ (2026-06-22, MyBudget 이식)

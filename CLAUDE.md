@@ -6,7 +6,7 @@
 
 ## 프로젝트 개요
 - **Moim** — 친구들과 스케줄을 공유하고, 함께 비는 시간을 찾아 모임·여행을 잡는 소셜 캘린더.
-- 스택: 프론트 **Next.js(App Router) + React 18 + TypeScript + SCSS** (`frontend/`), 백 **Node + Express(ESM) + MongoDB(Mongoose)** (`backend/`).
+- 스택: 프론트 **Next.js(App Router) + React 18 + TypeScript + SCSS** (`frontend/`, 달력 UI는 **FullCalendar**), 백 **Node + Express(ESM) + MongoDB(Mongoose)** (`backend/`).
 - 인증: **Google OAuth** (백엔드 passport-google-oauth20) → 백엔드가 **JWT** 발급, 프론트는 `Authorization: Bearer` 헤더로 호출.
 - 핵심 개념: 일정 가시성 = **일정별 공유(public)/비공개(private)** × **그룹(Tier)**. 공유=친구 모두 상세, 비공개=선택 그룹 멤버만 상세(그 외 "바쁨"). 그룹은 사용자가 만들고 이메일/코드로 멤버 추가. (UI 표기는 '그룹', 코드 식별자는 `Tier`)
 
@@ -27,6 +27,7 @@
 
 ## 빌드 · 검증
 - 프론트: `npm run build` (= `next build`, tsc 타입체크 포함). 백엔드: 변경 파일 `node --check <file>`.
+- ⚠️ **`next dev` 실행 중 `next build` 금지** — 같은 `.next/` 를 동시에 써서 dev 가 깨짐(`Cannot find module './###.js'`). 빌드하려면 dev 중지 후 실행. 타입만 볼 땐 `npx tsc --noEmit`(`.next` 미접촉, dev 와 공존 가능).
 - **VPN 환경에서 npm 은 `NODE_OPTIONS=--use-system-ca` 필요** (없으면 cert 오류).
 - 빌드 산출물(`.next/` 등) 직접 수정 금지 — 소스만.
 - 새 의존성 설치는 **사용자 승인 후** + `package.json` 등록.

@@ -57,13 +57,6 @@ export function getHolidayNames(start: Date, end: Date, holidays: Holidays): str
   return [...names];
 }
 
-// 한국 연차법: 근속연수 → 연차 일수 (1년 미만 11, 1년 이상 15 + 2년마다 1, 최대 25)
-export function calcAnnualLeaveDays(yearsOfService: number): number {
-  if (yearsOfService < 1) return 11;
-  const extra = Math.floor((yearsOfService - 1) / 2);
-  return Math.min(15 + extra, 25);
-}
-
 // from~to 범위에서 모든 "브릿지" 후보를 찾는다.
 export function findBridges(from: Date, to: Date, maxConsecutive: number, holidays: Holidays): Bridge[] {
   const bridges: Bridge[] = [];

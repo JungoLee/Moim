@@ -5,7 +5,15 @@
 - **frontend/** — Next.js(App Router) + TypeScript + SCSS
 - **backend/** — Node + Express(ESM) + MongoDB(Mongoose), Google OAuth + JWT
 
-> 작업 규칙은 [CLAUDE.md](CLAUDE.md), 기능 로드맵·현재 상태·데이터 모델은 [docs/PLAN.md](docs/PLAN.md) 참조.
+> 작업 규칙은 [CLAUDE.md](CLAUDE.md), 기능 로드맵·현재 상태·데이터 모델은 [docs/PLAN.md](docs/PLAN.md), 셋업·트러블슈팅은 [docs/ONBOARDING.md](docs/ONBOARDING.md) 참조.
+
+---
+
+## 주요 기능 (현재)
+- **구글 로그인** → 내 일정 작성 — 월·주 **FullCalendar**, 드래그/클릭으로 기간 선택해 추가
+- **친구 + 그룹** — 그룹을 만들어 **이메일 또는 고유 코드**로 멤버 추가
+- **공유/비공개** — 일정별로 `공유(누구나)` / `비공개(특정 그룹에만)` 제어. 비대상에게는 "바쁨"만 노출
+- **연차 계산기**(`/tools/leave`) — 주말·공휴일을 활용해 최소 연차로 최대 연휴를 추천(브릿지 알고리즘)
 
 ---
 
@@ -54,7 +62,7 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 
 ---
 
-## API 요약 (Phase 1)
+## API 요약 (현재)
 | 메서드 | 경로 | 설명 |
 |---|---|---|
 | GET | `/api/health` | 헬스 체크 |
@@ -77,11 +85,15 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 ## 폴더 구조
 ```
 Moim/
+├─ package.json         # 루트: concurrently 로 두 서버 동시 실행 (npm run dev)
 ├─ CLAUDE.md            # 작업 규칙
 ├─ README.md
-├─ docs/PLAN.md         # 기능 로드맵 · 현재 상태 · 다음 작업
+├─ docs/                # PLAN.md(로드맵·현재상태) · ONBOARDING.md · refactoring-guide.md
 ├─ backend/
-│  └─ src/{config,middleware,models,routes,utils}
+│  └─ src/{config,middleware,models,routes,utils}   # models: User·Friendship·Tier·Event
 └─ frontend/
-   └─ src/{app,components,lib}
+   └─ src/
+      ├─ app/           # dashboard · friends · tiers · tools/leave · u/[userId] · auth/callback
+      ├─ components/    # Nav · Calendar(FullCalendar)
+      └─ lib/           # api · types · format · brand · leave · holidays
 ```
