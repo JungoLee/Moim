@@ -22,6 +22,15 @@ const roomSchema = new mongoose.Schema(
         ],
       },
     ],
+    // 방 댓글
+    comments: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        name: { type: String, default: '' },
+        text: { type: String, required: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

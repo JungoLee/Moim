@@ -57,3 +57,11 @@ export type RoomDetail = {
   owner: string;
   members: User[];
 };
+
+export type RoomComment = {
+  _id: string;
+  user: string;
+  name: string;
+  text: string;
+  createdAt: string;
+};

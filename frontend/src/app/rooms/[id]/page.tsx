@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import type { FormEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import AvailabilityCalendar, { type DaySummary } from '@/components/AvailabilityCalendar';
 import CopyButton from '@/components/CopyButton';
 import { api, getToken } from '@/lib/api';
-import type { RoomDetail, User, Mark, AvailStatus } from '@/lib/types';
+import type { RoomDetail, User, Mark, AvailStatus, RoomComment } from '@/lib/types';
 
 const MODES: Array<[AvailStatus, string]> = [
   ['yes', '되는 날'],
@@ -25,14 +26,19 @@ export default function RoomPage() {
   const [error, setError] = useState('');
   const [mode, setMode] = useState<AvailStatus>('yes');
   const [afterTime, setAfterTime] = useState('18:00');
+  const [comments, setComments] = useState<RoomComment[]>([]);
+  const [commentText, setCommentText] = useState('');
 
   const load = useCallback(async () => {
     try {
       const me = await api<{ user: User }>('/api/auth/me');
       setMeId(me.user._id);
-      const res = await api<{ room: RoomDetail; availabilities: Record<string, Mark[]> }>(`/api/rooms/${roomId}`);
+      const res = await api<{ room: RoomDetail; availabilities: Record<string, Mark[]>; comments: RoomComment[] }>(
+        `/api/rooms/${roomId}`
+      );
       setRoom(res.room);
       setAvailabilities(res.availabilities || {});
+      setComments(res.comments || []);
     } catch (e) {
       setError(e instanceof Error ? e.message : '불러오기 실패');
     }
@@ -106,6 +112,27 @@ export default function RoomPage() {
     }
   }
 
+  async function addComment(e: FormEvent) {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    try {
+      await api(`/api/rooms/${roomId}/comments`, { method: 'POST', body: { text: commentText } });
+      setCommentText('');
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '댓글 작성 실패');
+    }
+  }
+
+  async function deleteComment(id: string) {
+    try {
+      await api(`/api/rooms/${roomId}/comments/${id}`, { method: 'DELETE' });
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '삭제 실패');
+    }
+  }
+
   if (error) {
     return (
       <>
@@ -139,6 +166,8 @@ export default function RoomPage() {
         </div>
         <p className="app-muted">멤버 {total}명 — {room.members.map((m) => m.name).join(', ')}</p>
 
+        <div className="room-grid">
+          <div className="room-main">
         <div className="app-card">
           <div className="app-row">
             {MODES.map(([v, label]) => (
@@ -188,6 +217,41 @@ export default function RoomPage() {
               </div>
             </>
           )}
+        </div>
+          </div>
+
+          <aside className="room-aside">
+            <div className="app-card">
+              <h3>댓글 ({comments.length})</h3>
+              <form className="app-row" onSubmit={addComment}>
+                <input
+                  className="app-input"
+                  placeholder="댓글 입력"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button className="app-btn" type="submit">
+                  등록
+                </button>
+              </form>
+              {comments.length === 0 && <p className="app-muted">아직 댓글이 없습니다.</p>}
+              {comments.map((c) => (
+                <div key={c._id} className="room-comment">
+                  <div className="app-row">
+                    <strong>{c.name || '익명'}</strong>
+                    <span className="app-spacer" />
+                    {c.user === meId && (
+                      <button className="app-btn app-btn--ghost" onClick={() => deleteComment(c._id)}>
+                        삭제
+                      </button>
+                    )}
+                  </div>
+                  <div>{c.text}</div>
+                </div>
+              ))}
+            </div>
+          </aside>
         </div>
       </main>
     </>

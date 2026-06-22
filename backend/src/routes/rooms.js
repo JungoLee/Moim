@@ -2,6 +2,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 import Room from '../models/Room.js';
+import User from '../models/User.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
@@ -104,6 +105,13 @@ router.get('/:id', async (req, res) => {
       members: room.members.map((m) => ({ _id: m._id, name: m.name, email: m.email, picture: m.picture })),
     },
     availabilities,
+    comments: (room.comments || []).map((c) => ({
+      _id: c._id,
+      user: c.user,
+      name: c.name,
+      text: c.text,
+      createdAt: c.createdAt,
+    })),
     isOwner: room.owner.toString() === req.userId,
   });
 });
@@ -121,6 +129,40 @@ router.put('/:id/availability', async (req, res) => {
   const entry = room.availabilities.find((a) => a.user.toString() === req.userId);
   if (entry) entry.marks = clean;
   else room.availabilities.push({ user: req.userId, marks: clean });
+  await room.save();
+  res.json({ ok: true });
+});
+
+// 댓글 작성
+router.post('/:id/comments', async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
+  }
+  const text = (req.body.text || '').trim();
+  if (!text) return res.status(400).json({ ok: false, message: '내용을 입력하세요.' });
+  const room = await Room.findById(req.params.id);
+  if (!room) return res.status(404).json({ ok: false, message: '방을 찾을 수 없습니다.' });
+  if (!isMember(room, req.userId)) return res.status(403).json({ ok: false, message: '이 방의 멤버가 아닙니다.' });
+  const me = await User.findById(req.userId).select('name');
+  room.comments.push({ user: req.userId, name: me?.name || '', text: text.slice(0, 1000), createdAt: new Date() });
+  await room.save();
+  res.status(201).json({ ok: true });
+});
+
+// 댓글 삭제 (작성자 또는 방장)
+router.delete('/:id/comments/:commentId', async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id) || !mongoose.Types.ObjectId.isValid(req.params.commentId)) {
+    return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
+  }
+  const room = await Room.findById(req.params.id);
+  if (!room) return res.status(404).json({ ok: false, message: '방을 찾을 수 없습니다.' });
+  const c = room.comments.id(req.params.commentId);
+  if (!c) return res.status(404).json({ ok: false, message: '댓글을 찾을 수 없습니다.' });
+  const isOwner = room.owner.toString() === req.userId;
+  if (c.user.toString() !== req.userId && !isOwner) {
+    return res.status(403).json({ ok: false, message: '삭제 권한이 없습니다.' });
+  }
+  c.deleteOne();
   await room.save();
   res.json({ ok: true });
 });

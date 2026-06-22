@@ -268,6 +268,27 @@ input[type='radio'] {
   box-shadow: var(--shadow-glow);
 }
 
+/* 모임 방 레이아웃: 본문 + 댓글 사이드(스티키) */
+.room-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .room-grid {
+    grid-template-columns: 1fr 320px;
+  }
+}
+.room-aside {
+  position: sticky;
+  top: 76px;
+}
+.room-comment {
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-border-soft);
+}
+
 /* 계정 드로어 (우측 슬라이드) */
 .app-drawer-backdrop {
   position: fixed;
