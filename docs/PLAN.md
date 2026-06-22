@@ -28,10 +28,10 @@
 - 공개 제어 핵심: 일정 가시성 = **일정별 공유/비공개**(`public`/`private`) × **그룹(Tier)** — 공유=친구 모두 상세, 비공개=선택 그룹 멤버만 상세(그 외 "바쁨")
 
 ### 데이터 모델 (현재)
-- **User**: `googleId`, `email`, `name`, `picture`
+- **User**: `googleId`, `email`, `name`, `nickname`(표시명, 있으면 우선), `picture`, `isAdmin`
 - **Friendship**: `requester`, `recipient`, `status`(pending|accepted) — 친구 그래프 = 캘린더 열람 권한. 가시성 제어는 그룹/일정으로 분리
 - **Tier(그룹)**: `owner`, `name`, `code`(고유), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가
-- **Room(모임 방)**: `owner`, `name`, `code`(초대), `members[]`, `availabilities[{user, dates[]}]` — 멤버별 가능 날짜 → 모두 되는 날 집계
+- **Room(모임 방)**: `owner`, `name`, `code`(초대), `members[]`, `availabilities[{user, marks[{date,status(yes|no|after),time}]}]`, `comments[]` — 멤버별 가능/불가/시간 → 모두 되는 날 집계 + 댓글
 - **Event**: `owner`, `title`, `start`, `end`, `allDay`, `location`, `memo`, `visibility`(public|private), `audienceTiers[]`(비공개 시 상세 열람 그룹)
 
 ---
@@ -43,17 +43,19 @@
 - [x] 백엔드: Express, MongoDB(Atlas) 연결, Google OAuth+JWT, requireAuth, 시작 시 env 가드
 - [x] 모델: User / Friendship / Tier(그룹) / Room(모임) / Event
 - [x] 라우트: auth · events(CRUD) · friends · tiers(그룹) · rooms(방·가용성) · calendar · admin(가입자/권한)
-- [x] 프론트: 랜딩 · 대시보드(**FullCalendar** 월/주 + 클릭·드래그 → 일정 모달[날짜+24시 시간 분리] + 공유/비공개·그룹) · 친구 · 그룹(`/tiers`) · 친구 캘린더 · 모임(`/rooms`) · 연차(`/tools/leave`) · 관리자(`/admin`)
-- [x] 계정 메뉴(드로어): 고유 번호 복사 · 관리자 페이지 링크(권한 시) · 로그아웃 · 이용약관/개인정보. 기본 관리자 `tough123181@gmail.com`(env `ADMIN_EMAILS` 오버라이드), 관리자 페이지에서 권한 부여/회수
+- [x] 프론트: 랜딩 · 대시보드(**FullCalendar** 월/주 + 클릭·드래그 → 일정 모달[**커스텀 날짜 picker** + 24시 시간 + 메모] + 공유/비공개·그룹, 일정 클릭=수정/삭제) · 친구 · 그룹(`/tiers`) · 친구 캘린더 · 모임(`/rooms`, 3모드+댓글) · 연차(`/tools/leave`) · 관리자(`/admin`)
+- [x] 계정 메뉴(드로어): 구글 아바타 · **닉네임 설정**(없으면 구글 이름) · 고유 번호 복사 · 관리자 링크(권한 시) · 로그아웃 · 이용약관/개인정보 · ESC 닫기. 기본 관리자 `tough123181@gmail.com`(env `ADMIN_EMAILS`), 관리자 페이지에서 권한 부여/회수
 - [x] 디자인 시스템 고도화(globals.scss 토큰·버튼·카드·네비·캘린더)
 - [x] 루트 통합 실행(`concurrently`, `npm run dev`) · 문서(README/CLAUDE/PLAN/ONBOARDING)
 - [x] 환경: `backend/.env`(Atlas 연결·구글 OAuth 입력 완료) + `frontend/.env.local` (gitignore)
 - [x] 엔드투엔드 검증: Atlas 연결 + 구글 로그인 리다이렉트 + 로그인 후 일정 생성 동작 확인 (2026-06-22)
 
-### 다음 작업 (Phase 1 마무리 — 바로 이어서 할 일)
-- [ ] **일정 수정 UI** — PATCH API 있음, 화면 미연결 (현재 생성/삭제만)
-- [ ] **일정 입력 항목 확장** — `allDay`·위치·메모 폼 미연결(모델엔 있음)
-- [ ] **토큰 만료 자동 로그아웃** — `/api/auth/me` 실패 시 랜딩으로
+### 다음 작업 (남은 것)
+- [ ] **토큰 만료 자동 로그아웃** — `/api/auth/me` 실패(만료) 시 랜딩으로
+- [ ] **일정 입력 확장** — `allDay`·위치(`location`) 폼 미연결(제목·시간·메모·공개범위는 됨)
+- [ ] **메인(홈) 페이지** (요청됨) — 로그인 후 다가오는 일정·받은 요청·내 모임 요약
+- [ ] **안 읽음 표시** (요청됨) — 새 댓글/요청 등 알림 배지
+- [ ] **날짜 picker 라이브러리화** (요청됨) — 현재 자체 커스텀 달력. 필요 시 react-datepicker 등으로 교체 검토
 
 ---
 
@@ -75,9 +77,9 @@
 ## 백로그 (Phase 2+ — 우선순위 순)
 
 ### Phase 2 — 공통 빈 시간 찾기 (핵심 가치)
-- [x] **모임 방(약속 잡기)** ✅ (2026-06-22) — `Room`(코드 초대) + `/rooms`(목록·생성·입장) + `/rooms/[id]`(멤버별 가능 날짜 표시 → 날짜별 가능 인원 집계 → **모두 되는 날** 하이라이트). Nav '모임'
+- [x] **모임 방(약속 잡기)** ✅ — `Room`(코드 초대) + `/rooms`. 3모드(되는날 / 안되는날 드래그 / 시간만 가능) → **모두 되는 날** + 시간 조율 가능일, 사이드 **댓글**(스티키). Nav '모임'
+- [x] **부분 가용** ✅ — "시간만 가능" 모드로 "HH:MM 이후" 표시·집계
 - [ ] 기존 등록 일정(Event)에서 자동 취합 (수동 표시 없이 겹치는 빈 시간 계산)
-- [ ] "저녁부터 가능" 등 **부분 가용** 표시 (시간대 슬롯 단위)
 - [ ] 빈 시간 결과 시각화(히트맵/추천 날짜)
 
 ### Phase 3 — 시간 요청 (친한친구 기반)
@@ -113,5 +115,6 @@
 - 로그인 토큰을 **URL 쿼리(`?token=`)로 전달 + localStorage 저장** → 운영 전 httpOnly 쿠키로 전환 필요(Phase 8).
 - 프론트 `next build` 시 **ESLint 건너뜀**(`next.config.mjs`) — eslint-config-next 추가 후 되돌릴 것.
 - 일정 기본 가시성은 `public`(공유). 비공개는 그룹을 만들어 지정해야 상세 노출.
-- 일정 시간은 단순 `datetime-local`(타임존/반복 일정 미지원).
+- 일정 입력은 커스텀 날짜 picker + 24시 시간 select(타임존/반복 일정 미지원).
+- 연차 계산기 공휴일은 양력 고정만 내장(음력·대체공휴일 미반영 — data.go.kr 키 연동 시 해소).
 - 테스트 코드 없음.

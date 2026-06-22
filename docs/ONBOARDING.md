@@ -83,12 +83,13 @@ npm run dev                        # http://localhost:3000
 ## 5. 구조 한눈에
 ```
 frontend/  Next.js App Router
-  src/app/        라우트 (로그인 / dashboard / friends / tiers(그룹) / tools/leave(연차) / u/[userId] / auth/callback)
-  src/components/ 공용 컴포넌트 (Nav · Calendar=FullCalendar 래퍼)
+  src/app/        라우트 (로그인 / dashboard / friends / tiers(그룹) / rooms(모임) / tools/leave(연차) / admin / u/[userId] / auth/callback)
+  src/components/ 공용 (Nav · Calendar=FullCalendar · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton)
   src/lib/        api.ts(fetch+토큰) · types.ts · format.ts · brand.ts · leave.ts(연차 알고리즘) · holidays.ts
 backend/   Express(ESM)
-  src/routes/     auth · events · friends · tiers(그룹) · calendar
-  src/models/     User · Friendship · Tier(그룹) · Event
+  src/routes/     auth · events · friends · tiers(그룹) · rooms(모임) · calendar · admin
+  src/models/     User · Friendship · Tier(그룹) · Room(모임) · Event
+  src/middleware/ auth.js(requireAuth) · admin.js(requireAdmin)
   src/middleware/ auth.js(requireAuth)
   src/config/     db.js · passport.js(Google)
 docs/      PLAN.md(로드맵·할 일) · refactoring-guide.md · ONBOARDING.md(이 문서)

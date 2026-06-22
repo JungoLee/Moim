@@ -79,6 +79,11 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 | POST/DELETE | `/api/tiers/:id/members[/:userId]` | 멤버 추가(email) / 제거 |
 | POST | `/api/tiers/join` | 코드로 그룹 가입 |
 | GET | `/api/calendar/:userId` | 공유/비공개·그룹 반영한 친구 캘린더 조회 |
+| GET/POST | `/api/rooms` · `/join` | 모임 방 목록·생성 / 코드 입장 |
+| GET/PUT | `/api/rooms/:id` · `/availability` | 방 상세(멤버·가용성·댓글) / 내 가능표시 저장 |
+| POST/DELETE | `/api/rooms/:id/comments[/:cid]` | 방 댓글 작성 / 삭제 |
+| PATCH | `/api/auth/me` | 닉네임 설정 |
+| GET/PATCH | `/api/admin/users[/:id/admin]` | (관리자) 가입자 목록 / 권한 부여·회수 |
 
 ---
 
@@ -93,7 +98,7 @@ Moim/
 │  └─ src/{config,middleware,models,routes,utils}   # models: User·Friendship·Tier·Event
 └─ frontend/
    └─ src/
-      ├─ app/           # dashboard · friends · tiers · tools/leave · u/[userId] · auth/callback
-      ├─ components/    # Nav · Calendar(FullCalendar)
+      ├─ app/           # dashboard · friends · tiers · rooms · tools/leave · admin · u/[userId] · auth/callback
+      ├─ components/    # Nav · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton
       └─ lib/           # api · types · format · brand · leave · holidays
 ```
