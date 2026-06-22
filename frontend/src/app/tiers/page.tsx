@@ -17,8 +17,12 @@ export default function Tiers() {
   const [memberEmail, setMemberEmail] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
-    const res = await api<{ tiers: Tier[] }>('/api/tiers');
-    setTiers(res.tiers);
+    try {
+      const res = await api<{ tiers: Tier[] }>('/api/tiers');
+      setTiers(res.tiers);
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : '그룹을 불러오지 못했습니다.');
+    }
   }, []);
 
   useEffect(() => {
