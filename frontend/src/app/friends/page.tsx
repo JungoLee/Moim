@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import Notice from '@/components/Notice';
 import { api, getToken } from '@/lib/api';
 import type { Friend, FriendRequest } from '@/lib/types';
 
@@ -13,7 +14,7 @@ export default function Friends() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [email, setEmail] = useState('');
-  const [msg, setMsg] = useState('');
+  const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
 
   const load = useCallback(async () => {
     const f = await api<{ friends: Friend[] }>('/api/friends');
@@ -32,14 +33,14 @@ export default function Friends() {
 
   async function sendRequest(e: FormEvent) {
     e.preventDefault();
-    setMsg('');
+    setFeedback(null);
     try {
       await api('/api/friends/requests', { method: 'POST', body: { email } });
       setEmail('');
-      setMsg('요청을 보냈습니다.');
+      setFeedback({ ok: true, text: '요청을 보냈습니다.' });
       load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : '요청 실패');
+      setFeedback({ ok: false, text: err instanceof Error ? err.message : '요청 실패' });
     }
   }
 
@@ -72,7 +73,7 @@ export default function Friends() {
               친구 요청
             </button>
           </div>
-          {msg && <p className="app-muted">{msg}</p>}
+          {feedback && <Notice ok={feedback.ok}>{feedback.text}</Notice>}
         </form>
 
         {requests.length > 0 && (

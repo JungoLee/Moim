@@ -355,6 +355,55 @@ input[type='radio'] {
   box-shadow: var(--shadow-glow);
 }
 
+/* 모임 방 헤더 — 제목/초대코드/멤버를 카드 안에서 줄 간격 두고 분리 */
+.room-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.room-head-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.room-head-top h2 {
+  margin: 0;
+}
+.room-code {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.room-code-val {
+  font-family: inherit; /* EnMono 모노스페이스 */
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+.room-members {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.room-member {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 3px 12px 3px 3px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-soft);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
 /* 모임 방 레이아웃: 본문 + 댓글 사이드(스티키) */
 .room-grid {
   display: grid;
@@ -525,6 +574,55 @@ a.app-card:hover {
   background: var(--color-surface-3);
   color: #c6cdea;
   letter-spacing: 0.01em;
+}
+
+/* 일정 색상 — 범례 / 색 점 / 그룹 색상 스와치 */
+.app-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin: var(--space-3) 0 var(--space-5);
+  font-size: 0.86rem;
+  color: var(--color-muted);
+}
+.app-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.app-legend i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.app-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.app-swatches {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.app-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.app-swatch:hover {
+  transform: scale(1.12);
+}
+.app-swatch.is-on {
+  border-color: var(--color-text);
+  box-shadow: var(--shadow-glow);
 }
 
 /* 브랜드 마크 — 그라데이션 텍스트 */

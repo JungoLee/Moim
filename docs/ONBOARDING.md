@@ -84,8 +84,8 @@ npm run dev                        # http://localhost:3000
 ```
 frontend/  Next.js App Router
   src/app/        라우트 (로그인 / home / dashboard / friends / tiers(그룹) / rooms(모임) / requests(시간요청) / tools/leave(연차) / admin / u/[userId] / auth/callback)
-  src/components/ 공용 (Nav · Calendar=FullCalendar · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton · AdUnit=광고)
-  src/lib/        api.ts(fetch+토큰) · types.ts · format.ts · brand.ts · leave.ts(연차 알고리즘) · holidays.ts · adsense.ts(애드센스 ID)
+  src/components/ 공용 (Nav · Calendar=FullCalendar · AvailabilityCalendar · DatePicker · Avatar · Notice · AccountDrawer · LegalModal · CopyButton · AdUnit=광고)
+  src/lib/        api.ts(fetch+토큰) · types.ts · format.ts · brand.ts · colors.ts(그룹/일정 색) · leave.ts(연차 알고리즘) · holidays.ts · adsense.ts(애드센스 ID)
   public/         ads.txt(애드센스 게시자 확인 → /ads.txt 로 서빙)
 backend/   Express(ESM)
   src/routes/     auth · events · friends · tiers(그룹) · rooms(모임) · calendar · admin · requests(시간요청)

@@ -6,14 +6,20 @@ import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import CopyButton from '@/components/CopyButton';
 import { api, getToken } from '@/lib/api';
+import { TIER_PALETTE, DEFAULT_TIER_COLOR } from '@/lib/colors';
 import type { Tier } from '@/lib/types';
+import Notice from '@/components/Notice';
 
 export default function Tiers() {
   const router = useRouter();
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [name, setName] = useState('');
+  const [color, setColor] = useState(DEFAULT_TIER_COLOR);
   const [joinCode, setJoinCode] = useState('');
-  const [msg, setMsg] = useState('');
+  const [pageErr, setPageErr] = useState('');
+  const [createErr, setCreateErr] = useState('');
+  const [joinMsg, setJoinMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [memberErr, setMemberErr] = useState<Record<string, string>>({});
   // 그룹별 멤버 추가 입력값
   const [memberEmail, setMemberEmail] = useState<Record<string, string>>({});
 
@@ -22,7 +28,7 @@ export default function Tiers() {
       const res = await api<{ tiers: Tier[] }>('/api/tiers');
       setTiers(res.tiers);
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : '그룹을 불러오지 못했습니다.');
+      setPageErr(err instanceof Error ? err.message : '그룹을 불러오지 못했습니다.');
     }
   }, []);
 
@@ -37,13 +43,13 @@ export default function Tiers() {
   async function createTier(e: FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    setMsg('');
+    setCreateErr('');
     try {
-      await api('/api/tiers', { method: 'POST', body: { name } });
+      await api('/api/tiers', { method: 'POST', body: { name, color } });
       setName('');
       load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : '그룹 생성 실패');
+      setCreateErr(err instanceof Error ? err.message : '그룹 생성 실패');
     }
   }
 
@@ -55,13 +61,13 @@ export default function Tiers() {
   async function addMember(tierId: string) {
     const email = (memberEmail[tierId] || '').trim();
     if (!email) return;
-    setMsg('');
+    setMemberErr((m) => ({ ...m, [tierId]: '' }));
     try {
       await api(`/api/tiers/${tierId}/members`, { method: 'POST', body: { email } });
       setMemberEmail((m) => ({ ...m, [tierId]: '' }));
       load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : '멤버 추가 실패');
+      setMemberErr((m) => ({ ...m, [tierId]: err instanceof Error ? err.message : '멤버 추가 실패' }));
     }
   }
 
@@ -73,16 +79,16 @@ export default function Tiers() {
   async function joinByCode(e: FormEvent) {
     e.preventDefault();
     if (!joinCode.trim()) return;
-    setMsg('');
+    setJoinMsg(null);
     try {
       const res = await api<{ tierName: string }>('/api/tiers/join', {
         method: 'POST',
         body: { code: joinCode },
       });
       setJoinCode('');
-      setMsg(`'${res.tierName}' 그룹에 가입했습니다.`);
+      setJoinMsg({ ok: true, text: `'${res.tierName}' 그룹에 가입했습니다.` });
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : '가입 실패');
+      setJoinMsg({ ok: false, text: err instanceof Error ? err.message : '가입 실패' });
     }
   }
 
@@ -94,7 +100,7 @@ export default function Tiers() {
         <p className="app-muted">
           비공개 일정은 선택한 그룹의 멤버에게만 상세가 보입니다. 멤버는 이메일로 추가하거나, 상대가 코드로 가입할 수 있어요.
         </p>
-        {msg && <p className="app-muted">{msg}</p>}
+        {pageErr && <Notice>{pageErr}</Notice>}
 
         <form className="app-card" onSubmit={createTier}>
           <div className="app-row">
@@ -108,6 +114,23 @@ export default function Tiers() {
               그룹 만들기
             </button>
           </div>
+          <div className="app-row" style={{ marginTop: 'var(--space-2)' }}>
+            <span className="app-muted">색상</span>
+            <div className="app-swatches">
+              {TIER_PALETTE.map((c) => (
+                <button
+                  type="button"
+                  key={c}
+                  className={c === color ? 'app-swatch is-on' : 'app-swatch'}
+                  style={{ background: c }}
+                  onClick={() => setColor(c)}
+                  aria-label={`색상 ${c}`}
+                  aria-pressed={c === color}
+                />
+              ))}
+            </div>
+          </div>
+          {createErr && <Notice>{createErr}</Notice>}
         </form>
 
         <form className="app-card" onSubmit={joinByCode}>
@@ -122,6 +145,7 @@ export default function Tiers() {
               가입
             </button>
           </div>
+          {joinMsg && <Notice ok={joinMsg.ok}>{joinMsg.text}</Notice>}
         </form>
 
         <h3>내 그룹</h3>
@@ -129,6 +153,7 @@ export default function Tiers() {
         {tiers.map((t) => (
           <div className="app-card" key={t._id}>
             <div className="app-row">
+              <i className="app-dot" style={{ background: t.color || DEFAULT_TIER_COLOR }} />
               <strong>{t.name}</strong>
               <span className="app-muted">코드: {t.code}</span>
               <CopyButton text={t.code} label="복사" />
@@ -165,6 +190,7 @@ export default function Tiers() {
                 추가
               </button>
             </div>
+            {memberErr[t._id] && <Notice>{memberErr[t._id]}</Notice>}
           </div>
         ))}
       </main>

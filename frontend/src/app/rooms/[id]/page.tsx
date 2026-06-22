@@ -13,7 +13,7 @@ import type { RoomDetail, User, Mark, AvailStatus, RoomComment } from '@/lib/typ
 const MODES: Array<[AvailStatus, string]> = [
   ['yes', '되는 날'],
   ['no', '안 되는 날'],
-  ['after', '시간만 가능'],
+  ['after', '시간 이후'],
 ];
 
 export default function RoomPage() {
@@ -175,20 +175,24 @@ export default function RoomPage() {
     <>
       <Nav />
       <main className="app-container">
-        <h2>{room.name}</h2>
-        <div className="app-row">
-          <span className="app-muted">초대 코드</span>
-          <strong>{room.code}</strong>
-          <CopyButton text={room.code} label="코드 복사" />
-        </div>
-        <div className="app-row" style={{ gap: 'var(--space-3)' }}>
-          <span className="app-muted">멤버 {total}명</span>
-          {room.members.map((m) => (
-            <span key={m._id} className="app-row" style={{ gap: 'var(--space-2)', flexWrap: 'nowrap' }}>
-              <Avatar src={m.picture} alt={m.name} />
-              <span>{m.name}</span>
-            </span>
-          ))}
+        <div className="app-card room-head">
+          <div className="room-head-top">
+            <h2>{room.name}</h2>
+            <span className="app-pill">멤버 {total}명</span>
+          </div>
+          <div className="room-code">
+            <span className="app-muted">초대 코드</span>
+            <code className="room-code-val">{room.code}</code>
+            <CopyButton text={room.code} label="코드 복사" />
+          </div>
+          <div className="room-members">
+            {room.members.map((m) => (
+              <span key={m._id} className="room-member">
+                <Avatar src={m.picture} alt={m.name} />
+                <span>{m.name}</span>
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="room-grid">
@@ -200,21 +204,29 @@ export default function RoomPage() {
                 {label}
               </button>
             ))}
-            {mode === 'after' && (
-              <label className="app-muted">
-                이후 가능{' '}
-                <input className="app-input" type="time" value={afterTime} onChange={(e) => setAfterTime(e.target.value)} />
-              </label>
-            )}
             <span className="app-spacer" />
             <button className="app-btn app-btn--ghost" onClick={load}>
               새로고침
             </button>
           </div>
+          {mode === 'after' && (
+            <div className="app-row">
+              <label htmlFor="after-time" className="app-muted">
+                몇 시 이후부터 가능한가요?
+              </label>
+              <input
+                id="after-time"
+                className="app-input"
+                type="time"
+                value={afterTime}
+                onChange={(e) => setAfterTime(e.target.value)}
+              />
+            </div>
+          )}
           <p className="app-muted">
             {mode === 'yes' && '가능한 날을 클릭하세요. (다시 누르면 해제)'}
             {mode === 'no' && '안 되는 날을 클릭하거나 드래그해서 한 번에 표시하세요.'}
-            {mode === 'after' && `클릭한 날은 "${afterTime} 이후 가능"으로 표시됩니다 (퇴근 후 등).`}
+            {mode === 'after' && `클릭한 날은 "${afterTime} 이후 가능"으로 표시됩니다 (예: 퇴근 후).`}
           </p>
           <AvailabilityCalendar myMarks={myMarks} summary={summary} total={total} mode={mode} onApply={onApply} />
         </div>

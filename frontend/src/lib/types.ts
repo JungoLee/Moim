@@ -26,6 +26,7 @@ export type Tier = {
   _id: string;
   name: string;
   code: string;
+  color?: string; // 캘린더 라인 색상 (#rrggbb)
   members: User[];
 };
 

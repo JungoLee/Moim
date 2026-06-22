@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
@@ -9,6 +9,7 @@ import DatePicker from '@/components/DatePicker';
 import { api, getToken } from '@/lib/api';
 import { formatRange, displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
+import { eventColor, PUBLIC_COLOR, PRIVATE_COLOR, DEFAULT_TIER_COLOR } from '@/lib/colors';
 import type { MoimEvent, Tier, User } from '@/lib/types';
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
@@ -70,6 +71,12 @@ export default function Dashboard() {
     }
     load();
   }, [router, load]);
+
+  // 그룹 id → 색상 (캘린더 라인 색칠에 사용)
+  const tierColors = useMemo(
+    () => Object.fromEntries(tiers.map((t) => [t._id, t.color || DEFAULT_TIER_COLOR])),
+    [tiers]
+  );
 
   // 달력 클릭/드래그 → 생성 모달
   function openCreate(startDay: Date, endDay: Date) {
@@ -176,13 +183,25 @@ export default function Dashboard() {
         <p className="app-muted">달력의 날짜를 클릭하거나 드래그하면 일정 추가 창이 열립니다. 일정을 클릭하면 수정·삭제할 수 있어요.</p>
         {error && <p className="app-error">{error}</p>}
 
-        <Calendar events={events} onSelectRange={openCreate} onSelectEvent={openEdit} />
+        <Calendar events={events} onSelectRange={openCreate} onSelectEvent={openEdit} tierColors={tierColors} />
+
+        <div className="app-legend">
+          <span><i style={{ background: PUBLIC_COLOR }} />공개</span>
+          <span><i style={{ background: PRIVATE_COLOR }} />비공개</span>
+          {tiers.map((t) => (
+            <span key={t._id}>
+              <i style={{ background: t.color || DEFAULT_TIER_COLOR }} />
+              {t.name}
+            </span>
+          ))}
+        </div>
 
         <h3>일정 목록</h3>
         {events.length === 0 && <p className="app-muted">아직 일정이 없습니다.</p>}
         {events.map((ev) => (
           <div className="app-card" key={ev._id}>
             <div className="app-row">
+              <i className="app-dot" style={{ background: eventColor(ev, tierColors) }} />
               <strong>{ev.title}</strong>
               {ev.visibility === 'private' && <span className="app-muted">· 비공개</span>}
               <span className="app-spacer" />

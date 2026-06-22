@@ -39,7 +39,7 @@ export default function FriendCalendar() {
       <Nav />
       <main className="app-container">
         <h2>{owner ? `${owner.name} 님의 캘린더` : '캘린더'}</h2>
-        <p className="app-muted">공유 일정은 상세히, 비공개 일정은 내가 속한 그룹일 때만 상세로 보입니다(그 외엔 &lsquo;바쁨&rsquo;).</p>
+        <p className="app-muted">공유 일정은 상세히, 비공개 일정은 내가 속한 그룹일 때만 상세로 보입니다(그 외엔 &lsquo;비공개 일정&rsquo;으로 시간 없이 표시).</p>
         {error && <p className="app-error">{error}</p>}
         {!error && <Calendar events={events} />}
         {events.length === 0 && !error && <p className="app-muted">표시할 일정이 없습니다.</p>}

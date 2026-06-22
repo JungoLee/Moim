@@ -7,6 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import type { EventInput, DateSelectArg } from '@fullcalendar/core';
 import type { MoimEvent } from '@/lib/types';
+import { eventColor, readableText } from '@/lib/colors';
 
 type Props = {
   events: MoimEvent[];
@@ -14,9 +15,11 @@ type Props = {
   onSelectRange?: (start: Date, end: Date) => void;
   /** 일정 클릭 (대시보드: 수정 모달). */
   onSelectEvent?: (id: string) => void;
+  /** 그룹 id → 색상. 비공개+그룹지정 일정의 라인 색을 그룹 색으로 칠한다. */
+  tierColors?: Record<string, string>;
 };
 
-export default function Calendar({ events, onSelectRange, onSelectEvent }: Props) {
+export default function Calendar({ events, onSelectRange, onSelectEvent, tierColors }: Props) {
   // FullCalendar 는 클라이언트에서만 렌더 (SSR/하이드레이션 이슈 회피)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -30,17 +33,31 @@ export default function Calendar({ events, onSelectRange, onSelectEvent }: Props
   const fcEvents: EventInput[] = useMemo(
     () =>
       events.map((ev) => {
-        const busy = ev.busy || ev.visibility === 'private';
+        // 볼 수 없는 일정(busy): 회색 + 시간 숨김(종일 블록) — 주 뷰에서도 시간대 미노출
+        if (ev.busy) {
+          return {
+            id: ev._id,
+            title: '비공개 일정',
+            start: ev.start,
+            end: ev.end,
+            allDay: true,
+            classNames: ['evt-busy'],
+          };
+        }
+        // 그 외: 공개=초록 / 비공개=주황 / 비공개+그룹지정=그룹색
+        const color = eventColor(ev, tierColors);
         return {
           id: ev._id,
-          title: ev.busy ? '바쁨' : ev.title || '(제목 없음)',
+          title: ev.title || '(제목 없음)',
           start: ev.start,
           end: ev.end,
           allDay: ev.allDay,
-          classNames: busy ? ['evt-busy'] : [],
+          backgroundColor: color,
+          borderColor: color,
+          textColor: readableText(color),
         };
       }),
-    [events]
+    [events, tierColors]
   );
 
   function handleSelect(info: DateSelectArg) {

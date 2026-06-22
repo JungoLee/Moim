@@ -31,7 +31,7 @@
 ### 데이터 모델 (현재)
 - **User**: `googleId`, `email`, `name`, `nickname`(표시명, 있으면 우선), `picture`, `isAdmin`
 - **Friendship**: `requester`, `recipient`, `status`(pending|accepted) — 친구 그래프 = 캘린더 열람 권한. 가시성 제어는 그룹/일정으로 분리
-- **Tier(그룹)**: `owner`, `name`, `code`(고유), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가
+- **Tier(그룹)**: `owner`, `name`, `code`(고유), `color`(캘린더 라인 색), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가. 생성 시 색상 지정
 - **Room(모임 방)**: `owner`, `name`, `code`(초대), `members[]`, `availabilities[{user, marks[{date,status(yes|no|after),time}]}]`, `comments[]` — 멤버별 가능/불가/시간 → 모두 되는 날 집계 + 댓글
 - **Event**: `owner`, `title`, `start`, `end`, `allDay`, `location`, `memo`, `visibility`(public|private), `audienceTiers[]`(비공개 시 상세 열람 그룹)
 - **TimeRequest**: `from`, `to`, `title`, `start`, `end`, `message`, `status`(pending|accepted|declined) — 친구에게 시간 요청, 수락 시 양쪽 일정 생성
@@ -57,6 +57,8 @@
 - [x] **구글 로그인 팝업화** — 전체 이동 → `window.open` 팝업 + 동일 출처 localStorage `storage` 이벤트로 부모창 복귀(COOP 안전), 콜백 페이지는 팝업이면 자동 닫힘
 - [x] **랜딩 리디자인** — 글래스 카드 + 부유 광원, MOIM 워드마크(Black Ops One) 확대, Pretendard 전역 로드, 구글 공식 화이트 로그인 버튼
 - [x] **AdSense 코드 연동** — `NEXT_PUBLIC_ADSENSE_CLIENT` 설정 시 layout이 Auto ads 스크립트 로드 + 수동 배치용 `AdUnit` 컴포넌트 + `public/ads.txt`. (ID 미설정 시 광고 비활성 / 게시자 승인·도메인은 대기)
+- [x] **그룹 색상 + 공용 컴포넌트** — 그룹(Tier)별 `color`(`lib/colors.ts` 팔레트)로 캘린더 라인 구분(공개=초록·비공개=주황 기본), 공용 `Avatar`(프로필+실루엣 폴백)·`Notice`(폼 인라인 알림) 도입
+- [x] **모임 입장 버그 수정** — `GET /rooms/:id` populate 시 `isMember`가 비-방장 멤버를 막던 버그 수정 + 접근 불가/로딩 빈 상태 카드(`.app-empty`)
 
 ### 다음 작업 (남은 것)
 - [ ] **일정 입력 확장** — `allDay`·위치(`location`) 폼 미연결(제목·시간·메모·공개범위는 됨)
@@ -114,7 +116,12 @@
 ### Phase 8 — 수익화 & 배포
 - [x] 배포 ✅ — **Render**(백 `moim-api` + 프론트 `moim-web`) + Mongo Atlas, `render.yaml` Blueprint (2026-06-22)
 - [x] **AdSense 코드 연동** ✅ — layout Auto ads 스크립트 + 수동 슬롯 `AdUnit` + `public/ads.txt` + `NEXT_PUBLIC_ADSENSE_CLIENT` (2026-06-22)
-- [ ] **AdSense 활성화** — 게시자 ID 발급 + 도메인 + 애드센스 **승인** (코드는 준비됨, ID만 넣으면 동작)
+- [ ] **AdSense 활성화** (코드는 준비 완료 — 남은 건 구글 쪽 신청·승인 절차)
+  - [ ] [adsense.google.com](https://adsense.google.com) 가입 — 사이트 URL = 운영 도메인(현 `moim-web.onrender.com`, 또는 커스텀 도메인)
+  - [ ] 발급된 게시자 ID(`ca-pub-…`)를 프론트 env `NEXT_PUBLIC_ADSENSE_CLIENT` 에 설정(Render 환경변수) + `public/ads.txt` 의 `pub-…` 숫자 교체 → 재배포
+  - [ ] 애드센스 사이트 **심사 통과 대기**(보통 수일~2주, 그동안 광고 자리는 빈칸)
+  - [ ] ⚠️ 승인 리스크: 콘텐츠가 로그인 뒤에 숨어 있으면 "콘텐츠 부족"으로 거절 가능 → **로그인 없이 보이는 공개 소개 페이지**(서비스 설명/스크린샷 등) 보강 필요. (개인정보 처리방침·이용약관은 이미 있음)
+  - [ ] 승인 후: 대시보드에서 **Auto ads** 켜기(자동 배치) 또는 광고 단위 슬롯 발급 → `<AdUnit slot="…" />` 로 수동 배치
 - [ ] 운영 보안: JWT → httpOnly 쿠키 전환, CORS/Rate limit, 입력 검증 강화
 - [ ] 커스텀 도메인 + free 플랜 콜드스타트 대응(starter 승격 또는 헬스 핑)
 

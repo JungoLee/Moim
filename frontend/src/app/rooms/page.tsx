@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import Notice from '@/components/Notice';
 import { api, getToken } from '@/lib/api';
 import type { RoomSummary } from '@/lib/types';
 
@@ -13,14 +14,16 @@ export default function Rooms() {
   const [rooms, setRooms] = useState<RoomSummary[]>([]);
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
-  const [msg, setMsg] = useState('');
+  const [pageErr, setPageErr] = useState('');
+  const [createErr, setCreateErr] = useState('');
+  const [joinErr, setJoinErr] = useState('');
 
   const load = useCallback(async () => {
     try {
       const res = await api<{ rooms: RoomSummary[] }>('/api/rooms');
       setRooms(res.rooms);
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : '불러오기 실패');
+      setPageErr(e instanceof Error ? e.message : '불러오기 실패');
     }
   }, []);
 
@@ -35,24 +38,24 @@ export default function Rooms() {
   async function createRoom(e: FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    setMsg('');
+    setCreateErr('');
     try {
       const res = await api<{ room: { _id: string } }>('/api/rooms', { method: 'POST', body: { name } });
       router.push(`/rooms/${res.room._id}`);
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : '생성 실패');
+      setCreateErr(err instanceof Error ? err.message : '생성 실패');
     }
   }
 
   async function joinRoom(e: FormEvent) {
     e.preventDefault();
     if (!code.trim()) return;
-    setMsg('');
+    setJoinErr('');
     try {
       const res = await api<{ roomId: string }>('/api/rooms/join', { method: 'POST', body: { code } });
       router.push(`/rooms/${res.roomId}`);
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : '입장 실패');
+      setJoinErr(err instanceof Error ? err.message : '입장 실패');
     }
   }
 
@@ -64,7 +67,7 @@ export default function Rooms() {
         <p className="app-muted">
           방을 만들어 코드로 친구를 초대하고, 각자 가능한 날짜를 표시하면 모두 되는 날을 찾아줍니다.
         </p>
-        {msg && <p className="app-muted">{msg}</p>}
+        {pageErr && <Notice>{pageErr}</Notice>}
 
         <form className="app-card" onSubmit={createRoom}>
           <div className="app-row">
@@ -73,6 +76,7 @@ export default function Rooms() {
               방 만들기
             </button>
           </div>
+          {createErr && <Notice>{createErr}</Notice>}
         </form>
 
         <form className="app-card" onSubmit={joinRoom}>
@@ -82,6 +86,7 @@ export default function Rooms() {
               입장
             </button>
           </div>
+          {joinErr && <Notice>{joinErr}</Notice>}
         </form>
 
         <h3>내 모임</h3>

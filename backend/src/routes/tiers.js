@@ -28,10 +28,12 @@ router.get('/', async (req, res) => {
 
 // 그룹 생성
 router.post('/', async (req, res) => {
-  const { name } = req.body;
+  const { name, color } = req.body;
   if (!name || !name.trim()) return res.status(400).json({ ok: false, message: 'name 이 필요합니다.' });
+  // 색상은 #rrggbb / #rgb 형식만 허용, 아니면 기본값
+  const safeColor = typeof color === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color) ? color : '#7c8cff';
   const code = await generateUniqueCode();
-  const tier = await Tier.create({ owner: req.userId, name: name.trim(), code, members: [] });
+  const tier = await Tier.create({ owner: req.userId, name: name.trim(), code, color: safeColor, members: [] });
   res.status(201).json({ ok: true, tier });
 });
 

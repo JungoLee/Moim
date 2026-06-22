@@ -115,6 +115,6 @@ Moim/
 └─ frontend/
    └─ src/
       ├─ app/           # home · dashboard · friends · tiers · rooms · requests · tools/leave · admin · u/[userId] · auth/callback
-      ├─ components/    # Nav · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton · AdUnit
-      └─ lib/           # api · types · format · brand · leave · holidays · adsense
+      ├─ components/    # Nav · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Avatar · Notice · AccountDrawer · LegalModal · CopyButton · AdUnit
+      └─ lib/           # api · types · format · brand · colors · leave · holidays · adsense
 ```

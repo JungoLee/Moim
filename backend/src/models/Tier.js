@@ -9,6 +9,8 @@ const tierSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     // 고유 코드 — 코드로 그룹에 가입(join)할 때 사용
     code: { type: String, required: true, unique: true, index: true },
+    // 캘린더에서 이 그룹에 공개한 일정의 라인 색상 (#rrggbb)
+    color: { type: String, default: '#7c8cff' },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true }
