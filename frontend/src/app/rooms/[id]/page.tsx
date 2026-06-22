@@ -3,10 +3,16 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
-import AvailabilityCalendar from '@/components/AvailabilityCalendar';
+import AvailabilityCalendar, { type DaySummary } from '@/components/AvailabilityCalendar';
 import CopyButton from '@/components/CopyButton';
 import { api, getToken } from '@/lib/api';
-import type { RoomDetail, User } from '@/lib/types';
+import type { RoomDetail, User, Mark, AvailStatus } from '@/lib/types';
+
+const MODES: Array<[AvailStatus, string]> = [
+  ['yes', '되는 날'],
+  ['no', '안 되는 날'],
+  ['after', '시간만 가능'],
+];
 
 export default function RoomPage() {
   const router = useRouter();
@@ -14,15 +20,17 @@ export default function RoomPage() {
   const roomId = params.id as string;
 
   const [room, setRoom] = useState<RoomDetail | null>(null);
-  const [availabilities, setAvailabilities] = useState<Record<string, string[]>>({});
+  const [availabilities, setAvailabilities] = useState<Record<string, Mark[]>>({});
   const [meId, setMeId] = useState('');
   const [error, setError] = useState('');
+  const [mode, setMode] = useState<AvailStatus>('yes');
+  const [afterTime, setAfterTime] = useState('18:00');
 
   const load = useCallback(async () => {
     try {
       const me = await api<{ user: User }>('/api/auth/me');
       setMeId(me.user._id);
-      const res = await api<{ room: RoomDetail; availabilities: Record<string, string[]> }>(`/api/rooms/${roomId}`);
+      const res = await api<{ room: RoomDetail; availabilities: Record<string, Mark[]> }>(`/api/rooms/${roomId}`);
       setRoom(res.room);
       setAvailabilities(res.availabilities || {});
     } catch (e) {
@@ -39,26 +47,60 @@ export default function RoomPage() {
   }, [router, load]);
 
   const total = room?.members.length || 0;
-  const counts = useMemo(() => {
-    const c: Record<string, number> = {};
-    for (const dates of Object.values(availabilities)) for (const d of dates) c[d] = (c[d] || 0) + 1;
-    return c;
+
+  const myMarks = useMemo(() => {
+    const map: Record<string, Mark> = {};
+    for (const m of availabilities[meId] || []) map[m.date] = m;
+    return map;
+  }, [availabilities, meId]);
+
+  const summary = useMemo(() => {
+    const sum: Record<string, DaySummary> = {};
+    for (const marks of Object.values(availabilities)) {
+      for (const m of marks) {
+        const s = sum[m.date] || (sum[m.date] = { yes: 0, after: 0, no: 0, afterMax: '' });
+        if (m.status === 'yes') s.yes++;
+        else if (m.status === 'no') s.no++;
+        else {
+          s.after++;
+          if (m.time && m.time > s.afterMax) s.afterMax = m.time;
+        }
+      }
+    }
+    return sum;
   }, [availabilities]);
-  const myDates = useMemo(() => new Set(availabilities[meId] || []), [availabilities, meId]);
-  const allDates = useMemo(
-    () => Object.keys(counts).filter((d) => total > 0 && counts[d] === total).sort(),
-    [counts, total]
+
+  const fullDays = useMemo(
+    () => Object.keys(summary).filter((d) => total > 0 && summary[d].yes === total).sort(),
+    [summary, total]
+  );
+  const partialDays = useMemo(
+    () =>
+      Object.keys(summary)
+        .filter((d) => {
+          const s = summary[d];
+          return total > 0 && s.no === 0 && s.yes + s.after === total && s.after > 0;
+        })
+        .sort(),
+    [summary, total]
   );
 
-  async function toggle(dateStr: string) {
+  async function onApply(dates: string[], isDrag: boolean) {
     if (!meId) return;
-    const cur = new Set(availabilities[meId] || []);
-    if (cur.has(dateStr)) cur.delete(dateStr);
-    else cur.add(dateStr);
-    const next = [...cur];
-    setAvailabilities((prev) => ({ ...prev, [meId]: next })); // 낙관적 업데이트
+    const map: Record<string, Mark> = {};
+    for (const m of availabilities[meId] || []) map[m.date] = m;
+    const setOne = (d: string): Mark => (mode === 'after' ? { date: d, status: 'after', time: afterTime } : { date: d, status: mode });
+    if (!isDrag && dates.length === 1) {
+      const d = dates[0];
+      if (map[d] && map[d].status === mode) delete map[d];
+      else map[d] = setOne(d);
+    } else {
+      for (const d of dates) map[d] = setOne(d);
+    }
+    const arr = Object.values(map);
+    setAvailabilities((prev) => ({ ...prev, [meId]: arr })); // 즉시 반영
     try {
-      await api(`/api/rooms/${roomId}/availability`, { method: 'PUT', body: { dates: next } });
+      await api(`/api/rooms/${roomId}/availability`, { method: 'PUT', body: { marks: arr } });
     } catch (e) {
       setError(e instanceof Error ? e.message : '저장 실패');
     }
@@ -99,26 +141,52 @@ export default function RoomPage() {
 
         <div className="app-card">
           <div className="app-row">
-            <h3 style={{ margin: 0 }}>가능한 날 표시</h3>
+            {MODES.map(([v, label]) => (
+              <button key={v} className={mode === v ? 'app-btn' : 'app-btn app-btn--ghost'} onClick={() => setMode(v)}>
+                {label}
+              </button>
+            ))}
+            {mode === 'after' && (
+              <label className="app-muted">
+                이후 가능{' '}
+                <input className="app-input" type="time" value={afterTime} onChange={(e) => setAfterTime(e.target.value)} />
+              </label>
+            )}
             <span className="app-spacer" />
             <button className="app-btn app-btn--ghost" onClick={load}>
               새로고침
             </button>
           </div>
-          <p className="app-muted">날짜를 눌러 내가 가능한 날을 표시하세요. 숫자는 그 날 가능한 인원입니다.</p>
-          <AvailabilityCalendar myDates={myDates} counts={counts} total={total} onToggle={toggle} />
+          <p className="app-muted">
+            {mode === 'yes' && '가능한 날을 클릭하세요. (다시 누르면 해제)'}
+            {mode === 'no' && '안 되는 날을 클릭하거나 드래그해서 한 번에 표시하세요.'}
+            {mode === 'after' && `클릭한 날은 "${afterTime} 이후 가능"으로 표시됩니다 (퇴근 후 등).`}
+          </p>
+          <AvailabilityCalendar myMarks={myMarks} summary={summary} total={total} mode={mode} onApply={onApply} />
         </div>
 
         <div className="app-card">
-          <h3>🎉 모두 되는 날 ({allDates.length})</h3>
-          {allDates.length === 0 ? (
-            <p className="app-muted">아직 전원이 가능한 날이 없습니다. 멤버들이 가능한 날을 표시하면 여기에 모입니다.</p>
+          <h3>🎉 모두 되는 날 ({fullDays.length})</h3>
+          {fullDays.length === 0 ? (
+            <p className="app-muted">아직 전원이 종일 가능한 날이 없습니다.</p>
           ) : (
             <div className="app-row">
-              {allDates.map((d) => (
+              {fullDays.map((d) => (
                 <span key={d}>📅 {d}</span>
               ))}
             </div>
+          )}
+          {partialDays.length > 0 && (
+            <>
+              <h3 style={{ marginTop: 'var(--space-4)' }}>🕖 시간 조율하면 가능 ({partialDays.length})</h3>
+              <div className="app-row">
+                {partialDays.map((d) => (
+                  <span key={d} className="app-muted">
+                    📅 {d} ({summary[d].afterMax}~)
+                  </span>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </main>

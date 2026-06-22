@@ -8,6 +8,25 @@ const router = Router();
 router.use(requireAuth);
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^\d{2}:\d{2}$/;
+const STATUSES = new Set(['yes', 'no', 'after']);
+
+// 멤버 marks 정규화: [{date, status, time?}] (날짜당 1개)
+function cleanMarks(marks) {
+  if (!Array.isArray(marks)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const m of marks) {
+    if (!m || typeof m.date !== 'string' || !DATE_RE.test(m.date)) continue;
+    if (!STATUSES.has(m.status)) continue;
+    if (seen.has(m.date)) continue;
+    seen.add(m.date);
+    const mk = { date: m.date, status: m.status, time: '' };
+    if (m.status === 'after') mk.time = typeof m.time === 'string' && TIME_RE.test(m.time) ? m.time : '18:00';
+    out.push(mk);
+  }
+  return out;
+}
 
 async function genCode() {
   for (let i = 0; i < 8; i++) {
@@ -71,7 +90,9 @@ router.get('/:id', async (req, res) => {
   if (!isMember(room, req.userId)) return res.status(403).json({ ok: false, message: '이 방의 멤버가 아닙니다.' });
 
   const availabilities = {};
-  for (const a of room.availabilities) availabilities[a.user.toString()] = a.dates;
+  for (const a of room.availabilities) {
+    availabilities[a.user.toString()] = (a.marks || []).map((m) => ({ date: m.date, status: m.status, time: m.time || '' }));
+  }
 
   res.json({
     ok: true,
@@ -92,17 +113,14 @@ router.put('/:id/availability', async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
   }
-  const { dates } = req.body;
-  const clean = Array.isArray(dates)
-    ? [...new Set(dates.filter((d) => typeof d === 'string' && DATE_RE.test(d)))]
-    : [];
+  const clean = cleanMarks(req.body.marks);
   const room = await Room.findById(req.params.id);
   if (!room) return res.status(404).json({ ok: false, message: '방을 찾을 수 없습니다.' });
   if (!isMember(room, req.userId)) return res.status(403).json({ ok: false, message: '이 방의 멤버가 아닙니다.' });
 
   const entry = room.availabilities.find((a) => a.user.toString() === req.userId);
-  if (entry) entry.dates = clean;
-  else room.availabilities.push({ user: req.userId, dates: clean });
+  if (entry) entry.marks = clean;
+  else room.availabilities.push({ user: req.userId, marks: clean });
   await room.save();
   res.json({ ok: true });
 });

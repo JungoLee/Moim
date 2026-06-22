@@ -8,11 +8,18 @@ const roomSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     code: { type: String, required: true, unique: true, index: true }, // 초대 코드
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    // 멤버별 가능 날짜 ('YYYY-MM-DD' 문자열 배열)
+    // 멤버별 날짜 표시. status: yes(종일 가능) | no(불가) | after(해당 시간 이후 가능)
+    // after 인 경우 time 에 'HH:MM' (예: 퇴근 후 19:00 이후 가능)
     availabilities: [
       {
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-        dates: [{ type: String }],
+        marks: [
+          {
+            date: { type: String, required: true },
+            status: { type: String, enum: ['yes', 'no', 'after'], default: 'yes' },
+            time: { type: String, default: '' },
+          },
+        ],
       },
     ],
   },

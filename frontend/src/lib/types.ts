@@ -37,6 +37,9 @@ export type FriendRequest = {
 };
 
 // 모임 방 (약속 잡기)
+export type AvailStatus = 'yes' | 'no' | 'after'; // 종일가능 | 불가 | 그 시간 이후 가능
+export type Mark = { date: string; status: AvailStatus; time?: string };
+
 export type RoomSummary = {
   _id: string;
   name: string;
