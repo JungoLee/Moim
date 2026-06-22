@@ -40,6 +40,8 @@ export default function Dashboard() {
   const [fStartTime, setFStartTime] = useState('09:00');
   const [fEndDate, setFEndDate] = useState('');
   const [fEndTime, setFEndTime] = useState('10:00');
+  const [fAllDay, setFAllDay] = useState(false);
+  const [fLocation, setFLocation] = useState('');
   const [fMemo, setFMemo] = useState('');
   const [fShare, setFShare] = useState('public');
 
@@ -87,6 +89,8 @@ export default function Dashboard() {
     setFStartTime('09:00');
     setFEndDate(dateStr(endDay));
     setFEndTime('10:00');
+    setFAllDay(false);
+    setFLocation('');
     setFMemo('');
     setFShare('public');
     loadTiers();
@@ -111,6 +115,8 @@ export default function Dashboard() {
     setFStartTime(timeStr(s));
     setFEndDate(dateStr(e));
     setFEndTime(timeStr(e));
+    setFAllDay(!!ev.allDay);
+    setFLocation(ev.location || '');
     setFMemo(ev.memo || '');
     setFShare(
       ev.visibility === 'private'
@@ -126,8 +132,9 @@ export default function Dashboard() {
   async function saveForm(e: FormEvent) {
     e.preventDefault();
     if (!fStartDate || !fEndDate) return;
-    const start = `${fStartDate}T${fStartTime}`;
-    const end = `${fEndDate}T${fEndTime}`;
+    // 종일이면 시간 입력을 무시하고 하루 전체로 저장 (로컬 시간 파싱 일관성 유지)
+    const start = fAllDay ? `${fStartDate}T00:00` : `${fStartDate}T${fStartTime}`;
+    const end = fAllDay ? `${fEndDate}T23:59` : `${fEndDate}T${fEndTime}`;
     let visibility: 'public' | 'private' = 'public';
     let audienceTiers: string[] = [];
     if (fShare === 'private') visibility = 'private';
@@ -135,7 +142,16 @@ export default function Dashboard() {
       visibility = 'private';
       audienceTiers = [fShare.slice(5)];
     }
-    const body = { title: fTitle.trim() || '새 일정', start, end, memo: fMemo, visibility, audienceTiers };
+    const body = {
+      title: fTitle.trim() || '새 일정',
+      start,
+      end,
+      allDay: fAllDay,
+      location: fLocation.trim(),
+      memo: fMemo,
+      visibility,
+      audienceTiers,
+    };
     try {
       if (mode === 'edit' && editId) await api(`/api/events/${editId}`, { method: 'PATCH', body });
       else await api('/api/events', { method: 'POST', body });
@@ -212,7 +228,8 @@ export default function Dashboard() {
                 삭제
               </button>
             </div>
-            <div className="app-muted">{formatRange(ev.start, ev.end)}</div>
+            <div className="app-muted">{formatRange(ev.start, ev.end, ev.allDay)}</div>
+            {ev.location && <div className="app-muted">📍 {ev.location}</div>}
           </div>
         ))}
 
@@ -222,35 +239,50 @@ export default function Dashboard() {
               <h3>{mode === 'edit' ? '일정 수정' : '새 일정'}</h3>
               <input className="app-input" placeholder="일정 제목" value={fTitle} onChange={(e) => setFTitle(e.target.value)} />
 
+              <label className="app-row">
+                <input type="checkbox" checked={fAllDay} onChange={(e) => setFAllDay(e.target.checked)} />
+                <span>종일</span>
+              </label>
+
               <label className="app-muted">시작</label>
               <div className="app-row">
                 <DatePicker value={fStartDate} onChange={setFStartDate} />
-                <select className="app-select" value={fStartTime.slice(0, 2)} onChange={(e) => setFStartTime(`${e.target.value}:${fStartTime.slice(3)}`)}>
-                  {HOURS.map((h) => (
-                    <option key={h} value={h}>{h}시</option>
-                  ))}
-                </select>
-                <select className="app-select" value={fStartTime.slice(3)} onChange={(e) => setFStartTime(`${fStartTime.slice(0, 2)}:${e.target.value}`)}>
-                  {MINUTES.map((m) => (
-                    <option key={m} value={m}>{m}분</option>
-                  ))}
-                </select>
+                {!fAllDay && (
+                  <>
+                    <select className="app-select" value={fStartTime.slice(0, 2)} onChange={(e) => setFStartTime(`${e.target.value}:${fStartTime.slice(3)}`)}>
+                      {HOURS.map((h) => (
+                        <option key={h} value={h}>{h}시</option>
+                      ))}
+                    </select>
+                    <select className="app-select" value={fStartTime.slice(3)} onChange={(e) => setFStartTime(`${fStartTime.slice(0, 2)}:${e.target.value}`)}>
+                      {MINUTES.map((m) => (
+                        <option key={m} value={m}>{m}분</option>
+                      ))}
+                    </select>
+                  </>
+                )}
               </div>
 
               <label className="app-muted">종료</label>
               <div className="app-row">
                 <DatePicker value={fEndDate} onChange={setFEndDate} />
-                <select className="app-select" value={fEndTime.slice(0, 2)} onChange={(e) => setFEndTime(`${e.target.value}:${fEndTime.slice(3)}`)}>
-                  {HOURS.map((h) => (
-                    <option key={h} value={h}>{h}시</option>
-                  ))}
-                </select>
-                <select className="app-select" value={fEndTime.slice(3)} onChange={(e) => setFEndTime(`${fEndTime.slice(0, 2)}:${e.target.value}`)}>
-                  {MINUTES.map((m) => (
-                    <option key={m} value={m}>{m}분</option>
-                  ))}
-                </select>
+                {!fAllDay && (
+                  <>
+                    <select className="app-select" value={fEndTime.slice(0, 2)} onChange={(e) => setFEndTime(`${e.target.value}:${fEndTime.slice(3)}`)}>
+                      {HOURS.map((h) => (
+                        <option key={h} value={h}>{h}시</option>
+                      ))}
+                    </select>
+                    <select className="app-select" value={fEndTime.slice(3)} onChange={(e) => setFEndTime(`${fEndTime.slice(0, 2)}:${e.target.value}`)}>
+                      {MINUTES.map((m) => (
+                        <option key={m} value={m}>{m}분</option>
+                      ))}
+                    </select>
+                  </>
+                )}
               </div>
+
+              <input className="app-input" placeholder="위치 (선택)" value={fLocation} onChange={(e) => setFLocation(e.target.value)} />
 
               <textarea className="app-textarea" placeholder="내용 (메모)" value={fMemo} onChange={(e) => setFMemo(e.target.value)} rows={3} />
 

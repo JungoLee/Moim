@@ -59,9 +59,10 @@
 - [x] **AdSense 코드 연동** — `NEXT_PUBLIC_ADSENSE_CLIENT` 설정 시 layout이 Auto ads 스크립트 로드 + 수동 배치용 `AdUnit` 컴포넌트 + `public/ads.txt`. (ID 미설정 시 광고 비활성 / 게시자 승인·도메인은 대기)
 - [x] **그룹 색상 + 공용 컴포넌트** — 그룹(Tier)별 `color`(`lib/colors.ts` 팔레트)로 캘린더 라인 구분(공개=초록·비공개=주황 기본), 공용 `Avatar`(프로필+실루엣 폴백)·`Notice`(폼 인라인 알림) 도입
 - [x] **모임 입장 버그 수정** — `GET /rooms/:id` populate 시 `isMember`가 비-방장 멤버를 막던 버그 수정 + 접근 불가/로딩 빈 상태 카드(`.app-empty`)
+- [x] **일정 입력 확장** — 종일(`allDay`) 토글(체크 시 시간 select 숨김·하루 전체 저장)·위치(`location`) 입력 추가. 목록/캘린더/포맷(`formatRange` allDay 인지)·수정 흐름 반영
+- [x] **그룹 색 사후 변경** — `PATCH /api/tiers/:id`(본인 소유·`#rrggbb` 검증) + `/tiers` 각 그룹 카드 색상 스와치로 기존 색 변경
 
 ### 다음 작업 (남은 것)
-- [ ] **일정 입력 확장** — `allDay`·위치(`location`) 폼 미연결(제목·시간·메모·공개범위는 됨)
 - [ ] **안 읽음 표시 본격화** — 홈에 받은 친구요청 배지는 됨. 새 댓글/모임 변경 등 알림은 추후(lastSeen 기반)
 - [ ] **날짜 picker 라이브러리화** — 현재 자체 커스텀 달력. 필요 시 react-datepicker 등으로 교체 검토
 
@@ -131,7 +132,7 @@
 - 로그인 토큰을 **URL 쿼리(`?token=`)로 전달 + localStorage 저장** → 운영 전 httpOnly 쿠키로 전환 필요(Phase 8).
 - 프론트 `next build` 시 **ESLint 건너뜀**(`next.config.mjs`) — eslint-config-next 추가 후 되돌릴 것.
 - 일정 기본 가시성은 `public`(공유). 비공개는 그룹을 만들어 지정해야 상세 노출.
-- 일정 입력은 커스텀 날짜 picker + 24시 시간 select(타임존/반복 일정 미지원).
+- 일정 입력은 커스텀 날짜 picker + 24시 시간 select + 종일 토글(타임존/반복 일정 미지원).
 - 연차 계산기 공휴일은 양력 고정만 내장(음력·대체공휴일 미반영 — data.go.kr 키 연동 시 해소).
 - 테스트 코드 없음.
 - Render free 플랜은 15분 무트래픽 시 슬립 → 첫 요청 콜드스타트 지연(~50s). 운영 시 starter 승격 또는 헬스 핑으로 완화.

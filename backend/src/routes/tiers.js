@@ -37,6 +37,24 @@ router.post('/', async (req, res) => {
   res.status(201).json({ ok: true, tier });
 });
 
+// 그룹 색상 변경 (본인 소유만, #rrggbb / #rgb 형식 검증)
+router.patch('/:id', async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
+  }
+  const { color } = req.body;
+  if (typeof color !== 'string' || !/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color)) {
+    return res.status(400).json({ ok: false, message: '색상 형식이 올바르지 않습니다. (#rrggbb)' });
+  }
+  const tier = await Tier.findOneAndUpdate(
+    { _id: req.params.id, owner: req.userId },
+    { color },
+    { new: true }
+  );
+  if (!tier) return res.status(404).json({ ok: false, message: '그룹을 찾을 수 없습니다.' });
+  res.json({ ok: true, tier });
+});
+
 // 그룹 삭제
 router.delete('/:id', async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {

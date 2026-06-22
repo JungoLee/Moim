@@ -58,6 +58,16 @@ export default function Tiers() {
     load();
   }
 
+  async function updateColor(tierId: string, c: string) {
+    setMemberErr((m) => ({ ...m, [tierId]: '' }));
+    try {
+      await api(`/api/tiers/${tierId}`, { method: 'PATCH', body: { color: c } });
+      load();
+    } catch (err) {
+      setMemberErr((m) => ({ ...m, [tierId]: err instanceof Error ? err.message : '색상 변경 실패' }));
+    }
+  }
+
   async function addMember(tierId: string) {
     const email = (memberEmail[tierId] || '').trim();
     if (!email) return;
@@ -161,6 +171,26 @@ export default function Tiers() {
               <button className="app-btn app-btn--ghost" onClick={() => deleteTier(t._id)}>
                 삭제
               </button>
+            </div>
+
+            <div className="app-row" style={{ marginTop: 'var(--space-2)' }}>
+              <span className="app-muted">색상</span>
+              <div className="app-swatches">
+                {TIER_PALETTE.map((c) => {
+                  const cur = t.color || DEFAULT_TIER_COLOR;
+                  return (
+                    <button
+                      type="button"
+                      key={c}
+                      className={c === cur ? 'app-swatch is-on' : 'app-swatch'}
+                      style={{ background: c }}
+                      onClick={() => updateColor(t._id, c)}
+                      aria-label={`색상 ${c}`}
+                      aria-pressed={c === cur}
+                    />
+                  );
+                })}
+              </div>
             </div>
 
             <div className="app-muted" style={{ marginTop: 'var(--space-2)' }}>
