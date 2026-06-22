@@ -294,6 +294,16 @@ h3 {
 .app-input::placeholder {
   color: var(--color-muted);
 }
+/* 행을 가득 채우는 입력칸(폼 정렬) */
+.app-field {
+  flex: 1;
+  min-width: 0;
+}
+/* 카드 안 폼 행: 첫 입력칸이 남은 너비를 채워 오른쪽 빈칸 제거 */
+.app-card .app-row > .app-input:first-child {
+  flex: 1;
+  min-width: 0;
+}
 .app-input:focus,
 .app-select:focus {
   outline: none;

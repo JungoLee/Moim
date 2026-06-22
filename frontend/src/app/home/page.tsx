@@ -69,7 +69,6 @@ export default function Home() {
           {TILES.map(([href, icon, label, desc, featured]) => (
             <Tooltip key={href} label={desc}>
               <Link href={href} className={featured ? `${styles.tile} ${styles.featured}` : styles.tile}>
-                {featured && <span className={styles.featuredBadge}>주요</span>}
                 <span className={styles.icon}>
                   <Icon name={icon} size={26} />
                 </span>
