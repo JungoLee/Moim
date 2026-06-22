@@ -42,7 +42,7 @@
 - [x] 백엔드: Express, MongoDB(Atlas) 연결, Google OAuth+JWT, requireAuth, 시작 시 env 가드
 - [x] 모델: User / Friendship / Tier(그룹) / Event
 - [x] 라우트: auth · events(CRUD) · friends(요청/수락/거절) · tiers(그룹 CRUD·멤버·코드가입) · calendar(공유/비공개·그룹 반영)
-- [x] 프론트: 랜딩 · OAuth 콜백 · 대시보드(일정 생성/삭제 + 월 달력 + 클릭·드래그 기간선택 + 공유/비공개·그룹) · 친구 · 그룹 관리(`/tiers`) · 친구 캘린더
+- [x] 프론트: 랜딩 · OAuth 콜백 · 대시보드(일정 생성/삭제 + **FullCalendar**(월/주) + 클릭·드래그 기간선택 + 공유/비공개·그룹) · 친구 · 그룹 관리(`/tiers`) · 친구 캘린더 · 연차계산기(`/tools/leave`)
 - [x] 디자인 시스템 고도화(globals.scss 토큰·버튼·카드·네비·캘린더)
 - [x] 루트 통합 실행(`concurrently`, `npm run dev`) · 문서(README/CLAUDE/PLAN/ONBOARDING)
 - [x] 환경: `backend/.env`(Atlas 연결·구글 OAuth 입력 완료) + `frontend/.env.local` (gitignore)

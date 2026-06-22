@@ -293,3 +293,74 @@ input[type='radio'] {
   padding: 0 var(--space-6);
   font-size: 1.02rem;
 }
+
+/* ── FullCalendar 다크 테마 ── */
+.fc {
+  --fc-border-color: var(--color-border-soft);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: var(--color-surface-2);
+  --fc-today-bg-color: rgba(124, 140, 255, 0.12);
+  --fc-event-bg-color: var(--color-primary);
+  --fc-event-border-color: var(--color-primary);
+  --fc-event-text-color: var(--color-primary-text);
+  color: var(--color-text);
+  font-family: inherit;
+}
+.fc .fc-toolbar-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number {
+  color: var(--color-muted);
+  text-decoration: none;
+}
+.fc .fc-day-sun .fc-col-header-cell-cushion,
+.fc .fc-day-sun .fc-daygrid-day-number {
+  color: #ff9b9b;
+}
+.fc .fc-day-sat .fc-col-header-cell-cushion,
+.fc .fc-day-sat .fc-daygrid-day-number {
+  color: #9bb6ff;
+}
+/* 툴바 버튼 */
+.fc .fc-button {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  box-shadow: none;
+  text-transform: none;
+  font-weight: 600;
+}
+.fc .fc-button:hover {
+  background: var(--color-surface-3);
+}
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-text);
+}
+.fc .fc-button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-glow);
+}
+/* 이벤트 */
+.fc .fc-event {
+  border-radius: 4px;
+  padding: 0 3px;
+  font-size: 0.74rem;
+  cursor: default;
+}
+.fc .fc-event.evt-busy {
+  background-color: var(--color-surface-3) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-muted) !important;
+}
+.fc .fc-daygrid-day.fc-day-today {
+  background: var(--fc-today-bg-color);
+}
+.fc .fc-highlight {
+  background: rgba(124, 140, 255, 0.25);
+}
