@@ -2,15 +2,31 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getToken, googleLoginUrl } from '@/lib/api';
+import { getToken, googleLoginUrl, onTokenStored } from '@/lib/api';
 import { BRAND_NAME } from '@/lib/brand';
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (getToken()) router.replace('/home');
+    if (getToken()) {
+      router.replace('/home');
+      return;
+    }
+    // 로그인 팝업이 토큰을 저장하면(동일 출처 localStorage 공유) 메인으로 이동
+    return onTokenStored(() => router.replace('/home'));
   }, [router]);
+
+  function handleLogin() {
+    const url = googleLoginUrl();
+    const w = 480;
+    const h = 640;
+    const left = window.screenX + Math.max(0, (window.outerWidth - w) / 2);
+    const top = window.screenY + Math.max(0, (window.outerHeight - h) / 2);
+    const popup = window.open(url, 'moim-google-login', `popup,width=${w},height=${h},left=${left},top=${top}`);
+    // 팝업 차단 시 기존 전체 이동 방식으로 폴백
+    if (!popup || popup.closed) window.location.href = url;
+  }
 
   return (
     <main className="app-landing">
@@ -19,12 +35,14 @@ export default function Home() {
       <span className="app-orb app-orb--b" aria-hidden />
 
       <section className="app-hero">
-        <div className="app-hero-eyebrow">✦ 소셜 캘린더</div>
+        <div className="app-hero-eyebrow">✦ Social Calendar</div>
         <h1 className="brand-mark">{BRAND_NAME}</h1>
         <p className="app-hero-sub">
-          친구들과 스케줄을 공유하고, 함께 비는 시간을 찾아 모임·여행을 잡으세요.
+          친구들과 스케줄을 공유하고,
+          <br />
+          함께 비는 시간을 찾아 모임·여행을 잡으세요.
         </p>
-        <a className="app-btn app-btn--google" href={googleLoginUrl()}>
+        <button type="button" className="app-btn app-btn--google" onClick={handleLogin}>
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
             <path
               fill="#FFC107"
@@ -43,8 +61,8 @@ export default function Home() {
               d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
             />
           </svg>
-          Google 계정으로 로그인
-        </a>
+          Sign in with Google
+        </button>
       </section>
     </main>
   );

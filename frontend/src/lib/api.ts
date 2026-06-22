@@ -19,6 +19,20 @@ export function googleLoginUrl(): string {
   return `${API_BASE}/api/auth/google`;
 }
 
+/**
+ * 다른 창(로그인 팝업)에서 토큰이 저장되면 콜백 실행. 정리 함수 반환.
+ * localStorage 는 동일 출처 창끼리 공유되고, setItem 시 다른 창에 storage 이벤트가
+ * 발생하므로 window.opener / postMessage 없이도(COOP 영향 없이) 안전하게 감지된다.
+ */
+export function onTokenStored(cb: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const handler = (e: StorageEvent) => {
+    if (e.key === TOKEN_KEY && e.newValue) cb();
+  };
+  window.addEventListener('storage', handler);
+  return () => window.removeEventListener('storage', handler);
+}
+
 type ApiOptions = {
   method?: string;
   body?: unknown;

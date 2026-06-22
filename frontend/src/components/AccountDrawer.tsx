@@ -86,7 +86,7 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
                   <strong>{displayName(user)}</strong>
                   {user.isAdmin && <span style={{ color: 'var(--color-success)' }}> · 관리자</span>}
                 </div>
-                <div className="app-muted app-plain">{user.email}</div>
+                <div className="app-muted">{user.email}</div>
               </div>
             </div>
 
@@ -111,7 +111,7 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
             <div className="app-card" style={{ margin: 0 }}>
               <div className="app-muted" style={{ fontSize: '0.8rem' }}>내 고유 번호</div>
               <div className="app-row">
-                <code style={{ wordBreak: 'break-all' }}>{user._id}</code>
+                <code style={{ wordBreak: 'break-all', fontFamily: 'inherit' }}>{user._id}</code>
                 <span className="app-spacer" />
                 <CopyButton text={user._id} label="복사" />
               </div>

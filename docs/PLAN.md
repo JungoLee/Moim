@@ -26,6 +26,7 @@
 - 인증: **Google OAuth(passport)** → 백엔드 **JWT** 발급 → 프론트 `localStorage` 저장 + `Authorization: Bearer` 호출
 - 실시간(채팅/협업): 추후 **Socket.io** 를 백엔드에 추가 예정
 - 공개 제어 핵심: 일정 가시성 = **일정별 공유/비공개**(`public`/`private`) × **그룹(Tier)** — 공유=친구 모두 상세, 비공개=선택 그룹 멤버만 상세(그 외 "바쁨")
+- 배포: **Render**(`render.yaml` Blueprint) — 백 `moim-api`(`moim-api.onrender.com`)·프론트 `moim-web`(`moim-web.onrender.com`) 2개 web 서비스 + MongoDB Atlas. 프론트 `NEXT_PUBLIC_API_URL`=백엔드 URL, main push 시 autoDeploy
 
 ### 데이터 모델 (현재)
 - **User**: `googleId`, `email`, `name`, `nickname`(표시명, 있으면 우선), `picture`, `isAdmin`
@@ -52,6 +53,9 @@
 - [x] 루트 통합 실행(`concurrently`, `npm run dev`) · 문서(README/CLAUDE/PLAN/ONBOARDING)
 - [x] 환경: `backend/.env`(Atlas 연결·구글 OAuth 입력 완료) + `frontend/.env.local` (gitignore)
 - [x] 엔드투엔드 검증: Atlas 연결 + 구글 로그인 리다이렉트 + 로그인 후 일정 생성 동작 확인 (2026-06-22)
+- [x] **배포(Render)** — `render.yaml` Blueprint로 `moim-api`(백)·`moim-web`(프론트) + Atlas. Render outbound IP를 Atlas Network Access에 등록 + 구글 콘솔 운영 콜백 URI 등록 (2026-06-22)
+- [x] **구글 로그인 팝업화** — 전체 이동 → `window.open` 팝업 + 동일 출처 localStorage `storage` 이벤트로 부모창 복귀(COOP 안전), 콜백 페이지는 팝업이면 자동 닫힘
+- [x] **랜딩 리디자인** — 글래스 카드 + 부유 광원, MOIM 워드마크(Black Ops One) 확대, Pretendard 전역 로드, 구글 공식 화이트 로그인 버튼
 
 ### 다음 작업 (남은 것)
 - [ ] **일정 입력 확장** — `allDay`·위치(`location`) 폼 미연결(제목·시간·메모·공개범위는 됨)
@@ -107,9 +111,10 @@
 - [ ] 토큰 링크로 특정 캘린더/근무표 입장 + 제한된 편집
 
 ### Phase 8 — 수익화 & 배포
-- [ ] **AdSense** 연동 (Next 배포 + 도메인 + 승인 필요)
-- [ ] 배포: 프론트(Vercel 등) / 백(Render·Railway 등) / Mongo Atlas
+- [x] 배포 ✅ — **Render**(백 `moim-api` + 프론트 `moim-web`) + Mongo Atlas, `render.yaml` Blueprint (2026-06-22)
+- [ ] **AdSense** 연동 (도메인 + 승인 필요)
 - [ ] 운영 보안: JWT → httpOnly 쿠키 전환, CORS/Rate limit, 입력 검증 강화
+- [ ] 커스텀 도메인 + free 플랜 콜드스타트 대응(starter 승격 또는 헬스 핑)
 
 ---
 
@@ -120,3 +125,4 @@
 - 일정 입력은 커스텀 날짜 picker + 24시 시간 select(타임존/반복 일정 미지원).
 - 연차 계산기 공휴일은 양력 고정만 내장(음력·대체공휴일 미반영 — data.go.kr 키 연동 시 해소).
 - 테스트 코드 없음.
+- Render free 플랜은 15분 무트래픽 시 슬립 → 첫 요청 콜드스타트 지연(~50s). 운영 시 starter 승격 또는 헬스 핑으로 완화.

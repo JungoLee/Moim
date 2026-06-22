@@ -36,7 +36,7 @@
 - 한국어 conventional 메시지(`feat(scope): …`, `fix(...)`, `docs(...)`). 완료된 작업만, 빌드 통과 후 커밋.
 - 커밋 메시지 끝에: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`
 - 내가 변경한 파일만 명시적으로 스테이징(`git add <paths>`).
-- GitHub 원격은 추후 연결 예정(현재 로컬 전용).
+- GitHub 원격: `github.com/JungoLee/Moim` (main). main push 시 Render가 `render.yaml` Blueprint로 자동 배포(autoDeploy).
 
 ## 환경 · 시크릿
 - 백엔드 시크릿은 `backend/.env` 에만: `MONGODB_URI` · `JWT_SECRET`(고정 유지) · `GOOGLE_CLIENT_ID/SECRET`. 커밋 금지(`.env.example` 제공).

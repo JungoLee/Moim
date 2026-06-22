@@ -14,7 +14,7 @@ const FIXED: Array<[number, number, string]> = [
   [12, 25, '성탄절'],
 ];
 
-export function fixedHolidays(year: number): Holidays {
+function fixedHolidays(year: number): Holidays {
   const out: Holidays = {};
   for (const [m, d, name] of FIXED) {
     out[`${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`] = name;

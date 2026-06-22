@@ -58,7 +58,17 @@ cd backend;  $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localhost:3000
 ```
 
-브라우저에서 `http://localhost:3000` → "구글로 시작하기".
+브라우저에서 `http://localhost:3000` → "Sign in with Google"(팝업으로 로그인 → 자동 복귀).
+
+---
+
+## 배포 (Render)
+운영은 **Render**에 루트 `render.yaml` **Blueprint**로 배포 — web 서비스 2개(`moim-api` 백 + `moim-web` 프론트, SSR) + MongoDB Atlas.
+
+- Render → **New → Blueprint** → `JungoLee/Moim` 선택 → 시크릿(`MONGODB_URI`·`JWT_SECRET`·`GOOGLE_CLIENT_SECRET`) 입력 → **Apply**. 이후 `main` push 시 **autoDeploy**.
+- **Atlas Network Access** 에 Render outbound IP 대역 등록(아니면 백엔드 DB 연결 실패 → `/api/health` 503).
+- **구글 콘솔** OAuth 클라이언트에 운영 콜백 `https://moim-api.onrender.com/api/auth/google/callback` 등록.
+- 자세히 → [docs/ONBOARDING.md](docs/ONBOARDING.md) §7.
 
 ---
 
@@ -83,6 +93,10 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 | GET/PUT | `/api/rooms/:id` · `/availability` | 방 상세(멤버·가용성·댓글) / 내 가능표시 저장 |
 | POST/DELETE | `/api/rooms/:id/comments[/:cid]` | 방 댓글 작성 / 삭제 |
 | PATCH | `/api/auth/me` | 닉네임 설정 |
+| GET | `/api/requests/received`·`/sent` | 받은 / 보낸 시간요청 |
+| POST | `/api/requests` | 시간요청 생성(친구에게) |
+| POST | `/api/requests/:id/accept`·`/decline` | 수락(양쪽 일정 생성) / 거절 |
+| DELETE | `/api/requests/:id` | 보낸 요청 취소 |
 | GET/PATCH | `/api/admin/users[/:id/admin]` | (관리자) 가입자 목록 / 권한 부여·회수 |
 
 ---
@@ -91,14 +105,15 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 ```
 Moim/
 ├─ package.json         # 루트: concurrently 로 두 서버 동시 실행 (npm run dev)
+├─ render.yaml          # Render 배포 Blueprint (web 2개: moim-api·moim-web)
 ├─ CLAUDE.md            # 작업 규칙
 ├─ README.md
 ├─ docs/                # PLAN.md(로드맵·현재상태) · ONBOARDING.md · refactoring-guide.md
 ├─ backend/
-│  └─ src/{config,middleware,models,routes,utils}   # models: User·Friendship·Tier·Event
+│  └─ src/{config,middleware,models,routes,utils}   # models: User·Friendship·Tier·Room·Event·TimeRequest
 └─ frontend/
    └─ src/
-      ├─ app/           # home · dashboard · friends · tiers · rooms · tools/leave · admin · u/[userId] · auth/callback
+      ├─ app/           # home · dashboard · friends · tiers · rooms · requests · tools/leave · admin · u/[userId] · auth/callback
       ├─ components/    # Nav · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton
       └─ lib/           # api · types · format · brand · leave · holidays
 ```

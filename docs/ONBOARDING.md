@@ -83,18 +83,17 @@ npm run dev                        # http://localhost:3000
 ## 5. 구조 한눈에
 ```
 frontend/  Next.js App Router
-  src/app/        라우트 (로그인 / home(메인) / dashboard / friends / tiers(그룹) / rooms(모임) / tools/leave(연차) / admin / u/[userId] / auth/callback)
+  src/app/        라우트 (로그인 / home / dashboard / friends / tiers(그룹) / rooms(모임) / requests(시간요청) / tools/leave(연차) / admin / u/[userId] / auth/callback)
   src/components/ 공용 (Nav · Calendar=FullCalendar · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton)
   src/lib/        api.ts(fetch+토큰) · types.ts · format.ts · brand.ts · leave.ts(연차 알고리즘) · holidays.ts
 backend/   Express(ESM)
-  src/routes/     auth · events · friends · tiers(그룹) · rooms(모임) · calendar · admin
-  src/models/     User · Friendship · Tier(그룹) · Room(모임) · Event
+  src/routes/     auth · events · friends · tiers(그룹) · rooms(모임) · calendar · admin · requests(시간요청)
+  src/models/     User · Friendship · Tier(그룹) · Room(모임) · Event · TimeRequest(시간요청)
   src/middleware/ auth.js(requireAuth) · admin.js(requireAdmin)
-  src/middleware/ auth.js(requireAuth)
   src/config/     db.js · passport.js(Google)
 docs/      PLAN.md(로드맵·할 일) · refactoring-guide.md · ONBOARDING.md(이 문서)
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
-루트        package.json — `npm run dev` 로 backend+frontend 동시 실행(concurrently)
+루트        package.json(`npm run dev`=두 서버 동시 실행, concurrently) · render.yaml(Render 배포 Blueprint)
 ```
 
 ## 6. 어디서 뭘 고치나
@@ -102,3 +101,21 @@ CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 - 코드 정리/리팩토링 절차 → [`refactoring-guide.md`](refactoring-guide.md)
 - 작업 규칙·컨벤션 → [`../CLAUDE.md`](../CLAUDE.md)
 - 환경변수 전체 → `backend/.env.example`, `frontend/.env.local.example`
+
+---
+
+## 7. 배포 (Render)
+운영은 **Render**에 루트 `render.yaml` **Blueprint**로 배포. web 서비스 2개 + MongoDB Atlas.
+
+| 서비스 | rootDir | build | start | URL |
+|---|---|---|---|---|
+| `moim-api`(백) | `backend` | `npm install` | `npm start` | https://moim-api.onrender.com |
+| `moim-web`(프론트, SSR) | `frontend` | `npm install && npm run build` | `npm start` | https://moim-web.onrender.com |
+
+- **배포 방법**: Render → New → Blueprint → `JungoLee/Moim` 선택 → 시크릿(`MONGODB_URI`·`JWT_SECRET`·`GOOGLE_CLIENT_SECRET`) 입력 → Apply. 이후 `main` push 시 **autoDeploy**.
+- **시크릿만** `sync:false`(대시보드 입력), 공개값(URL·`GOOGLE_CLIENT_ID`·`NEXT_PUBLIC_API_URL`)은 `render.yaml`에 명시.
+- **Atlas Network Access**: Render outbound IP 대역(서비스 → Connect → Outbound)을 화이트리스트에 추가해야 백엔드가 DB에 붙음. 빠지면 `moim-api`가 DB 연결 실패로 죽고 `/api/health`가 503.
+- **구글 콘솔**: 운영 콜백 `https://moim-api.onrender.com/api/auth/google/callback`을 OAuth 클라이언트 "승인된 리디렉션 URI"에 추가.
+- **콜드스타트**: free 플랜은 15분 무트래픽 시 슬립 → 첫 요청 ~50s 지연.
+
+> Next.js(SSR)라 프론트는 정적 사이트가 아닌 **web 서비스**(자체 `next start`)로 배포 → 그래서 백/프론트 2개로 분리.

@@ -1,12 +1,12 @@
-/* 영문(라틴 알파벳) 전용 브랜드 폰트 — MOIM 로고와 동일한 Black Ops One.
-   unicode-range 로 A–Z·a–z 에만 적용 → 숫자·날짜·카운트·한글은 본문 폰트(Pretendard) 유지. */
+/* 영문(라틴/ASCII) 전용 모노스페이스 — ui-monospace 대체를 local() 로 나열.
+   unicode-range 를 ASCII(U+0000-007F)로 제한 → 한글은 이 패밀리에 매칭되지 않아
+   항상 다음 폰트(Pretendard)로 폴백된다. (시스템 기본 monospace 가 한글 코딩폰트여도 한글은 Pretendard) */
 @font-face {
-  font-family: 'BrandEn';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/blackopsone/v21/qWcsB6-ypo7xBdr6Xshe96H3WDw.ttf') format('truetype');
-  unicode-range: U+0041-005A, U+0061-007A;
+  font-family: 'EnMono';
+  src: local('SF Mono'), local('SFMono-Regular'), local('Menlo'), local('Monaco'),
+    local('Cascadia Mono'), local('Cascadia Code'), local('Consolas'),
+    local('DejaVu Sans Mono'), local('Liberation Mono'), local('Courier New');
+  unicode-range: U+0000-007F;
 }
 
 :root {
@@ -70,8 +70,9 @@ body {
   background-image: radial-gradient(900px 500px at 15% -8%, rgba(124, 140, 255, 0.16), transparent 60%),
     radial-gradient(800px 480px at 100% 0%, rgba(122, 224, 208, 0.1), transparent 55%);
   background-attachment: fixed;
-  /* 'BrandEn'(Black Ops One)은 영문 글자에만 매칭(unicode-range), 그 외는 Pretendard 로 폴백 */
-  font-family: 'BrandEn', 'Pretendard', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic',
+  /* 영문(ASCII)은 'EnMono'(모노스페이스)로, 그 외(한글·기호)는 Pretendard.
+     메인 타이틀(.brand-mark)만 Black Ops One 유지. */
+  font-family: 'EnMono', 'Pretendard', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic',
     'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -487,11 +488,6 @@ a.app-card:hover {
 .app-muted {
   color: var(--color-muted);
 }
-/* 데이터성 영문(이메일 등)은 브랜드 영문 폰트(BrandEn)가 아닌 본문 폰트로 — 가독성 유지 */
-.app-plain {
-  font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic',
-    'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-}
 .app-error {
   color: var(--color-danger);
 }
@@ -578,7 +574,7 @@ a.app-card:hover {
 .app-hero-eyebrow {
   font-size: 1.05rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-accent);
   margin-bottom: var(--space-4);

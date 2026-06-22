@@ -112,7 +112,6 @@ router.get('/:id', async (req, res) => {
       text: c.text,
       createdAt: c.createdAt,
     })),
-    isOwner: room.owner.toString() === req.userId,
   });
 });
 

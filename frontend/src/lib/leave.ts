@@ -28,12 +28,12 @@ export function addDays(d: Date, n: number): Date {
   return r;
 }
 
-export function isWeekend(d: Date): boolean {
+function isWeekend(d: Date): boolean {
   const day = d.getDay();
   return day === 0 || day === 6;
 }
 
-export function isHoliday(d: Date, holidays: Holidays): boolean {
+function isHoliday(d: Date, holidays: Holidays): boolean {
   return !!holidays[toKey(d)];
 }
 
