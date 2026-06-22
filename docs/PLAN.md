@@ -62,10 +62,11 @@
 - [x] 프론트: `/tiers` 그룹 관리 페이지, 대시보드 공유/비공개+그룹 체크박스, 친구·친구캘린더 정리, Nav '그룹'
 - [x] 레거시 정리: 구 `Friendship.close/normal` 필드 + `/api/friends/:id/tier` 라우트 제거. UI 표기 '등급'→'그룹' 통일
 
-## 부가 도구 — 연차 계산기 (MyBudget 이식 요청)
-- 출처: `C:\workspace\MyBudget\frontend\annual-leave\*` (vanilla JS 684줄) + 백엔드 공휴일 API
-- 핵심: **브릿지 알고리즘**(공휴일/주말 사이 근무일을 연차로 메워 최대 연휴) + 한국 연차법 일수 계산
-- 이식 결정사항: 공휴일 데이터 소스(data.go.kr API 키 필요) / Moim 내 위치(`/tools/leave` 등) / flatpickr→네이티브 date 대체
+## 부가 도구 — 연차 계산기 ✅ (2026-06-22, MyBudget 이식)
+- [x] 브릿지 알고리즘 TS 이식(`frontend/src/lib/leave.ts`) + 고정 공휴일 내장(`lib/holidays.ts`)
+- [x] `/tools/leave` 페이지: 잔여연차·시작일·갱신일·최대연속·스타일 입력 → 잔여 연차 내 최적 조합 + 전체 추천(효율·휴무일·공휴일명)
+- [x] Nav '연차' 링크
+- 추후: 음력(설/추석/부처님오신날)·대체공휴일은 data.go.kr API 키 연동으로 확장(현재는 주말+양력 고정공휴일 기준으로 동작)
 
 ---
 
