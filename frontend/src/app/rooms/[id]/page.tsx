@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import AvailabilityCalendar, { type DaySummary } from '@/components/AvailabilityCalendar';
 import CopyButton from '@/components/CopyButton';
+import Avatar from '@/components/Avatar';
 import { api, getToken } from '@/lib/api';
 import type { RoomDetail, User, Mark, AvailStatus, RoomComment } from '@/lib/types';
 
@@ -93,6 +94,13 @@ export default function RoomPage() {
     [summary, total]
   );
 
+  // 댓글 작성자 → 프로필 이미지 매핑 (댓글엔 picture 가 없어 멤버 목록에서 조회)
+  const memberById = useMemo(() => {
+    const map: Record<string, User> = {};
+    for (const m of room?.members || []) map[m._id] = m;
+    return map;
+  }, [room]);
+
   async function onApply(dates: string[], isDrag: boolean) {
     if (!meId) return;
     const map: Record<string, Mark> = {};
@@ -140,7 +148,12 @@ export default function RoomPage() {
       <>
         <Nav />
         <main className="app-container">
-          <p className="app-error">{error}</p>
+          <div className="app-empty">
+            <div className="app-empty-icon">🔒</div>
+            <h2>{error}</h2>
+            <p>모임에 참여하려면 방장에게 받은 초대 코드로 입장하세요.</p>
+            <a className="app-btn" href="/rooms">모임 목록으로</a>
+          </div>
         </main>
       </>
     );
@@ -150,7 +163,9 @@ export default function RoomPage() {
       <>
         <Nav />
         <main className="app-container">
-          <p className="app-muted">불러오는 중…</p>
+          <div className="app-empty">
+            <p>불러오는 중…</p>
+          </div>
         </main>
       </>
     );
@@ -166,7 +181,15 @@ export default function RoomPage() {
           <strong>{room.code}</strong>
           <CopyButton text={room.code} label="코드 복사" />
         </div>
-        <p className="app-muted">멤버 {total}명 — {room.members.map((m) => m.name).join(', ')}</p>
+        <div className="app-row" style={{ gap: 'var(--space-3)' }}>
+          <span className="app-muted">멤버 {total}명</span>
+          {room.members.map((m) => (
+            <span key={m._id} className="app-row" style={{ gap: 'var(--space-2)', flexWrap: 'nowrap' }}>
+              <Avatar src={m.picture} alt={m.name} />
+              <span>{m.name}</span>
+            </span>
+          ))}
+        </div>
 
         <div className="room-grid">
           <div className="room-main">
@@ -226,10 +249,7 @@ export default function RoomPage() {
             <div className="app-card">
               <h3>댓글 ({comments.length})</h3>
               <form className="app-row" style={{ flexWrap: 'nowrap' }} onSubmit={addComment}>
-                {mePicture && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={mePicture} alt="" className="app-avatar-sm" />
-                )}
+                <Avatar src={mePicture} />
                 <input
                   className="app-input"
                   placeholder="댓글 입력"
@@ -245,6 +265,7 @@ export default function RoomPage() {
               {comments.map((c) => (
                 <div key={c._id} className="room-comment">
                   <div className="app-row">
+                    <Avatar src={memberById[c.user]?.picture} alt={c.name} />
                     <strong>{c.name || '익명'}</strong>
                     <span className="app-spacer" />
                     {c.user === meId && (

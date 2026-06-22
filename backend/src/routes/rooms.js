@@ -38,7 +38,9 @@ async function genCode() {
 }
 
 function isMember(room, me) {
-  return room.owner.toString() === me || room.members.some((m) => m.toString() === me);
+  // members 가 populate 되면(GET /:id) m 은 User 문서 → m._id 사용, 아니면 ObjectId 자체.
+  // (populate 시 m.toString() 은 '[object Object]' 라 _id 비교가 깨지는 버그 수정)
+  return room.owner.toString() === me || room.members.some((m) => (m._id || m).toString() === me);
 }
 
 // 내 방 목록 (소유 + 참여)
