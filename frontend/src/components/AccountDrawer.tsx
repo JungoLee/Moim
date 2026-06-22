@@ -40,6 +40,18 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
     router.push('/');
   }
 
+  async function deleteAccount() {
+    if (!window.confirm('정말 탈퇴하시겠어요?\n내 일정·그룹·모임·친구 관계 등 모든 데이터가 삭제되며 되돌릴 수 없습니다.')) return;
+    try {
+      await api('/api/auth/me', { method: 'DELETE' });
+      clearToken();
+      onClose();
+      router.push('/');
+    } catch {
+      window.alert('탈퇴 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
+  }
+
   async function saveNick() {
     try {
       const r = await api<{ user: User }>('/api/auth/me', { method: 'PATCH', body: { nickname: nick } });
@@ -74,7 +86,7 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
                   <strong>{displayName(user)}</strong>
                   {user.isAdmin && <span style={{ color: 'var(--color-success)' }}> · 관리자</span>}
                 </div>
-                <div className="app-muted">{user.email}</div>
+                <div className="app-muted app-plain">{user.email}</div>
               </div>
             </div>
 
@@ -112,6 +124,13 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
             )}
             <button className="app-btn app-btn--ghost" onClick={logout}>
               로그아웃
+            </button>
+            <button
+              className="app-btn app-btn--ghost"
+              style={{ color: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
+              onClick={deleteAccount}
+            >
+              회원 탈퇴
             </button>
           </>
         )}
