@@ -459,6 +459,13 @@ a.app-card:hover {
 .app-error {
   color: var(--color-danger);
 }
+.app-pill {
+  font-size: 0.72rem;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-3);
+  color: var(--color-muted);
+}
 
 /* 브랜드 마크 — 그라데이션 텍스트 */
 .brand-mark {
@@ -624,9 +631,12 @@ a.app-card:hover {
   font-size: 0.74rem;
   cursor: pointer;
 }
-/* 선택 가능한 달력의 날짜 칸 커서 */
+/* 선택 가능한 달력의 날짜 칸 커서 (지난 날짜는 비활성이라 기본 커서) */
 .fc.fc-theme-standard .fc-daygrid-day {
   cursor: pointer;
+}
+.fc.fc-theme-standard .fc-daygrid-day.fc-day-past {
+  cursor: default;
 }
 .fc .fc-event.evt-busy {
   background-color: var(--color-surface-3) !important;

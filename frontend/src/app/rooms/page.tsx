@@ -90,7 +90,7 @@ export default function Rooms() {
           <Link key={r._id} href={`/rooms/${r._id}`} className="app-card" style={{ display: 'block' }}>
             <div className="app-row">
               <strong>{r.name}</strong>
-              {r.isOwner && <span className="app-muted">· 내가 만든</span>}
+              {r.isOwner && <span className="app-pill">방장</span>}
               <span className="app-spacer" />
               <span className="app-muted">
                 멤버 {r.memberCount}명 · 코드 {r.code}
