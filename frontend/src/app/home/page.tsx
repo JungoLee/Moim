@@ -8,7 +8,7 @@ import Tooltip from '@/components/Tooltip';
 import Icon, { type IconName } from '@/components/Icon';
 import { api, getToken } from '@/lib/api';
 import { formatRange, displayName } from '@/lib/format';
-import type { MoimEvent, User, FriendRequest, RoomSummary } from '@/lib/types';
+import type { MoimEvent, User, FriendRequest, RoomSummary, TimeRequest } from '@/lib/types';
 import styles from './home.module.scss';
 
 // [경로, 아이콘, 라벨, 툴팁 설명, 주요기능?]
@@ -25,6 +25,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [events, setEvents] = useState<MoimEvent[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
+  const [timeReqs, setTimeReqs] = useState<TimeRequest[]>([]);
   const [rooms, setRooms] = useState<RoomSummary[]>([]);
 
   const load = useCallback(async () => {
@@ -35,6 +36,8 @@ export default function Home() {
       setEvents(ev.events);
       const rq = await api<{ requests: FriendRequest[] }>('/api/friends/requests');
       setRequests(rq.requests);
+      const tr = await api<{ requests: TimeRequest[] }>('/api/requests/received');
+      setTimeReqs(tr.requests.filter((r) => r.status === 'pending'));
       const rm = await api<{ rooms: RoomSummary[] }>('/api/rooms');
       setRooms(rm.rooms);
     } catch {
@@ -81,6 +84,12 @@ export default function Home() {
         {requests.length > 0 && (
           <Link href="/friends" className={styles.banner}>
             🔔 <strong>받은 친구 요청 {requests.length}건</strong> — 확인하기 →
+          </Link>
+        )}
+
+        {timeReqs.length > 0 && (
+          <Link href="/requests" className={styles.banner}>
+            ⏰ <strong>받은 시간 요청 {timeReqs.length}건</strong> — 확인하기 →
           </Link>
         )}
 

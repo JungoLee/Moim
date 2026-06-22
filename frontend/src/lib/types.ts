@@ -66,3 +66,15 @@ export type RoomComment = {
   text: string;
   createdAt: string;
 };
+
+// 시간 요청
+export type TimeRequest = {
+  _id: string;
+  from?: User;
+  to?: User;
+  title: string;
+  start: string;
+  end: string;
+  message: string;
+  status: 'pending' | 'accepted' | 'declined';
+};

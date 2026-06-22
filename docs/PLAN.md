@@ -33,6 +33,7 @@
 - **Tier(그룹)**: `owner`, `name`, `code`(고유), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가
 - **Room(모임 방)**: `owner`, `name`, `code`(초대), `members[]`, `availabilities[{user, marks[{date,status(yes|no|after),time}]}]`, `comments[]` — 멤버별 가능/불가/시간 → 모두 되는 날 집계 + 댓글
 - **Event**: `owner`, `title`, `start`, `end`, `allDay`, `location`, `memo`, `visibility`(public|private), `audienceTiers[]`(비공개 시 상세 열람 그룹)
+- **TimeRequest**: `from`, `to`, `title`, `start`, `end`, `message`, `status`(pending|accepted|declined) — 친구에게 시간 요청, 수락 시 양쪽 일정 생성
 
 ---
 
@@ -41,8 +42,8 @@
 
 구현됨:
 - [x] 백엔드: Express, MongoDB(Atlas) 연결, Google OAuth+JWT, requireAuth, 시작 시 env 가드
-- [x] 모델: User / Friendship / Tier(그룹) / Room(모임) / Event
-- [x] 라우트: auth · events(CRUD) · friends · tiers(그룹) · rooms(방·가용성) · calendar · admin(가입자/권한)
+- [x] 모델: User / Friendship / Tier(그룹) / Room(모임) / Event / TimeRequest(시간요청)
+- [x] 라우트: auth · events(CRUD) · friends · tiers(그룹) · rooms(방·가용성) · calendar · admin(가입자/권한) · requests(시간요청)
 - [x] 프론트: 랜딩 · 대시보드(**FullCalendar** 월/주 + 클릭·드래그 → 일정 모달[**커스텀 날짜 picker** + 24시 시간 + 메모] + 공유/비공개·그룹, 일정 클릭=수정/삭제) · 친구 · 그룹(`/tiers`) · 친구 캘린더 · 모임(`/rooms`, 3모드+댓글) · 연차(`/tools/leave`) · 관리자(`/admin`)
 - [x] 계정 메뉴(드로어): 구글 아바타 · **닉네임 설정**(없으면 구글 이름) · 고유 번호 복사 · 관리자 링크(권한 시) · 로그아웃 · 이용약관/개인정보 · ESC 닫기. 기본 관리자 `tough123181@gmail.com`(env `ADMIN_EMAILS`). **관리자 페이지**(`/admin`): 통계 개요 · 회원 권한/탈퇴(데이터 cascade) · 모임/그룹 모더레이션(삭제), 탭 UI
 - [x] 메인(홈) `/home`: 받은 친구요청 알림 · 다가오는 일정 · 내 모임 요약 (로그인 후 랜딩)
@@ -82,10 +83,11 @@
 - [ ] 기존 등록 일정(Event)에서 자동 취합 (수동 표시 없이 겹치는 빈 시간 계산)
 - [ ] 빈 시간 결과 시각화(히트맵/추천 날짜)
 
-### Phase 3 — 시간 요청 (친한친구 기반)
-- [ ] `TimeRequest{ from, to(user), start, end, message, status }`
-- [ ] 특정 그룹(친한친구 등) 멤버에게만 요청 가능, 수락/거절 → 수락 시 일정 자동 생성 옵션
-- [ ] 알림(인앱) 표시
+### Phase 3 — 시간 요청 ✅ (2026-06-22)
+- [x] `TimeRequest` 모델 + `/api/requests`(받은/보낸/생성/수락/거절/취소)
+- [x] 친구에게 요청 → **수락 시 양쪽 캘린더에 일정 자동 생성**, 거절/취소
+- [x] `/requests` 페이지(보내기 폼 + 받은/보낸 목록) + Nav '요청' + 홈 받은 요청 배너(인앱 알림)
+- 비고: 현재 모든 친구에게 요청 가능(특정 그룹 한정은 추후 옵션)
 
 ### Phase 4 — 실시간 채팅
 - [ ] 백엔드 Socket.io 도입(JWT 핸드셰이크 인증)

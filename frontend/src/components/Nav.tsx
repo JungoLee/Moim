@@ -26,6 +26,7 @@ export default function Nav() {
         <Link href="/home">홈</Link>
         <Link href="/dashboard">내 캘린더</Link>
         <Link href="/friends">친구</Link>
+        <Link href="/requests">요청</Link>
         <Link href="/tiers">그룹</Link>
         <Link href="/rooms" className="app-nav-feature">모임</Link>
         <Link href="/tools/leave">연차</Link>
