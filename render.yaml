@@ -1,0 +1,52 @@
+# Render Blueprint — Moim (모노레포: 백엔드 API + 프론트 Next.js)
+# 배포: Render 대시보드 → New → Blueprint → 이 저장소 선택 → 시크릿 입력 → Apply.
+# sync:false 인 값(시크릿)은 커밋하지 않고 대시보드 Environment 탭에서 직접 입력한다.
+#
+# ⚠️ Gilo 와 구조가 다름:
+#   - Gilo  = 백엔드가 Vite 빌드 결과를 정적 서빙 → web 1개.
+#   - Moim  = 프론트가 Next.js(SSR) → 자체 서버(next start) 필요 → web 2개(API + 프론트).
+services:
+  # ── 백엔드 API (Express, ESM) ───────────────────────────────
+  - type: web
+    name: moim-api
+    runtime: node
+    region: singapore # 한국에서 가장 가까운 리전 (gilo 와 동일)
+    plan: free # 테스트 단계. 15분 무트래픽 시 슬립(콜드스타트). 도메인 붙일 땐 starter.
+    branch: main
+    rootDir: backend # 모노레포 — 백엔드 폴더에서 명령 실행
+    autoDeploy: true
+    buildCommand: npm install # 백엔드엔 build 스크립트 없음
+    startCommand: npm start # = node src/server.js. PORT 는 Render 가 주입
+    healthCheckPath: /api/health
+    envVars:
+      # ── 시크릿: 대시보드에서 입력 (커밋 금지) ──────────────
+      - key: MONGODB_URI # mongodb://...@...mongodb.net/moim?... (Atlas, 비번 포함)
+        sync: false
+      - key: JWT_SECRET # 고정값 유지(변경 시 전체 로그인 무효화)
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET # 구글 OAuth 시크릿
+        sync: false
+      # ── 공개값: yaml 에 그대로 ─────────────────────────────
+      - key: GOOGLE_CLIENT_ID # OAuth 클라이언트 ID (공개값 — OAuth 리다이렉트에 노출됨)
+        value: 677148716312-8qr96i7bt0t68cm1602pqvaar90ttjt7.apps.googleusercontent.com
+      - key: GOOGLE_CALLBACK_URL # 구글 콘솔 "승인된 리디렉션 URI"에 동일하게 등록 필요
+        value: https://moim-api.onrender.com/api/auth/google/callback
+      - key: FRONTEND_URL # CORS 허용 + 로그인 후 리디렉션 대상 (= 프론트 서비스 URL)
+        value: https://moim-web.onrender.com
+
+  # ── 프론트엔드 (Next.js 14 App Router, SSR) ─────────────────
+  - type: web
+    name: moim-web
+    runtime: node
+    region: singapore
+    plan: free
+    branch: main
+    rootDir: frontend
+    autoDeploy: true
+    # NODE_ENV 를 설정하지 않음 → npm 이 devDependencies(typescript/sass)도 설치 → next build 가능.
+    buildCommand: npm install && npm run build
+    startCommand: npm start # = next start. PORT 는 Render 가 주입
+    envVars:
+      # NEXT_PUBLIC_* 는 빌드 시점에 번들에 박힘 → 값 변경 시 재배포(rebuild) 필요.
+      - key: NEXT_PUBLIC_API_URL # 백엔드 서비스 URL
+        value: https://moim-api.onrender.com
