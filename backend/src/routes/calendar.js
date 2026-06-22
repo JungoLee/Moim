@@ -2,13 +2,34 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 import Event from '../models/Event.js';
 import Friendship from '../models/Friendship.js';
+import Tier from '../models/Tier.js';
 import User from '../models/User.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 router.use(requireAuth);
 
-// 특정 사용자의 캘린더 조회 — 노출 등급(self/close/normal)을 반영
+// 일정을 상세(detail)로 변환
+function toDetail(e) {
+  return {
+    _id: e._id,
+    title: e.title,
+    start: e.start,
+    end: e.end,
+    allDay: e.allDay,
+    location: e.location,
+    memo: e.memo,
+    visibility: e.visibility,
+    busy: false,
+  };
+}
+
+// 일정을 "바쁨" 블록으로 변환
+function toBusy(e) {
+  return { _id: e._id, start: e.start, end: e.end, allDay: e.allDay, busy: true };
+}
+
+// 특정 사용자의 캘린더 조회 — 공유(public)는 상세, 비공개(private)는 등급 멤버에게만 상세
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
   const { from, to } = req.query;
@@ -27,13 +48,13 @@ router.get('/:userId', async (req, res) => {
     if (to) q.start.$lte = new Date(to);
   }
 
-  // 본인 → 전체 노출
+  // 본인 → 전체 상세
   if (userId === me) {
     const events = await Event.find(q).sort({ start: 1 });
-    return res.json({ ok: true, owner, tier: 'self', events });
+    return res.json({ ok: true, owner, relation: 'self', events });
   }
 
-  // 친구 관계 확인 + 내가 이 소유자의 일정을 보는 등급 판정
+  // 캘린더 열람 권한 = 친구 관계
   const fs = await Friendship.findOne({
     status: 'accepted',
     $or: [
@@ -43,34 +64,21 @@ router.get('/:userId', async (req, res) => {
   });
   if (!fs) return res.status(403).json({ ok: false, message: '이 사용자의 캘린더를 볼 권한이 없습니다.' });
 
-  // owner 가 나에게 부여한 등급
-  const ownerIsRequester = fs.requester.toString() === userId;
-  const tier = ownerIsRequester ? fs.requesterTierForRecipient : fs.recipientTierForRequester;
+  // owner 의 등급 중 내가 멤버인 것들 → 비공개 일정 상세 열람 가능
+  const myTiers = await Tier.find({ owner: userId, members: me }).select('_id');
+  const myTierIds = new Set(myTiers.map((t) => t._id.toString()));
 
   const events = await Event.find(q).sort({ start: 1 });
+  const mapped = events.map((e) => {
+    if (e.visibility === 'private') {
+      const allowed = (e.audienceTiers || []).some((tid) => myTierIds.has(tid.toString()));
+      return allowed ? toDetail(e) : toBusy(e);
+    }
+    // public / default → 상세
+    return toDetail(e);
+  });
 
-  if (tier === 'close') {
-    // 상세 노출 (단, private 일정은 "바쁨"으로만)
-    const mapped = events.map((e) =>
-      e.visibility === 'private'
-        ? { _id: e._id, start: e.start, end: e.end, allDay: e.allDay, busy: true }
-        : {
-            _id: e._id,
-            title: e.title,
-            start: e.start,
-            end: e.end,
-            allDay: e.allDay,
-            location: e.location,
-            memo: e.memo,
-            busy: false,
-          }
-    );
-    return res.json({ ok: true, owner, tier: 'close', events: mapped });
-  }
-
-  // normal → "바쁨" 블록만
-  const busy = events.map((e) => ({ _id: e._id, start: e.start, end: e.end, allDay: e.allDay, busy: true }));
-  res.json({ ok: true, owner, tier: 'normal', events: busy });
+  res.json({ ok: true, owner, relation: 'friend', events: mapped });
 });
 
 export default router;

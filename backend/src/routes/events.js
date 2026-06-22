@@ -19,12 +19,19 @@ router.get('/', async (req, res) => {
   res.json({ ok: true, events });
 });
 
+// 비공개 일정의 audienceTiers 입력 정규화 (유효한 ObjectId 배열만)
+function normalizeAudience(audienceTiers) {
+  if (!Array.isArray(audienceTiers)) return [];
+  return audienceTiers.filter((id) => mongoose.Types.ObjectId.isValid(id));
+}
+
 // 일정 생성
 router.post('/', async (req, res) => {
-  const { title, start, end, allDay, location, memo, visibility } = req.body;
+  const { title, start, end, allDay, location, memo, visibility, audienceTiers } = req.body;
   if (!title || !start || !end) {
     return res.status(400).json({ ok: false, message: 'title, start, end 는 필수입니다.' });
   }
+  const isPrivate = visibility === 'private';
   const event = await Event.create({
     owner: req.userId,
     title,
@@ -33,7 +40,8 @@ router.post('/', async (req, res) => {
     allDay: !!allDay,
     location: location || '',
     memo: memo || '',
-    visibility: visibility === 'private' ? 'private' : 'default',
+    visibility: isPrivate ? 'private' : 'public',
+    audienceTiers: isPrivate ? normalizeAudience(audienceTiers) : [],
   });
   res.status(201).json({ ok: true, event });
 });
@@ -45,9 +53,12 @@ router.patch('/:id', async (req, res) => {
   }
   const event = await Event.findOne({ _id: req.params.id, owner: req.userId });
   if (!event) return res.status(404).json({ ok: false, message: '일정을 찾을 수 없습니다.' });
-  for (const f of ['title', 'start', 'end', 'allDay', 'location', 'memo', 'visibility']) {
+  for (const f of ['title', 'start', 'end', 'allDay', 'location', 'memo']) {
     if (f in req.body) event[f] = req.body[f];
   }
+  if ('visibility' in req.body) event.visibility = req.body.visibility === 'private' ? 'private' : 'public';
+  if ('audienceTiers' in req.body) event.audienceTiers = normalizeAudience(req.body.audienceTiers);
+  if (event.visibility !== 'private') event.audienceTiers = [];
   await event.save();
   res.json({ ok: true, event });
 });

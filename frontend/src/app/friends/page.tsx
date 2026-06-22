@@ -53,11 +53,6 @@ export default function Friends() {
     load();
   }
 
-  async function setTier(friendUserId: string, tier: string) {
-    await api(`/api/friends/${friendUserId}/tier`, { method: 'PATCH', body: { tier } });
-    load();
-  }
-
   return (
     <>
       <Nav />
@@ -108,13 +103,9 @@ export default function Friends() {
               <strong>{f.user.name}</strong>
               <span className="app-muted">{f.user.email}</span>
               <span className="app-spacer" />
-              <label className="app-muted">
-                내 일정 공개 등급{' '}
-                <select className="app-select" value={f.myTierForThem} onChange={(e) => setTier(f.user._id, e.target.value)}>
-                  <option value="normal">바쁨만</option>
-                  <option value="close">상세(친한친구)</option>
-                </select>
-              </label>
+              <Link className="app-btn app-btn--ghost" href="/tiers">
+                등급에 추가
+              </Link>
               <Link className="app-btn app-btn--ghost" href={`/u/${f.user._id}`}>
                 캘린더 보기
               </Link>

@@ -9,9 +9,12 @@ const eventSchema = new mongoose.Schema(
     allDay: { type: Boolean, default: false },
     location: { type: String, default: '' },
     memo: { type: String, default: '' },
-    // default : 친구 등급(close/normal)에 따라 노출
-    // private : close 친구에게도 "바쁨"으로만 노출
-    visibility: { type: String, enum: ['default', 'private'], default: 'default' },
+    // public  : 캘린더를 보는 모두에게 상세 노출 (공유)
+    // private : audienceTiers 등급의 멤버에게만 상세, 그 외엔 "바쁨" (비공개)
+    // default : (구버전 호환) public 과 동일 취급
+    visibility: { type: String, enum: ['public', 'private', 'default'], default: 'public' },
+    // 비공개(private) 시 상세를 볼 수 있는 등급 목록
+    audienceTiers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tier' }],
   },
   { timestamps: true }
 );

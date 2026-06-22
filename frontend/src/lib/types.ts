@@ -13,16 +13,23 @@ export type MoimEvent = {
   allDay?: boolean;
   location?: string;
   memo?: string;
-  visibility?: 'default' | 'private';
+  visibility?: 'public' | 'private' | 'default';
+  audienceTiers?: string[]; // 비공개 시 상세 열람 가능한 등급 id 목록
   busy?: boolean; // 친구 캘린더 조회 시 "바쁨" 블록 여부
 };
 
-export type Tier = 'close' | 'normal';
+// 사용자가 만드는 공개 등급(그룹)
+export type Tier = {
+  _id: string;
+  name: string;
+  code: string;
+  members: User[];
+};
 
 export type Friend = {
   friendshipId: string;
   user: User;
-  myTierForThem: Tier;
+  myTierForThem?: string; // (구버전) 친구별 close/normal — 현재 UI 미사용
 };
 
 export type FriendRequest = {

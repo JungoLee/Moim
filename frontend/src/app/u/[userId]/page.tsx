@@ -13,15 +13,13 @@ export default function FriendCalendar() {
   const userId = params.userId as string;
 
   const [owner, setOwner] = useState<User | null>(null);
-  const [tier, setTier] = useState('');
   const [events, setEvents] = useState<MoimEvent[]>([]);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
     try {
-      const res = await api<{ owner: User; tier: string; events: MoimEvent[] }>(`/api/calendar/${userId}`);
+      const res = await api<{ owner: User; relation: string; events: MoimEvent[] }>(`/api/calendar/${userId}`);
       setOwner(res.owner);
-      setTier(res.tier);
       setEvents(res.events);
     } catch (e) {
       setError(e instanceof Error ? e.message : '불러오기 실패');
@@ -41,8 +39,7 @@ export default function FriendCalendar() {
       <Nav />
       <main className="app-container">
         <h2>{owner ? `${owner.name} 님의 캘린더` : '캘린더'}</h2>
-        {tier === 'normal' && <p className="app-muted">이 친구는 바쁜 시간만 공개합니다.</p>}
-        {tier === 'close' && <p className="app-muted">상세 일정을 볼 수 있습니다.</p>}
+        <p className="app-muted">공유 일정은 상세히, 비공개 일정은 내가 속한 등급일 때만 상세로 보입니다(그 외엔 &lsquo;바쁨&rsquo;).</p>
         {error && <p className="app-error">{error}</p>}
         {!error && <Calendar events={events} />}
         {events.length === 0 && !error && <p className="app-muted">표시할 일정이 없습니다.</p>}

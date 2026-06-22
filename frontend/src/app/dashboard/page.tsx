@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Nav from '@/components/Nav';
 import Calendar from '@/components/Calendar';
 import { api, getToken } from '@/lib/api';
 import { formatRange } from '@/lib/format';
-import type { MoimEvent, User } from '@/lib/types';
+import type { MoimEvent, Tier, User } from '@/lib/types';
 
 // Date → datetime-local 입력 형식(YYYY-MM-DDTHH:mm, 로컬 기준)
 function toLocalInput(d: Date): string {
@@ -24,7 +25,9 @@ export default function Dashboard() {
   const [title, setTitle] = useState('');
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
-  const [visibility, setVisibility] = useState<'default' | 'private'>('default');
+  const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+  const [tiers, setTiers] = useState<Tier[]>([]);
+  const [audienceTiers, setAudienceTiers] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     try {
@@ -32,6 +35,8 @@ export default function Dashboard() {
       setUser(meRes.user);
       const evRes = await api<{ events: MoimEvent[] }>('/api/events');
       setEvents(evRes.events);
+      const tRes = await api<{ tiers: Tier[] }>('/api/tiers');
+      setTiers(tRes.tiers);
     } catch (e) {
       setError(e instanceof Error ? e.message : '불러오기 실패');
     }
@@ -50,11 +55,15 @@ export default function Dashboard() {
     if (!start || !end) return;
     const finalTitle = title.trim() || '새 일정'; // 제목 비면 기본값
     try {
-      await api('/api/events', { method: 'POST', body: { title: finalTitle, start, end, visibility } });
+      await api('/api/events', {
+        method: 'POST',
+        body: { title: finalTitle, start, end, visibility, audienceTiers: visibility === 'private' ? audienceTiers : [] },
+      });
       setTitle('');
       setStart('');
       setEnd('');
-      setVisibility('default');
+      setVisibility('public');
+      setAudienceTiers([]);
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : '추가 실패');
@@ -64,6 +73,10 @@ export default function Dashboard() {
   async function removeEvent(id: string) {
     await api(`/api/events/${id}`, { method: 'DELETE' });
     load();
+  }
+
+  function toggleAudience(tierId: string) {
+    setAudienceTiers((cur) => (cur.includes(tierId) ? cur.filter((id) => id !== tierId) : [...cur, tierId]));
   }
 
   // 캘린더에서 날짜 클릭/드래그 → 새 일정 기간 프리필 (시작일 09시 ~ 종료일 10시)
@@ -91,15 +104,36 @@ export default function Dashboard() {
             <select
               className="app-select"
               value={visibility}
-              onChange={(e) => setVisibility(e.target.value as 'default' | 'private')}
+              onChange={(e) => setVisibility(e.target.value as 'public' | 'private')}
             >
-              <option value="default">공유(등급 따름)</option>
-              <option value="private">비공개(바쁨만)</option>
+              <option value="public">공유(누구나)</option>
+              <option value="private">비공개(선택 등급)</option>
             </select>
             <button className="app-btn" type="submit">
               추가
             </button>
           </div>
+
+          {visibility === 'private' && (
+            <div className="app-row" style={{ marginTop: 'var(--space-2)' }}>
+              {tiers.length === 0 ? (
+                <span className="app-muted">
+                  공개할 등급이 없습니다 — <Link href="/tiers">등급 만들기</Link> (비우면 나만 봅니다)
+                </span>
+              ) : (
+                tiers.map((t) => (
+                  <label key={t._id} className="app-muted">
+                    <input
+                      type="checkbox"
+                      checked={audienceTiers.includes(t._id)}
+                      onChange={() => toggleAudience(t._id)}
+                    />{' '}
+                    {t.name}
+                  </label>
+                ))
+              )}
+            </div>
+          )}
         </form>
 
         <Calendar events={events} onSelectRange={pickRange} />
