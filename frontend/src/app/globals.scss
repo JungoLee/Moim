@@ -1,23 +1,47 @@
 :root {
-  --color-bg: #0f1220;
-  --color-surface: #1a1f35;
-  --color-surface-2: #232a47;
-  --color-text: #e8ebf5;
-  --color-muted: #9aa3c0;
-  --color-primary: #6c8cff;
+  /* 표면 — 깊은 슬레이트에 단계별 입체감 */
+  --color-bg: #0a0d18;
+  --color-surface: #141a2c;
+  --color-surface-2: #1c2340;
+  --color-surface-3: #273052;
+  --color-text: #eef1fb;
+  --color-muted: #98a1c0;
+
+  /* 강조 — 인디고~바이올렛 */
+  --color-primary: #7c8cff;
+  --color-primary-600: #6573f2;
   --color-primary-text: #ffffff;
+  --color-accent: #46d6c2;
   --color-danger: #ff6b6b;
-  --color-border: #2c3454;
+  --color-success: #4ad295;
+
+  --color-border: #2a3358;
+  --color-border-soft: rgba(255, 255, 255, 0.07);
+
+  /* 그라데이션 */
+  --grad-primary: linear-gradient(135deg, #7c8cff 0%, #9a7cff 100%);
+  --grad-brand: linear-gradient(120deg, #8ea2ff 0%, #c0a3ff 55%, #7be0d0 100%);
+
+  /* 그림자 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.32);
+  --shadow-glow: 0 0 0 3px rgba(124, 140, 255, 0.25);
 
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
 
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --space-5: 20px;
   --space-6: 24px;
+  --space-8: 36px;
+
+  --transition: 160ms cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
 * {
@@ -28,15 +52,47 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--color-bg);
+  min-height: 100%;
   color: var(--color-text);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
-  line-height: 1.5;
+  background-color: var(--color-bg);
+  /* 은은한 상단 글로우 */
+  background-image: radial-gradient(900px 500px at 15% -8%, rgba(124, 140, 255, 0.16), transparent 60%),
+    radial-gradient(800px 480px at 100% 0%, rgba(122, 224, 208, 0.1), transparent 55%);
+  background-attachment: fixed;
+  font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo',
+    'Noto Sans KR', sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(124, 140, 255, 0.35);
+}
+
+/* 스크롤바 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-3) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-surface-3);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 a {
   color: var(--color-primary);
   text-decoration: none;
+  transition: color var(--transition);
+}
+a:hover {
+  color: #a7b3ff;
 }
 
 button {
@@ -48,74 +104,192 @@ h1,
 h2,
 h3 {
   margin: 0 0 var(--space-3);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
-
-.app-container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-4);
+h1 {
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-weight: 800;
 }
-
-.app-nav {
-  display: flex;
-  gap: var(--space-4);
-  align-items: center;
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
 }
-
-.app-btn {
-  background: var(--color-primary);
-  color: var(--color-primary-text);
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-4);
-}
-
-.app-btn--ghost {
-  background: transparent;
-  border: 1px solid var(--color-border);
+h3 {
+  font-size: 1.12rem;
+  font-weight: 700;
   color: var(--color-text);
 }
 
-.app-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
-  margin-bottom: var(--space-3);
+/* 레이아웃 */
+.app-container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-5);
 }
 
+/* 상단 네비 — 스티키 + 블러 */
+.app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-3) var(--space-5);
+  background: rgba(10, 13, 24, 0.72);
+  backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+.app-nav a {
+  color: var(--color-muted);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition: color var(--transition), background var(--transition);
+}
+.app-nav a:hover {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
+.app-nav .brand-mark {
+  margin-right: var(--space-2);
+}
+
+/* 버튼 */
+.app-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: var(--grad-primary);
+  color: var(--color-primary-text);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-4);
+  height: 40px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+}
+.app-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.07);
+  box-shadow: var(--shadow-md);
+}
+.app-btn:active {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+.app-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-glow);
+}
+.app-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+.app-btn--ghost {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  box-shadow: none;
+}
+.app-btn--ghost:hover {
+  background: var(--color-surface-3);
+  filter: none;
+}
+
+/* 카드 */
+.app-card {
+  background: linear-gradient(180deg, var(--color-surface) 0%, rgba(20, 26, 44, 0.85) 100%);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.app-card:hover {
+  border-color: var(--color-border);
+}
+
+/* 입력 */
 .app-input,
 .app-select {
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text);
-  padding: var(--space-2) var(--space-3);
+  padding: 0 var(--space-3);
+  height: 40px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.app-input::placeholder {
+  color: var(--color-muted);
+}
+.app-input:focus,
+.app-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow);
+}
+.app-select {
+  cursor: pointer;
+}
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  vertical-align: -2px;
 }
 
+/* 유틸 */
 .app-row {
   display: flex;
   gap: var(--space-3);
   align-items: center;
   flex-wrap: wrap;
 }
-
 .app-spacer {
   margin-left: auto;
 }
-
 .app-muted {
   color: var(--color-muted);
 }
-
 .app-error {
   color: var(--color-danger);
 }
 
+/* 브랜드 마크 — 그라데이션 텍스트 */
 .brand-mark {
+  display: inline-block;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 0.04em;
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 랜딩 히어로 */
+.app-hero {
+  max-width: 560px;
+  margin: clamp(48px, 12vh, 140px) auto 0;
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+}
+.app-hero p {
+  color: var(--color-muted);
+  font-size: 1.08rem;
+  margin: var(--space-3) 0 var(--space-6);
+}
+.app-hero .app-btn {
+  height: 48px;
+  padding: 0 var(--space-6);
+  font-size: 1.02rem;
 }

@@ -1,20 +1,23 @@
 .calendar {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+  background: linear-gradient(180deg, var(--color-surface) 0%, rgba(20, 26, 44, 0.85) 100%);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
   margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-sm);
 }
 
 .header {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .title {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .spacer {
@@ -24,107 +27,122 @@
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--space-1);
-  margin-bottom: var(--space-1);
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
   color: var(--color-muted);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
   text-align: center;
+  letter-spacing: 0.02em;
 }
 
 .sun {
-  color: var(--color-danger);
+  color: #ff9b9b;
 }
 
 .sat {
-  color: var(--color-primary);
+  color: #9bb6ff;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .cell {
-  min-height: 92px;
+  position: relative;
+  min-height: 104px;
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-1) var(--space-2) var(--space-2);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   overflow: hidden;
   user-select: none; // 드래그 중 텍스트 선택 방지
+  transition: border-color var(--transition), background var(--transition), transform var(--transition);
+}
+
+/* 주말 칸 은은한 틴트 (그리드는 일요일 시작) */
+.grid .cell:nth-child(7n + 1) {
+  background: rgba(255, 107, 107, 0.06);
+}
+.grid .cell:nth-child(7n) {
+  background: rgba(124, 140, 255, 0.07);
 }
 
 .clickable {
   cursor: pointer;
 }
-
 .clickable:hover {
   border-color: var(--color-primary);
+  transform: translateY(-1px);
 }
 
 .selected {
-  background: rgba(108, 140, 255, 0.3);
+  background: rgba(124, 140, 255, 0.22) !important;
   border-color: var(--color-primary);
 }
 
-.hint {
-  margin: var(--space-2) 0 0;
-  font-size: 0.78rem;
-  color: var(--color-muted);
-}
-
 .outside {
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .dayNum {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
   color: var(--color-muted);
-  width: 1.7em;
-  height: 1.7em;
+  width: 1.8em;
+  height: 1.8em;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
 }
 
 .today {
-  background: var(--color-primary);
+  background: var(--grad-primary);
   color: var(--color-primary-text);
   font-weight: 700;
+  box-shadow: var(--shadow-sm);
 }
 
 .chips {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
 .chip {
   font-size: 0.72rem;
-  line-height: 1.4;
-  padding: 1px var(--space-1);
-  border-radius: 4px;
-  background: rgba(108, 140, 255, 0.22);
-  color: var(--color-text);
+  line-height: 1.5;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: rgba(124, 140, 255, 0.2);
+  color: #d9def8;
+  border-left: 3px solid var(--color-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .busy {
-  background: var(--color-surface);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--color-muted);
-  border: 1px dashed var(--color-border);
+  border-left: 3px dashed var(--color-border);
 }
 
 .more {
   font-size: 0.7rem;
   color: var(--color-muted);
   padding-left: var(--space-1);
+}
+
+.hint {
+  margin: var(--space-3) 0 0;
+  font-size: 0.78rem;
+  color: var(--color-muted);
 }
