@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { MoimEvent } from '@/lib/types';
 import styles from './Calendar.module.scss';
 
@@ -23,13 +23,33 @@ function sameDay(a: Date, b: Date): boolean {
 
 type Props = {
   events: MoimEvent[];
-  /** 날짜 칸 클릭 콜백 (대시보드: 새 일정 날짜 프리필). 없으면 읽기 전용 그리드. */
-  onSelectDate?: (date: Date) => void;
+  /** 날짜 칸 클릭/드래그로 기간 선택 (대시보드: 새 일정 프리필). 없으면 읽기 전용 그리드. */
+  onSelectRange?: (start: Date, end: Date) => void;
 };
 
-export default function Calendar({ events, onSelectDate }: Props) {
+export default function Calendar({ events, onSelectRange }: Props) {
   const today = useMemo(() => startOfDay(new Date()), []);
   const [view, setView] = useState<Date>(() => startOfDay(new Date()));
+  const [anchor, setAnchor] = useState<Date | null>(null); // 드래그 시작점
+  const [focusDay, setFocusDay] = useState<Date | null>(null); // 드래그 현재점
+  const [dragging, setDragging] = useState(false);
+
+  const interactive = !!onSelectRange;
+
+  // 드래그 중 어디서 떼든(그리드 밖 포함) 종료 처리
+  useEffect(() => {
+    if (!dragging) return;
+    function onUp() {
+      setDragging(false);
+      if (anchor && focusDay && onSelectRange) {
+        const lo = anchor.getTime() <= focusDay.getTime() ? anchor : focusDay;
+        const hi = anchor.getTime() <= focusDay.getTime() ? focusDay : anchor;
+        onSelectRange(lo, hi);
+      }
+    }
+    window.addEventListener('mouseup', onUp);
+    return () => window.removeEventListener('mouseup', onUp);
+  }, [dragging, anchor, focusDay, onSelectRange]);
 
   const monthStart = new Date(view.getFullYear(), view.getMonth(), 1);
   const monthEnd = new Date(view.getFullYear(), view.getMonth() + 1, 0);
@@ -50,6 +70,26 @@ export default function Calendar({ events, onSelectDate }: Props) {
       const e = startOfDay(new Date(ev.end)).getTime();
       return s <= t && t <= e;
     });
+  }
+
+  function inSelection(day: Date): boolean {
+    if (!anchor || !focusDay) return false;
+    const lo = Math.min(anchor.getTime(), focusDay.getTime());
+    const hi = Math.max(anchor.getTime(), focusDay.getTime());
+    const t = day.getTime();
+    return t >= lo && t <= hi;
+  }
+
+  function handleDown(day: Date) {
+    if (!interactive) return;
+    setAnchor(day);
+    setFocusDay(day);
+    setDragging(true);
+  }
+
+  function handleEnter(day: Date) {
+    if (!interactive || !dragging) return;
+    setFocusDay(day);
   }
 
   const monthLabel = `${view.getFullYear()}년 ${view.getMonth() + 1}월`;
@@ -91,14 +131,21 @@ export default function Calendar({ events, onSelectDate }: Props) {
           const inMonth = day.getMonth() === view.getMonth();
           const dayEvents = eventsOn(day);
           const isToday = sameDay(day, today);
-          const cellClass = [styles.cell, inMonth ? '' : styles.outside, onSelectDate ? styles.clickable : '']
+          const selected = inSelection(day);
+          const cellClass = [
+            styles.cell,
+            inMonth ? '' : styles.outside,
+            interactive ? styles.clickable : '',
+            selected ? styles.selected : '',
+          ]
             .filter(Boolean)
             .join(' ');
           return (
             <div
               key={day.toISOString()}
               className={cellClass}
-              onClick={onSelectDate ? () => onSelectDate(day) : undefined}
+              onMouseDown={interactive ? () => handleDown(day) : undefined}
+              onMouseEnter={interactive ? () => handleEnter(day) : undefined}
             >
               <div className={[styles.dayNum, isToday ? styles.today : ''].filter(Boolean).join(' ')}>
                 {day.getDate()}
@@ -124,6 +171,10 @@ export default function Calendar({ events, onSelectDate }: Props) {
           );
         })}
       </div>
+
+      {interactive && (
+        <p className={styles.hint}>날짜를 클릭하거나 드래그해서 기간을 선택하세요.</p>
+      )}
     </div>
   );
 }

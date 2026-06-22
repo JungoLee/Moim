@@ -47,9 +47,10 @@ export default function Dashboard() {
 
   async function addEvent(e: FormEvent) {
     e.preventDefault();
-    if (!title || !start || !end) return;
+    if (!start || !end) return;
+    const finalTitle = title.trim() || '새 일정'; // 제목 비면 기본값
     try {
-      await api('/api/events', { method: 'POST', body: { title, start, end, visibility } });
+      await api('/api/events', { method: 'POST', body: { title: finalTitle, start, end, visibility } });
       setTitle('');
       setStart('');
       setEnd('');
@@ -65,11 +66,11 @@ export default function Dashboard() {
     load();
   }
 
-  // 캘린더에서 날짜 클릭 → 새 일정 시작/종료를 그 날 09~10시로 프리필
-  function pickDate(day: Date) {
-    const s = new Date(day);
+  // 캘린더에서 날짜 클릭/드래그 → 새 일정 기간 프리필 (시작일 09시 ~ 종료일 10시)
+  function pickRange(startDay: Date, endDay: Date) {
+    const s = new Date(startDay);
     s.setHours(9, 0, 0, 0);
-    const e = new Date(day);
+    const e = new Date(endDay);
     e.setHours(10, 0, 0, 0);
     setStart(toLocalInput(s));
     setEnd(toLocalInput(e));
@@ -101,7 +102,7 @@ export default function Dashboard() {
           </div>
         </form>
 
-        <Calendar events={events} onSelectDate={pickDate} />
+        <Calendar events={events} onSelectRange={pickRange} />
 
         <h3>일정 목록</h3>
         {events.length === 0 && <p className="app-muted">아직 일정이 없습니다.</p>}

@@ -55,6 +55,7 @@
   flex-direction: column;
   gap: var(--space-1);
   overflow: hidden;
+  user-select: none; // 드래그 중 텍스트 선택 방지
 }
 
 .clickable {
@@ -63,6 +64,17 @@
 
 .clickable:hover {
   border-color: var(--color-primary);
+}
+
+.selected {
+  background: rgba(108, 140, 255, 0.3);
+  border-color: var(--color-primary);
+}
+
+.hint {
+  margin: var(--space-2) 0 0;
+  font-size: 0.78rem;
+  color: var(--color-muted);
 }
 
 .outside {
