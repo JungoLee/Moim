@@ -143,8 +143,9 @@ router.post('/:id/comments', async (req, res) => {
   const room = await Room.findById(req.params.id);
   if (!room) return res.status(404).json({ ok: false, message: '방을 찾을 수 없습니다.' });
   if (!isMember(room, req.userId)) return res.status(403).json({ ok: false, message: '이 방의 멤버가 아닙니다.' });
-  const me = await User.findById(req.userId).select('name');
-  room.comments.push({ user: req.userId, name: me?.name || '', text: text.slice(0, 1000), createdAt: new Date() });
+  const me = await User.findById(req.userId).select('name nickname');
+  const author = me?.nickname || me?.name || '';
+  room.comments.push({ user: req.userId, name: author, text: text.slice(0, 1000), createdAt: new Date() });
   await room.save();
   res.status(201).json({ ok: true });
 });

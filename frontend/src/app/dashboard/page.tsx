@@ -5,8 +5,9 @@ import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import Calendar from '@/components/Calendar';
+import DatePicker from '@/components/DatePicker';
 import { api, getToken } from '@/lib/api';
-import { formatRange } from '@/lib/format';
+import { formatRange, displayName } from '@/lib/format';
 import type { MoimEvent, Tier, User } from '@/lib/types';
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
@@ -154,7 +155,7 @@ export default function Dashboard() {
       <Nav />
       <main className="app-container">
         <div className="app-row">
-          <h2 style={{ margin: 0 }}>{user ? `${user.name} 님의 캘린더` : '내 캘린더'}</h2>
+          <h2 style={{ margin: 0 }}>{user ? `${displayName(user)} 님의 캘린더` : '내 캘린더'}</h2>
           <span className="app-spacer" />
           <button className="app-btn" onClick={openToday}>
             + 새 일정
@@ -192,7 +193,7 @@ export default function Dashboard() {
 
               <label className="app-muted">시작</label>
               <div className="app-row">
-                <input className="app-input" type="date" value={fStartDate} onChange={(e) => setFStartDate(e.target.value)} />
+                <DatePicker value={fStartDate} onChange={setFStartDate} />
                 <select className="app-select" value={fStartTime.slice(0, 2)} onChange={(e) => setFStartTime(`${e.target.value}:${fStartTime.slice(3)}`)}>
                   {HOURS.map((h) => (
                     <option key={h} value={h}>{h}시</option>
@@ -207,7 +208,7 @@ export default function Dashboard() {
 
               <label className="app-muted">종료</label>
               <div className="app-row">
-                <input className="app-input" type="date" value={fEndDate} onChange={(e) => setFEndDate(e.target.value)} />
+                <DatePicker value={fEndDate} onChange={setFEndDate} />
                 <select className="app-select" value={fEndTime.slice(0, 2)} onChange={(e) => setFEndTime(`${e.target.value}:${fEndTime.slice(3)}`)}>
                   {HOURS.map((h) => (
                     <option key={h} value={h}>{h}시</option>

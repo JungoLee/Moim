@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api, clearToken } from '@/lib/api';
+import { displayName } from '@/lib/format';
 import CopyButton from '@/components/CopyButton';
 import LegalModal from '@/components/LegalModal';
 import type { User } from '@/lib/types';
@@ -11,18 +12,43 @@ import type { User } from '@/lib/types';
 export default function AccountDrawer({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [nick, setNick] = useState('');
+  const [saved, setSaved] = useState(false);
   const [legal, setLegal] = useState<'terms' | 'privacy' | null>(null);
 
   useEffect(() => {
     api<{ user: User }>('/api/auth/me')
-      .then((r) => setUser(r.user))
+      .then((r) => {
+        setUser(r.user);
+        setNick(r.user.nickname || '');
+      })
       .catch(() => {});
   }, []);
+
+  // ESC 로 닫기
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   function logout() {
     clearToken();
     onClose();
     router.push('/');
+  }
+
+  async function saveNick() {
+    try {
+      const r = await api<{ user: User }>('/api/auth/me', { method: 'PATCH', body: { nickname: nick } });
+      setUser(r.user);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    } catch {
+      /* 무시 */
+    }
   }
 
   return (
@@ -45,7 +71,7 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
               )}
               <div>
                 <div>
-                  <strong>{user.name}</strong>
+                  <strong>{displayName(user)}</strong>
                   {user.isAdmin && <span style={{ color: 'var(--color-success)' }}> · 관리자</span>}
                 </div>
                 <div className="app-muted">{user.email}</div>
@@ -53,9 +79,23 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="app-card" style={{ margin: 0 }}>
-              <div className="app-muted" style={{ fontSize: '0.8rem' }}>
-                내 고유 번호
+              <div className="app-muted" style={{ fontSize: '0.8rem' }}>닉네임 (비우면 구글 이름 사용)</div>
+              <div className="app-row">
+                <input
+                  className="app-input"
+                  style={{ flex: 1 }}
+                  placeholder={user.name}
+                  value={nick}
+                  onChange={(e) => setNick(e.target.value)}
+                />
+                <button className="app-btn" onClick={saveNick}>
+                  {saved ? '✓' : '저장'}
+                </button>
               </div>
+            </div>
+
+            <div className="app-card" style={{ margin: 0 }}>
+              <div className="app-muted" style={{ fontSize: '0.8rem' }}>내 고유 번호</div>
               <div className="app-row">
                 <code style={{ wordBreak: 'break-all' }}>{user._id}</code>
                 <span className="app-spacer" />

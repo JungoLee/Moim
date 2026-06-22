@@ -30,4 +30,12 @@ router.get('/me', requireAuth, async (req, res) => {
   res.json({ ok: true, user });
 });
 
+// 4) 내 프로필 수정 (닉네임)
+router.patch('/me', requireAuth, async (req, res) => {
+  const nickname = typeof req.body.nickname === 'string' ? req.body.nickname.trim().slice(0, 30) : '';
+  const user = await User.findByIdAndUpdate(req.userId, { nickname }, { new: true }).select('-__v');
+  if (!user) return res.status(404).json({ ok: false, message: '사용자를 찾을 수 없습니다.' });
+  res.json({ ok: true, user });
+});
+
 export default router;

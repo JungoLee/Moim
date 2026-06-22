@@ -156,6 +156,29 @@ h3 {
   margin-right: var(--space-3);
   font-size: 1.6rem;
 }
+.app-nav-acct {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  padding: 0;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color var(--transition);
+}
+.app-nav-acct:hover {
+  border-color: var(--color-primary);
+}
+.app-nav-acct img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 /* 버튼 */
 .app-btn {
@@ -240,6 +263,19 @@ h3 {
 }
 .app-select {
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: var(--space-6);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239aa3c0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-2) center;
+}
+.app-select:hover {
+  border-color: var(--color-primary);
+}
+.app-select option {
+  background: var(--color-surface-2);
+  color: var(--color-text);
 }
 input[type='checkbox'],
 input[type='radio'] {
