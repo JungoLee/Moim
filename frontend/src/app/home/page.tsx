@@ -7,6 +7,15 @@ import Nav from '@/components/Nav';
 import { api, getToken } from '@/lib/api';
 import { formatRange, displayName } from '@/lib/format';
 import type { MoimEvent, User, FriendRequest, RoomSummary } from '@/lib/types';
+import styles from './home.module.scss';
+
+const TILES: Array<[string, string, string]> = [
+  ['/dashboard', '📅', '내 캘린더'],
+  ['/friends', '👥', '친구'],
+  ['/tiers', '🏷️', '그룹'],
+  ['/rooms', '🗓️', '모임'],
+  ['/tools/leave', '🌴', '연차'],
+];
 
 export default function Home() {
   const router = useRouter();
@@ -48,21 +57,29 @@ export default function Home() {
     <>
       <Nav />
       <main className="app-container">
-        <h2>{user ? `안녕하세요, ${displayName(user)} 님 👋` : '홈'}</h2>
+        <div className={styles.hero}>
+          <h2>{user ? `안녕하세요, ${displayName(user)} 님 👋` : '홈'}</h2>
+          <p>오늘의 일정과 모임을 한눈에.</p>
+        </div>
+
+        <div className={styles.tiles}>
+          {TILES.map(([href, icon, label]) => (
+            <Link key={href} href={href} className={styles.tile}>
+              <span className={styles.icon}>{icon}</span>
+              <span className={styles.label}>{label}</span>
+            </Link>
+          ))}
+        </div>
 
         {requests.length > 0 && (
-          <Link href="/friends" className="app-card" style={{ display: 'block' }}>
-            <div className="app-row">
-              <strong>🔔 받은 친구 요청 {requests.length}건</strong>
-              <span className="app-spacer" />
-              <span className="app-muted">확인하기 →</span>
-            </div>
+          <Link href="/friends" className={styles.banner}>
+            🔔 <strong>받은 친구 요청 {requests.length}건</strong> — 확인하기 →
           </Link>
         )}
 
         <div className="app-card">
-          <div className="app-row">
-            <h3 style={{ margin: 0 }}>다가오는 일정</h3>
+          <div className={styles.sectionHead}>
+            <h3>📅 다가오는 일정</h3>
             <span className="app-spacer" />
             <Link className="app-btn app-btn--ghost" href="/dashboard">
               캘린더 →
@@ -72,11 +89,7 @@ export default function Home() {
             <p className="app-muted">예정된 일정이 없습니다.</p>
           ) : (
             upcoming.map((e) => (
-              <div
-                key={e._id}
-                className="app-row"
-                style={{ padding: 'var(--space-2) 0', borderTop: '1px solid var(--color-border-soft)' }}
-              >
+              <div key={e._id} className={styles.row}>
                 <strong>{e.title}</strong>
                 <span className="app-spacer" />
                 <span className="app-muted">{formatRange(e.start, e.end)}</span>
@@ -86,8 +99,8 @@ export default function Home() {
         </div>
 
         <div className="app-card">
-          <div className="app-row">
-            <h3 style={{ margin: 0 }}>내 모임</h3>
+          <div className={styles.sectionHead}>
+            <h3>🗓️ 내 모임</h3>
             <span className="app-spacer" />
             <Link className="app-btn app-btn--ghost" href="/rooms">
               모임 →
@@ -97,36 +110,13 @@ export default function Home() {
             <p className="app-muted">참여 중인 모임이 없습니다.</p>
           ) : (
             rooms.slice(0, 5).map((r) => (
-              <Link
-                key={r._id}
-                href={`/rooms/${r._id}`}
-                className="app-row"
-                style={{ padding: 'var(--space-2) 0', borderTop: '1px solid var(--color-border-soft)', display: 'flex' }}
-              >
+              <Link key={r._id} href={`/rooms/${r._id}`} className={styles.row}>
                 <strong>{r.name}</strong>
                 <span className="app-spacer" />
                 <span className="app-muted">멤버 {r.memberCount}명</span>
               </Link>
             ))
           )}
-        </div>
-
-        <div className="app-row">
-          <Link className="app-btn" href="/dashboard">
-            내 캘린더
-          </Link>
-          <Link className="app-btn app-btn--ghost" href="/friends">
-            친구
-          </Link>
-          <Link className="app-btn app-btn--ghost" href="/tiers">
-            그룹
-          </Link>
-          <Link className="app-btn app-btn--ghost" href="/rooms">
-            모임
-          </Link>
-          <Link className="app-btn app-btn--ghost" href="/tools/leave">
-            연차
-          </Link>
         </div>
       </main>
     </>
