@@ -25,9 +25,9 @@ export default function Dashboard() {
   const [title, setTitle] = useState('');
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
-  const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const [tiers, setTiers] = useState<Tier[]>([]);
-  const [audienceTiers, setAudienceTiers] = useState<string[]>([]);
+  // 공개 범위: 'public'(누구나) | 'private'(나만) | 'tier:<id>'(특정 그룹에만)
+  const [share, setShare] = useState<string>('public');
 
   const loadTiers = useCallback(async () => {
     try {
@@ -62,16 +62,23 @@ export default function Dashboard() {
     e.preventDefault();
     if (!start || !end) return;
     const finalTitle = title.trim() || '새 일정'; // 제목 비면 기본값
+    let visibility: 'public' | 'private' = 'public';
+    let audienceTiers: string[] = [];
+    if (share === 'private') {
+      visibility = 'private';
+    } else if (share.startsWith('tier:')) {
+      visibility = 'private';
+      audienceTiers = [share.slice(5)];
+    }
     try {
       await api('/api/events', {
         method: 'POST',
-        body: { title: finalTitle, start, end, visibility, audienceTiers: visibility === 'private' ? audienceTiers : [] },
+        body: { title: finalTitle, start, end, visibility, audienceTiers },
       });
       setTitle('');
       setStart('');
       setEnd('');
-      setVisibility('public');
-      setAudienceTiers([]);
+      setShare('public');
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : '추가 실패');
@@ -81,10 +88,6 @@ export default function Dashboard() {
   async function removeEvent(id: string) {
     await api(`/api/events/${id}`, { method: 'DELETE' });
     load();
-  }
-
-  function toggleAudience(tierId: string) {
-    setAudienceTiers((cur) => (cur.includes(tierId) ? cur.filter((id) => id !== tierId) : [...cur, tierId]));
   }
 
   // 캘린더에서 날짜 클릭/드래그 → 새 일정 기간 프리필 (시작일 09시 ~ 종료일 10시)
@@ -111,41 +114,31 @@ export default function Dashboard() {
             <input className="app-input" type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
             <select
               className="app-select"
-              value={visibility}
-              onChange={(e) => {
-                const v = e.target.value as 'public' | 'private';
-                setVisibility(v);
-                if (v === 'private') loadTiers(); // 최근 만든 그룹까지 최신 반영
-              }}
+              value={share}
+              onFocus={loadTiers}
+              onChange={(e) => setShare(e.target.value)}
             >
-              <option value="public">공유(누구나)</option>
-              <option value="private">비공개(선택 그룹)</option>
+              <option value="public">공유 (누구나)</option>
+              <option value="private">비공개 (나만)</option>
+              {tiers.length > 0 && (
+                <optgroup label="이 그룹에만 공개">
+                  {tiers.map((t) => (
+                    <option key={t._id} value={`tier:${t._id}`}>
+                      🔒 {t.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
             <button className="app-btn" type="submit">
               추가
             </button>
           </div>
 
-          {visibility === 'private' && (
-            <div className="app-row" style={{ marginTop: 'var(--space-2)' }}>
-              <span className="app-muted">공개할 그룹:</span>
-              {tiers.length === 0 ? (
-                <span className="app-muted">
-                  없음 — <Link href="/tiers">그룹 만들기</Link> (비우면 나만 봅니다)
-                </span>
-              ) : (
-                tiers.map((t) => (
-                  <label key={t._id} className="app-muted">
-                    <input
-                      type="checkbox"
-                      checked={audienceTiers.includes(t._id)}
-                      onChange={() => toggleAudience(t._id)}
-                    />{' '}
-                    {t.name}
-                  </label>
-                ))
-              )}
-            </div>
+          {tiers.length === 0 && (
+            <p className="app-muted" style={{ marginTop: 'var(--space-2)' }}>
+              특정 그룹에만 공개하려면 <Link href="/tiers">그룹</Link>을 먼저 만드세요.
+            </p>
           )}
         </form>
 
