@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import type { EventInput } from '@fullcalendar/core';
 import Nav from '@/components/Nav';
 import { addDays, findBridges, selectPeriods, toKey, formatDate, type Bridge, type LeaveStyle } from '@/lib/leave';
 import { getHolidays } from '@/lib/holidays';
@@ -27,6 +30,8 @@ type Result = {
   combo: Bridge[];
   comboLeave: number;
   comboOff: number;
+  calEvents: EventInput[];
+  initialDate: string;
 };
 
 const STYLES: Array<[LeaveStyle, string]> = [
@@ -43,6 +48,9 @@ export default function LeavePlanner() {
   const [style, setStyle] = useState<LeaveStyle>('balanced');
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState('');
+  // FullCalendar 는 클라이언트에서만 렌더 (SSR 회피)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   function calculate() {
     setError('');
@@ -87,12 +95,29 @@ export default function LeavePlanner() {
     const { selected, usedDays } = selectPeriods(deduped, rem, style, from, to);
     const comboOff = selected.reduce((s, p) => s + p.totalDays, 0);
 
+    // 달력용 이벤트: 휴무 span(배경) + 실제 연차일 + 공휴일
+    const calEvents: EventInput[] = [];
+    for (const p of selected) {
+      calEvents.push({
+        start: p.spanStart,
+        end: addDays(p.spanEnd, 1), // FullCalendar end 는 배타적
+        display: 'background',
+        color: 'rgba(74, 210, 149, 0.35)',
+      });
+      calEvents.push({ title: `🏖 연차 ${p.leaveDays}일`, start: p.bridgeStart, end: addDays(p.bridgeEnd, 1) });
+    }
+    for (const [dateStr, name] of Object.entries(holidays)) {
+      calEvents.push({ title: `🎌 ${name}`, start: dateStr, allDay: true, classNames: ['evt-holiday'] });
+    }
+
     setResult({
       candidates,
       shownCandidates: candidates.slice(0, MAX_LIST),
       combo: selected,
       comboLeave: usedDays,
       comboOff,
+      calEvents,
+      initialDate: selected.length ? toKey(selected[0].spanStart) : toKey(from),
     });
   }
 
@@ -165,6 +190,25 @@ export default function LeavePlanner() {
                 </div>
               ))}
             </div>
+
+            {mounted && result.combo.length > 0 && (
+              <div className="app-card">
+                <h3>달력 보기</h3>
+                <p className="app-muted">초록 배경 = 휴무 기간, 파란 칸 = 실제 쓰는 연차, 🎌 = 공휴일</p>
+                <FullCalendar
+                  key={result.initialDate}
+                  plugins={[dayGridPlugin]}
+                  initialView="dayGridMonth"
+                  initialDate={result.initialDate}
+                  locale="ko"
+                  height="auto"
+                  headerToolbar={{ left: 'prev,next', center: 'title', right: 'today' }}
+                  buttonText={{ today: '오늘' }}
+                  events={result.calEvents}
+                  displayEventTime={false}
+                />
+              </div>
+            )}
 
             <h3>
               전체 추천 {result.candidates.length}개

@@ -358,6 +358,11 @@ input[type='radio'] {
   border-color: var(--color-border) !important;
   color: var(--color-muted) !important;
 }
+.fc .fc-event.evt-holiday {
+  background-color: rgba(255, 107, 107, 0.85) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
 .fc .fc-daygrid-day.fc-day-today {
   background: var(--fc-today-bg-color);
 }
