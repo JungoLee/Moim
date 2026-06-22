@@ -35,3 +35,20 @@ export type FriendRequest = {
   _id: string;
   requester: User;
 };
+
+// 모임 방 (약속 잡기)
+export type RoomSummary = {
+  _id: string;
+  name: string;
+  code: string;
+  memberCount: number;
+  isOwner: boolean;
+};
+
+export type RoomDetail = {
+  _id: string;
+  name: string;
+  code: string;
+  owner: string;
+  members: User[];
+};

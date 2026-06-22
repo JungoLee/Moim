@@ -31,6 +31,7 @@
 - **User**: `googleId`, `email`, `name`, `picture`
 - **Friendship**: `requester`, `recipient`, `status`(pending|accepted) — 친구 그래프 = 캘린더 열람 권한. 가시성 제어는 그룹/일정으로 분리
 - **Tier(그룹)**: `owner`, `name`, `code`(고유), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가
+- **Room(모임 방)**: `owner`, `name`, `code`(초대), `members[]`, `availabilities[{user, dates[]}]` — 멤버별 가능 날짜 → 모두 되는 날 집계
 - **Event**: `owner`, `title`, `start`, `end`, `allDay`, `location`, `memo`, `visibility`(public|private), `audienceTiers[]`(비공개 시 상세 열람 그룹)
 
 ---
@@ -40,9 +41,9 @@
 
 구현됨:
 - [x] 백엔드: Express, MongoDB(Atlas) 연결, Google OAuth+JWT, requireAuth, 시작 시 env 가드
-- [x] 모델: User / Friendship / Tier(그룹) / Event
-- [x] 라우트: auth · events(CRUD) · friends(요청/수락/거절) · tiers(그룹 CRUD·멤버·코드가입) · calendar(공유/비공개·그룹 반영)
-- [x] 프론트: 랜딩 · OAuth 콜백 · 대시보드(일정 생성/삭제 + **FullCalendar**(월/주) + 클릭·드래그 기간선택 + 공유/비공개·그룹) · 친구 · 그룹 관리(`/tiers`) · 친구 캘린더 · 연차계산기(`/tools/leave`)
+- [x] 모델: User / Friendship / Tier(그룹) / Room(모임) / Event
+- [x] 라우트: auth · events(CRUD) · friends(요청/수락/거절) · tiers(그룹) · rooms(방·코드입장·가용성) · calendar(공유/비공개·그룹 반영)
+- [x] 프론트: 랜딩 · OAuth 콜백 · 대시보드(일정 생성/삭제 + **FullCalendar**(월/주) + 클릭·드래그 기간선택 + 공유/비공개·그룹) · 친구 · 그룹 관리(`/tiers`) · 친구 캘린더 · 모임(`/rooms`) · 연차계산기(`/tools/leave`)
 - [x] 디자인 시스템 고도화(globals.scss 토큰·버튼·카드·네비·캘린더)
 - [x] 루트 통합 실행(`concurrently`, `npm run dev`) · 문서(README/CLAUDE/PLAN/ONBOARDING)
 - [x] 환경: `backend/.env`(Atlas 연결·구글 OAuth 입력 완료) + `frontend/.env.local` (gitignore)
@@ -73,8 +74,8 @@
 ## 백로그 (Phase 2+ — 우선순위 순)
 
 ### Phase 2 — 공통 빈 시간 찾기 (핵심 가치)
-- [ ] 모임 그룹: 기존 `Tier`(그룹) 재사용 (members 기반 일정 취합)
-- [ ] 기간 선택 → 그룹 전원 일정 취합 → **겹치는 빈 시간/날짜 계산** API
+- [x] **모임 방(약속 잡기)** ✅ (2026-06-22) — `Room`(코드 초대) + `/rooms`(목록·생성·입장) + `/rooms/[id]`(멤버별 가능 날짜 표시 → 날짜별 가능 인원 집계 → **모두 되는 날** 하이라이트). Nav '모임'
+- [ ] 기존 등록 일정(Event)에서 자동 취합 (수동 표시 없이 겹치는 빈 시간 계산)
 - [ ] "저녁부터 가능" 등 **부분 가용** 표시 (시간대 슬롯 단위)
 - [ ] 빈 시간 결과 시각화(히트맵/추천 날짜)
 

@@ -10,6 +10,7 @@ import eventRoutes from './routes/events.js';
 import friendRoutes from './routes/friends.js';
 import calendarRoutes from './routes/calendar.js';
 import tierRoutes from './routes/tiers.js';
+import roomRoutes from './routes/rooms.js';
 
 // 필수 환경변수 점검 — 없으면 cryptic crash(passport throw 등) 대신 친절히 안내하고 종료
 const REQUIRED_ENV = ['MONGODB_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_CALLBACK_URL'];
@@ -34,6 +35,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/tiers', tierRoutes);
+app.use('/api/rooms', roomRoutes);
 
 // 공통 에러 핸들러
 // eslint-disable-next-line no-unused-vars
