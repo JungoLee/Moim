@@ -9,7 +9,7 @@ router.use(requireAuth, requireAdmin);
 
 // 가입자 목록
 router.get('/users', async (req, res) => {
-  const users = await User.find().select('name email picture isAdmin createdAt').sort({ createdAt: 1 });
+  const users = await User.find().select('name nickname email picture isAdmin createdAt').sort({ createdAt: 1 });
   res.json({ ok: true, users });
 });
 

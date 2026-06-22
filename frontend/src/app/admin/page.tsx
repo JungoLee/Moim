@@ -4,7 +4,10 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import { api, getToken } from '@/lib/api';
+import { displayName } from '@/lib/format';
+import { toast } from '@/lib/toast';
 import type { User } from '@/lib/types';
+import styles from './admin.module.scss';
 
 export default function Admin() {
   const router = useRouter();
@@ -32,33 +35,68 @@ export default function Admin() {
   async function toggle(u: User) {
     try {
       await api(`/api/admin/users/${u._id}/admin`, { method: 'PATCH', body: { isAdmin: !u.isAdmin } });
+      toast(u.isAdmin ? '관리자 권한을 해제했습니다' : '관리자로 지정했습니다', 'success');
       load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : '변경 실패');
+      toast(e instanceof Error ? e.message : '변경 실패', 'error');
     }
   }
+
+  const adminCount = users.filter((u) => u.isAdmin).length;
 
   return (
     <>
       <Nav />
       <main className="app-container">
-        <h2>관리자</h2>
-        {error && <p className="app-error">{error}</p>}
-        {!error && <p className="app-muted">가입자 {users.length}명</p>}
-        {users.map((u) => (
-          <div className="app-card" key={u._id}>
-            <div className="app-row">
-              <strong>{u.name}</strong>
-              <span className="app-muted">{u.email}</span>
-              {u.isAdmin && <span style={{ color: 'var(--color-success)' }}>· 관리자</span>}
-              <span className="app-spacer" />
-              <code className="app-muted" style={{ fontSize: '0.72rem' }}>{u._id}</code>
-              <button className="app-btn app-btn--ghost" onClick={() => toggle(u)}>
-                {u.isAdmin ? '관리자 해제' : '관리자 지정'}
-              </button>
+        <div className={styles.head}>
+          <span className={styles.badge}>ADMIN</span>
+          <h2 style={{ margin: 0 }}>관리자</h2>
+        </div>
+
+        {error ? (
+          <p className="app-error">{error}</p>
+        ) : (
+          <>
+            <div className={styles.stats}>
+              <div className="app-card" style={{ margin: 0 }}>
+                <div className="app-muted">전체 가입자</div>
+                <div className={styles.statNum}>{users.length}</div>
+              </div>
+              <div className="app-card" style={{ margin: 0 }}>
+                <div className="app-muted">관리자</div>
+                <div className={styles.statNum}>{adminCount}</div>
+              </div>
             </div>
-          </div>
-        ))}
+
+            <div className="app-card">
+              <h3>가입자 목록</h3>
+              {users.map((u) => (
+                <div key={u._id} className={styles.userRow}>
+                  {u.picture ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={u.picture} alt="" className="app-avatar-sm" style={{ width: 32, height: 32 }} />
+                  ) : (
+                    <span className={styles.avatarFallback}>👤</span>
+                  )}
+                  <div className={styles.userInfo}>
+                    <div>
+                      <strong>{displayName(u)}</strong>
+                      {u.isAdmin && <span className={styles.adminTag}>관리자</span>}
+                    </div>
+                    <div className="app-muted" style={{ fontSize: '0.8rem' }}>
+                      {u.email}
+                      {u.createdAt && ` · 가입 ${new Date(u.createdAt).toLocaleDateString('ko-KR')}`}
+                    </div>
+                  </div>
+                  <span className="app-spacer" />
+                  <button className="app-btn app-btn--ghost" onClick={() => toggle(u)}>
+                    {u.isAdmin ? '관리자 해제' : '관리자 지정'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </main>
     </>
   );

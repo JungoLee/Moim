@@ -1,0 +1,57 @@
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--grad-primary);
+  color: var(--color-primary-text);
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.statNum {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin-top: var(--space-1);
+}
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border-soft);
+}
+.userRow:first-of-type {
+  border-top: none;
+}
+.userInfo {
+  min-width: 0;
+}
+.avatarFallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-surface-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.adminTag {
+  font-size: 0.72rem;
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+  margin-left: var(--space-1);
+}

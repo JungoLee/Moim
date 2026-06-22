@@ -79,16 +79,18 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="app-card" style={{ margin: 0 }}>
-              <div className="app-muted" style={{ fontSize: '0.8rem' }}>닉네임 (비우면 구글 이름 사용)</div>
-              <div className="app-row">
+              <div className="app-muted" style={{ fontSize: '0.8rem', marginBottom: 'var(--space-2)' }}>
+                닉네임 (비우면 구글 이름 사용)
+              </div>
+              <div className="app-row" style={{ flexWrap: 'nowrap' }}>
                 <input
                   className="app-input"
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, minWidth: 0 }}
                   placeholder={user.name}
                   value={nick}
                   onChange={(e) => setNick(e.target.value)}
                 />
-                <button className="app-btn" onClick={saveNick}>
+                <button className="app-btn" style={{ flexShrink: 0 }} onClick={saveNick}>
                   {saved ? '✓' : '저장'}
                 </button>
               </div>

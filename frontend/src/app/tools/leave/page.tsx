@@ -7,6 +7,7 @@ import type { EventInput } from '@fullcalendar/core';
 import Nav from '@/components/Nav';
 import { addDays, findBridges, selectPeriods, toKey, formatDate, type Bridge, type LeaveStyle } from '@/lib/leave';
 import { getHolidays } from '@/lib/holidays';
+import DatePicker from '@/components/DatePicker';
 import styles from './leave.module.scss';
 
 const MAX_LIST = 40; // 후보 목록 표시 상한
@@ -138,14 +139,14 @@ export default function LeavePlanner() {
               잔여 연차(일)
               <input className="app-input" type="number" step="0.5" min="0" value={remaining} onChange={(e) => setRemaining(e.target.value)} />
             </label>
-            <label className={styles.field}>
-              시작일
-              <input className="app-input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
-            </label>
-            <label className={styles.field}>
-              연차 갱신일(까지)
-              <input className="app-input" type="date" value={renewal} onChange={(e) => setRenewal(e.target.value)} />
-            </label>
+            <div className={styles.field}>
+              <span>시작일</span>
+              <DatePicker value={start} onChange={setStart} />
+            </div>
+            <div className={styles.field}>
+              <span>연차 갱신일(까지)</span>
+              <DatePicker value={renewal} onChange={setRenewal} />
+            </div>
             <label className={styles.field}>
               최대 연속 연차
               <input className="app-input" type="number" min="1" max="20" value={maxConsec} onChange={(e) => setMaxConsec(e.target.value)} />
