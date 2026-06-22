@@ -23,6 +23,7 @@ export default function RoomPage() {
   const [room, setRoom] = useState<RoomDetail | null>(null);
   const [availabilities, setAvailabilities] = useState<Record<string, Mark[]>>({});
   const [meId, setMeId] = useState('');
+  const [mePicture, setMePicture] = useState('');
   const [error, setError] = useState('');
   const [mode, setMode] = useState<AvailStatus>('yes');
   const [afterTime, setAfterTime] = useState('18:00');
@@ -33,6 +34,7 @@ export default function RoomPage() {
     try {
       const me = await api<{ user: User }>('/api/auth/me');
       setMeId(me.user._id);
+      setMePicture(me.user.picture || '');
       const res = await api<{ room: RoomDetail; availabilities: Record<string, Mark[]>; comments: RoomComment[] }>(
         `/api/rooms/${roomId}`
       );
@@ -224,6 +226,10 @@ export default function RoomPage() {
             <div className="app-card">
               <h3>댓글 ({comments.length})</h3>
               <form className="app-row" onSubmit={addComment}>
+                {mePicture && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={mePicture} alt="" className="app-avatar-sm" />
+                )}
                 <input
                   className="app-input"
                   placeholder="댓글 입력"
