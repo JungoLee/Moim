@@ -19,9 +19,10 @@ export default function Nav() {
 
   return (
     <nav className="app-nav">
-      <Link href="/dashboard" className="brand-mark">
+      <Link href="/home" className="brand-mark">
         {BRAND_NAME}
       </Link>
+      <Link href="/home">홈</Link>
       <Link href="/dashboard">내 캘린더</Link>
       <Link href="/friends">친구</Link>
       <Link href="/tiers">그룹</Link>

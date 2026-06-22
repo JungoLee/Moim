@@ -98,7 +98,7 @@ Moim/
 │  └─ src/{config,middleware,models,routes,utils}   # models: User·Friendship·Tier·Event
 └─ frontend/
    └─ src/
-      ├─ app/           # dashboard · friends · tiers · rooms · tools/leave · admin · u/[userId] · auth/callback
+      ├─ app/           # home · dashboard · friends · tiers · rooms · tools/leave · admin · u/[userId] · auth/callback
       ├─ components/    # Nav · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton
       └─ lib/           # api · types · format · brand · leave · holidays
 ```

@@ -13,7 +13,7 @@ export default function AuthCallback() {
     const token = params.get('token');
     if (token) {
       setToken(token);
-      router.replace('/dashboard');
+      router.replace('/home');
     } else {
       setError('로그인에 실패했습니다. 다시 시도해 주세요.');
     }
