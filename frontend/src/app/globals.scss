@@ -396,7 +396,11 @@ input[type='radio'] {
   border-radius: 4px;
   padding: 0 3px;
   font-size: 0.74rem;
-  cursor: default;
+  cursor: pointer;
+}
+/* 선택 가능한 달력의 날짜 칸 커서 */
+.fc.fc-theme-standard .fc-daygrid-day {
+  cursor: pointer;
 }
 .fc .fc-event.evt-busy {
   background-color: var(--color-surface-3) !important;
