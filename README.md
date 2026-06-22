@@ -66,8 +66,11 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 | GET | `/api/friends` | 친구 목록 |
 | GET/POST | `/api/friends/requests` | 받은 요청 / 요청 보내기(email) |
 | POST | `/api/friends/requests/:id/accept`·`/decline` | 수락 / 거절 |
-| PATCH | `/api/friends/:friendUserId/tier` | 친구 공개 등급(close/normal) 변경 |
-| GET | `/api/calendar/:userId` | 등급 반영한 친구 캘린더 조회 |
+| GET/POST | `/api/tiers` | 내 그룹 목록 / 생성 |
+| DELETE | `/api/tiers/:id` | 그룹 삭제 |
+| POST/DELETE | `/api/tiers/:id/members[/:userId]` | 멤버 추가(email) / 제거 |
+| POST | `/api/tiers/join` | 코드로 그룹 가입 |
+| GET | `/api/calendar/:userId` | 공유/비공개·그룹 반영한 친구 캘린더 조회 |
 
 ---
 

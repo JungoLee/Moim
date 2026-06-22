@@ -20,7 +20,7 @@ export default function Nav() {
       </Link>
       <Link href="/dashboard">내 캘린더</Link>
       <Link href="/friends">친구</Link>
-      <Link href="/tiers">등급</Link>
+      <Link href="/tiers">그룹</Link>
       <span className="app-spacer" />
       <button className="app-btn app-btn--ghost" onClick={logout}>
         로그아웃

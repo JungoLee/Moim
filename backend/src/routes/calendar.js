@@ -29,7 +29,7 @@ function toBusy(e) {
   return { _id: e._id, start: e.start, end: e.end, allDay: e.allDay, busy: true };
 }
 
-// 특정 사용자의 캘린더 조회 — 공유(public)는 상세, 비공개(private)는 등급 멤버에게만 상세
+// 특정 사용자의 캘린더 조회 — 공유(public)는 상세, 비공개(private)는 그룹 멤버에게만 상세
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
   const { from, to } = req.query;
@@ -64,7 +64,7 @@ router.get('/:userId', async (req, res) => {
   });
   if (!fs) return res.status(403).json({ ok: false, message: '이 사용자의 캘린더를 볼 권한이 없습니다.' });
 
-  // owner 의 등급 중 내가 멤버인 것들 → 비공개 일정 상세 열람 가능
+  // owner 의 그룹 중 내가 멤버인 것들 → 비공개 일정 상세 열람 가능
   const myTiers = await Tier.find({ owner: userId, members: me }).select('_id');
   const myTierIds = new Set(myTiers.map((t) => t._id.toString()));
 

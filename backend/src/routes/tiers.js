@@ -18,7 +18,7 @@ async function generateUniqueCode() {
   return crypto.randomBytes(8).toString('hex').slice(0, 8).toUpperCase();
 }
 
-// 내 등급 목록 (멤버 정보 포함)
+// 내 그룹 목록 (멤버 정보 포함)
 router.get('/', async (req, res) => {
   const tiers = await Tier.find({ owner: req.userId })
     .populate('members', 'name email picture')
@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
   res.json({ ok: true, tiers });
 });
 
-// 등급 생성
+// 그룹 생성
 router.post('/', async (req, res) => {
   const { name } = req.body;
   if (!name || !name.trim()) return res.status(400).json({ ok: false, message: 'name 이 필요합니다.' });
@@ -35,13 +35,13 @@ router.post('/', async (req, res) => {
   res.status(201).json({ ok: true, tier });
 });
 
-// 등급 삭제
+// 그룹 삭제
 router.delete('/:id', async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
   }
   const r = await Tier.deleteOne({ _id: req.params.id, owner: req.userId });
-  if (r.deletedCount === 0) return res.status(404).json({ ok: false, message: '등급을 찾을 수 없습니다.' });
+  if (r.deletedCount === 0) return res.status(404).json({ ok: false, message: '그룹을 찾을 수 없습니다.' });
   res.json({ ok: true });
 });
 
@@ -53,11 +53,11 @@ router.post('/:id/members', async (req, res) => {
   }
   if (!email) return res.status(400).json({ ok: false, message: 'email 이 필요합니다.' });
   const tier = await Tier.findOne({ _id: req.params.id, owner: req.userId });
-  if (!tier) return res.status(404).json({ ok: false, message: '등급을 찾을 수 없습니다.' });
+  if (!tier) return res.status(404).json({ ok: false, message: '그룹을 찾을 수 없습니다.' });
   const target = await User.findOne({ email });
   if (!target) return res.status(404).json({ ok: false, message: '해당 이메일의 사용자가 없습니다.' });
   if (tier.members.some((m) => m.toString() === target._id.toString())) {
-    return res.status(409).json({ ok: false, message: '이미 등급에 포함된 사용자입니다.' });
+    return res.status(409).json({ ok: false, message: '이미 그룹에 포함된 사용자입니다.' });
   }
   tier.members.push(target._id);
   await tier.save();
@@ -71,23 +71,23 @@ router.delete('/:id/members/:userId', async (req, res) => {
     return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
   }
   const tier = await Tier.findOne({ _id: id, owner: req.userId });
-  if (!tier) return res.status(404).json({ ok: false, message: '등급을 찾을 수 없습니다.' });
+  if (!tier) return res.status(404).json({ ok: false, message: '그룹을 찾을 수 없습니다.' });
   tier.members = tier.members.filter((m) => m.toString() !== userId);
   await tier.save();
   res.json({ ok: true });
 });
 
-// 코드로 등급 가입 (내가 멤버로 들어감)
+// 코드로 그룹 가입 (내가 멤버로 들어감)
 router.post('/join', async (req, res) => {
   const { code } = req.body;
   if (!code) return res.status(400).json({ ok: false, message: 'code 가 필요합니다.' });
   const tier = await Tier.findOne({ code: code.trim().toUpperCase() });
-  if (!tier) return res.status(404).json({ ok: false, message: '해당 코드의 등급이 없습니다.' });
+  if (!tier) return res.status(404).json({ ok: false, message: '해당 코드의 그룹이 없습니다.' });
   if (tier.owner.toString() === req.userId) {
-    return res.status(400).json({ ok: false, message: '본인 등급에는 가입할 수 없습니다.' });
+    return res.status(400).json({ ok: false, message: '본인 그룹에는 가입할 수 없습니다.' });
   }
   if (tier.members.some((m) => m.toString() === req.userId)) {
-    return res.status(409).json({ ok: false, message: '이미 가입한 등급입니다.' });
+    return res.status(409).json({ ok: false, message: '이미 가입한 그룹입니다.' });
   }
   tier.members.push(req.userId);
   await tier.save();

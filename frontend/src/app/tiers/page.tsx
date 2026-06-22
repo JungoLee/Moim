@@ -13,7 +13,7 @@ export default function Tiers() {
   const [name, setName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [msg, setMsg] = useState('');
-  // 등급별 멤버 추가 입력값
+  // 그룹별 멤버 추가 입력값
   const [memberEmail, setMemberEmail] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
@@ -38,7 +38,7 @@ export default function Tiers() {
       setName('');
       load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : '등급 생성 실패');
+      setMsg(err instanceof Error ? err.message : '그룹 생성 실패');
     }
   }
 
@@ -75,7 +75,7 @@ export default function Tiers() {
         body: { code: joinCode },
       });
       setJoinCode('');
-      setMsg(`'${res.tierName}' 등급에 가입했습니다.`);
+      setMsg(`'${res.tierName}' 그룹에 가입했습니다.`);
     } catch (err) {
       setMsg(err instanceof Error ? err.message : '가입 실패');
     }
@@ -85,9 +85,9 @@ export default function Tiers() {
     <>
       <Nav />
       <main className="app-container">
-        <h2>공개 등급</h2>
+        <h2>공개 그룹</h2>
         <p className="app-muted">
-          비공개 일정은 선택한 등급의 멤버에게만 상세가 보입니다. 멤버는 이메일로 추가하거나, 상대가 코드로 가입할 수 있어요.
+          비공개 일정은 선택한 그룹의 멤버에게만 상세가 보입니다. 멤버는 이메일로 추가하거나, 상대가 코드로 가입할 수 있어요.
         </p>
         {msg && <p className="app-muted">{msg}</p>}
 
@@ -95,12 +95,12 @@ export default function Tiers() {
           <div className="app-row">
             <input
               className="app-input"
-              placeholder="새 등급 이름 (예: 친한친구, 회사)"
+              placeholder="새 그룹 이름 (예: 친한친구, 회사)"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
             <button className="app-btn" type="submit">
-              등급 만들기
+              그룹 만들기
             </button>
           </div>
         </form>
@@ -109,7 +109,7 @@ export default function Tiers() {
           <div className="app-row">
             <input
               className="app-input"
-              placeholder="코드로 등급 가입"
+              placeholder="코드로 그룹 가입"
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value)}
             />
@@ -119,8 +119,8 @@ export default function Tiers() {
           </div>
         </form>
 
-        <h3>내 등급</h3>
-        {tiers.length === 0 && <p className="app-muted">아직 만든 등급이 없습니다.</p>}
+        <h3>내 그룹</h3>
+        {tiers.length === 0 && <p className="app-muted">아직 만든 그룹이 없습니다.</p>}
         {tiers.map((t) => (
           <div className="app-card" key={t._id}>
             <div className="app-row">

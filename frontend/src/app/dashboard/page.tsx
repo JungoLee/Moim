@@ -107,7 +107,7 @@ export default function Dashboard() {
               onChange={(e) => setVisibility(e.target.value as 'public' | 'private')}
             >
               <option value="public">공유(누구나)</option>
-              <option value="private">비공개(선택 등급)</option>
+              <option value="private">비공개(선택 그룹)</option>
             </select>
             <button className="app-btn" type="submit">
               추가
@@ -118,7 +118,7 @@ export default function Dashboard() {
             <div className="app-row" style={{ marginTop: 'var(--space-2)' }}>
               {tiers.length === 0 ? (
                 <span className="app-muted">
-                  공개할 등급이 없습니다 — <Link href="/tiers">등급 만들기</Link> (비우면 나만 봅니다)
+                  공개할 그룹이 없습니다 — <Link href="/tiers">그룹 만들기</Link> (비우면 나만 봅니다)
                 </span>
               ) : (
                 tiers.map((t) => (

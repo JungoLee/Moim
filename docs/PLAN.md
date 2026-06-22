@@ -25,52 +25,42 @@
 - 백: **Node + Express(ESM) + MongoDB(Mongoose)** (`backend/`)
 - 인증: **Google OAuth(passport)** → 백엔드 **JWT** 발급 → 프론트 `localStorage` 저장 + `Authorization: Bearer` 호출
 - 실시간(채팅/협업): 추후 **Socket.io** 를 백엔드에 추가 예정
-- 공개 제어 핵심: 일정 가시성 = **친구별 등급**(`close`/`normal`) × **일정별 `visibility`**(`default`/`private`)
+- 공개 제어 핵심: 일정 가시성 = **일정별 공유/비공개**(`public`/`private`) × **그룹(Tier)** — 공유=친구 모두 상세, 비공개=선택 그룹 멤버만 상세(그 외 "바쁨")
 
 ### 데이터 모델 (현재)
 - **User**: `googleId`, `email`, `name`, `picture`
-- **Friendship**: `requester`, `recipient`, `status`(pending|accepted), `requesterTierForRecipient`, `recipientTierForRequester`
-  - 등급은 **방향성** — 내가 친구에게 부여한 등급이 "그 친구가 내 일정을 보는 수준"
-  - `close` = 상세 노출(+추후 시간요청 가능), `normal` = 바쁜 블록만
-- **Event**: `owner`, `title`, `start`, `end`, `allDay`, `location`, `memo`, `visibility`(default|private)
+- **Friendship**: `requester`, `recipient`, `status`(pending|accepted) — 친구 그래프 = 캘린더 열람 권한. 가시성 제어는 그룹/일정으로 분리
+- **Tier(그룹)**: `owner`, `name`, `code`(고유), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가
+- **Event**: `owner`, `title`, `start`, `end`, `allDay`, `location`, `memo`, `visibility`(public|private), `audienceTiers[]`(비공개 시 상세 열람 그룹)
 
 ---
 
-## 현재 상태 — Phase 1 (MVP) 스캐폴드 완료 ✅
-**구글 로그인 + 내 스케줄 작성 + 공유/비공유(등급별) 노출** 동작 골격까지.
+## 현재 상태 — Phase 1 + 1.5 동작 ✅
+**구글 로그인 + 내 스케줄 작성 + 공유/비공개(그룹별) 노출** 까지 실제 동작(로그인·일정 생성 검증 완료).
 
 구현됨:
-- [x] 백엔드: Express 서버, Mongo 연결, Google OAuth+JWT, requireAuth 미들웨어
-- [x] 모델: User / Friendship / Event
-- [x] 라우트: auth(google/callback/me), events(CRUD), friends(요청/수락/거절/등급), calendar(등급 반영 조회)
-- [x] 프론트: 로그인 랜딩, OAuth 콜백 토큰 수신, 대시보드(내 일정 CRUD), 친구(추가/요청/등급), 친구 캘린더 보기
-- [x] 핸드오프 문서: README / CLAUDE.md / 이 PLAN
-- [x] 빌드 검증: 프론트 `next build` 통과, 백엔드 `node --check` 통과
-- [x] 환경설정 파일 생성: `backend/.env`(JWT_SECRET 자동생성·콜백/CORS URL 채움) + `frontend/.env.local` (둘 다 gitignore)
-
-> **🚦 실행하려면 남은 블로커 2개** (나머지 env·JWT·프론트 설정은 채워둠):
-> 1. **구글 OAuth** — `backend/.env` 의 `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` 두 줄 채우기. 콜백 URI `http://localhost:4000/api/auth/google/callback` 를 OAuth 클라이언트에 등록 + 본인 이메일을 테스트 사용자로 추가.
-> 2. **접속 가능한 MongoDB** — 이 PC엔 로컬 MongoDB 미설치(서비스 없음·포트 27017 닫힘). → **MongoDB Atlas 무료 클러스터**의 연결 문자열을 `MONGODB_URI` 에 넣는 게 가장 빠름(설치 불필요). 또는 로컬 MongoDB Community 설치 후 서비스 실행.
->
-> 둘 다 채우면 루트에서 `npm run dev` → `localhost:3000` 로그인. (README "셋업 & 실행" 참고)
+- [x] 백엔드: Express, MongoDB(Atlas) 연결, Google OAuth+JWT, requireAuth, 시작 시 env 가드
+- [x] 모델: User / Friendship / Tier(그룹) / Event
+- [x] 라우트: auth · events(CRUD) · friends(요청/수락/거절) · tiers(그룹 CRUD·멤버·코드가입) · calendar(공유/비공개·그룹 반영)
+- [x] 프론트: 랜딩 · OAuth 콜백 · 대시보드(일정 생성/삭제 + 월 달력 + 클릭·드래그 기간선택 + 공유/비공개·그룹) · 친구 · 그룹 관리(`/tiers`) · 친구 캘린더
+- [x] 디자인 시스템 고도화(globals.scss 토큰·버튼·카드·네비·캘린더)
+- [x] 루트 통합 실행(`concurrently`, `npm run dev`) · 문서(README/CLAUDE/PLAN/ONBOARDING)
+- [x] 환경: `backend/.env`(Atlas 연결·구글 OAuth 입력 완료) + `frontend/.env.local` (gitignore)
+- [x] 엔드투엔드 검증: Atlas 연결 + 구글 로그인 리다이렉트 + 로그인 후 일정 생성 동작 확인 (2026-06-22)
 
 ### 다음 작업 (Phase 1 마무리 — 바로 이어서 할 일)
-- [x] **달력 그리드 UI** — 월(月) 그리드 공용 컴포넌트 `frontend/src/components/Calendar.tsx` 추가. 대시보드(날짜 클릭 시 09~10시 프리필) + 친구 캘린더(`바쁨`/상세 칩)에 연결. (주(週) 뷰는 추후)
-- [x] **루트 통합 실행** — 루트 `package.json`(`concurrently`)로 `npm run dev` 시 backend+frontend 동시 실행
-- [x] **백엔드 env 가드** — 시작 시 필수 환경변수 누락이면 친절히 안내 후 종료(cryptic crash 방지)
-- [x] **달력 클릭/드래그 기간 선택** — 날짜 클릭 또는 드래그로 기간 선택 → 새 일정 프리필. 제목 비면 기본값 `새 일정`
-- [x] **엔드투엔드 로그인 검증** — Atlas(표준 문자열로 SRV 우회) + 구글 OAuth 연결, 로그인·일정 생성 동작 확인 (2026-06-22)
-- [ ] **로그인 직후 UX** — `/api/auth/me` 실패(토큰 만료) 시 자동 로그아웃 → 랜딩
-- [ ] 일정 수정(현재 생성/삭제만; PATCH API 는 있으나 UI 미연결)
+- [ ] **일정 수정 UI** — PATCH API 있음, 화면 미연결 (현재 생성/삭제만)
+- [ ] **일정 입력 항목 확장** — `allDay`·위치·메모 폼 미연결(모델엔 있음)
+- [ ] **토큰 만료 자동 로그아웃** — `/api/auth/me` 실패 시 랜딩으로
 
 ---
 
-## Phase 1.5 — 공유/등급 모델 재설계 ✅ (2026-06-22)
-- [x] `Tier` 모델(등급/그룹): owner·name·고유 `code`·members[]. 라우트 `/api/tiers` (생성/삭제/멤버추가(이메일)/멤버제거/코드가입 `join`)
+## Phase 1.5 — 공유/그룹 모델 재설계 ✅ (2026-06-22)
+- [x] `Tier`(그룹) 모델: owner·name·고유 `code`·members[]. 라우트 `/api/tiers` (생성/삭제/멤버추가(이메일)/멤버제거/코드가입 `join`)
 - [x] Event 가시성 재정의: `public`(공유=친구 모두 상세) / `private`(비공개=선택 `audienceTiers` 멤버만 상세, 그 외 "바쁨"). 구 `default`→public 호환
-- [x] 캘린더 라우트: 친구면 열람, 일정별 public→상세 / private→내가 그 등급 멤버일 때만 상세
-- [x] 프론트: `/tiers` 등급 관리 페이지, 대시보드 공유/비공개+등급 체크박스, 친구·친구캘린더 페이지 정리, Nav '등급'
-- 비고: 구 `Friendship.close/normal` 필드는 미사용으로 남김(추후 정리 가능)
+- [x] 캘린더 라우트: 친구면 열람, 일정별 public→상세 / private→내가 그 그룹 멤버일 때만 상세
+- [x] 프론트: `/tiers` 그룹 관리 페이지, 대시보드 공유/비공개+그룹 체크박스, 친구·친구캘린더 정리, Nav '그룹'
+- [x] 레거시 정리: 구 `Friendship.close/normal` 필드 + `/api/friends/:id/tier` 라우트 제거. UI 표기 '등급'→'그룹' 통일
 
 ## 부가 도구 — 연차 계산기 (MyBudget 이식 요청)
 - 출처: `C:\workspace\MyBudget\frontend\annual-leave\*` (vanilla JS 684줄) + 백엔드 공휴일 API
@@ -82,14 +72,14 @@
 ## 백로그 (Phase 2+ — 우선순위 순)
 
 ### Phase 2 — 공통 빈 시간 찾기 (핵심 가치)
-- [ ] 그룹(모임) 개념 모델: `Group{ name, members[] }`
+- [ ] 모임 그룹: 기존 `Tier`(그룹) 재사용 (members 기반 일정 취합)
 - [ ] 기간 선택 → 그룹 전원 일정 취합 → **겹치는 빈 시간/날짜 계산** API
 - [ ] "저녁부터 가능" 등 **부분 가용** 표시 (시간대 슬롯 단위)
 - [ ] 빈 시간 결과 시각화(히트맵/추천 날짜)
 
 ### Phase 3 — 시간 요청 (친한친구 기반)
 - [ ] `TimeRequest{ from, to(user), start, end, message, status }`
-- [ ] close 등급 친구에게만 요청 가능, 수락/거절 → 수락 시 일정 자동 생성 옵션
+- [ ] 특정 그룹(친한친구 등) 멤버에게만 요청 가능, 수락/거절 → 수락 시 일정 자동 생성 옵션
 - [ ] 알림(인앱) 표시
 
 ### Phase 4 — 실시간 채팅
@@ -119,6 +109,6 @@
 ## 알려진 한계 / 기술 부채 (MVP 의도된 단순화)
 - 로그인 토큰을 **URL 쿼리(`?token=`)로 전달 + localStorage 저장** → 운영 전 httpOnly 쿠키로 전환 필요(Phase 8).
 - 프론트 `next build` 시 **ESLint 건너뜀**(`next.config.mjs`) — eslint-config-next 추가 후 되돌릴 것.
-- 친구 등급 기본값 `normal`(보수적). close 로 올려야 상세 노출.
+- 일정 기본 가시성은 `public`(공유). 비공개는 그룹을 만들어 지정해야 상세 노출.
 - 일정 시간은 단순 `datetime-local`(타임존/반복 일정 미지원).
 - 테스트 코드 없음.

@@ -16,9 +16,7 @@ router.get('/', async (req, res) => {
   const friends = list.map((f) => {
     const iAmRequester = f.requester._id.toString() === me;
     const friend = iAmRequester ? f.recipient : f.requester;
-    // 내가 이 친구에게 부여한 등급(= 이 친구가 내 일정을 보는 등급)
-    const myTierForThem = iAmRequester ? f.requesterTierForRecipient : f.recipientTierForRequester;
-    return { friendshipId: f._id, user: friend, myTierForThem };
+    return { friendshipId: f._id, user: friend };
   });
   res.json({ ok: true, friends });
 });
@@ -71,31 +69,6 @@ router.post('/requests/:id/decline', async (req, res) => {
   }
   const r = await Friendship.deleteOne({ _id: req.params.id, recipient: req.userId, status: 'pending' });
   if (r.deletedCount === 0) return res.status(404).json({ ok: false, message: '요청을 찾을 수 없습니다.' });
-  res.json({ ok: true });
-});
-
-// 친구 노출 등급 변경 (내 일정을 이 친구가 얼마나 보는지)
-router.patch('/:friendUserId/tier', async (req, res) => {
-  const { friendUserId } = req.params;
-  const { tier } = req.body;
-  if (!mongoose.Types.ObjectId.isValid(friendUserId)) {
-    return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
-  }
-  if (!['close', 'normal'].includes(tier)) {
-    return res.status(400).json({ ok: false, message: 'tier 는 close 또는 normal 이어야 합니다.' });
-  }
-  const me = req.userId;
-  const fs = await Friendship.findOne({
-    status: 'accepted',
-    $or: [
-      { requester: me, recipient: friendUserId },
-      { requester: friendUserId, recipient: me },
-    ],
-  });
-  if (!fs) return res.status(404).json({ ok: false, message: '친구 관계를 찾을 수 없습니다.' });
-  if (fs.requester.toString() === me) fs.requesterTierForRecipient = tier;
-  else fs.recipientTierForRequester = tier;
-  await fs.save();
   res.json({ ok: true });
 });
 

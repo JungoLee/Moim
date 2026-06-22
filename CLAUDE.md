@@ -8,7 +8,7 @@
 - **Moim** — 친구들과 스케줄을 공유하고, 함께 비는 시간을 찾아 모임·여행을 잡는 소셜 캘린더.
 - 스택: 프론트 **Next.js(App Router) + React 18 + TypeScript + SCSS** (`frontend/`), 백 **Node + Express(ESM) + MongoDB(Mongoose)** (`backend/`).
 - 인증: **Google OAuth** (백엔드 passport-google-oauth20) → 백엔드가 **JWT** 발급, 프론트는 `Authorization: Bearer` 헤더로 호출.
-- 핵심 개념: 일정 공개를 **친구별 등급**으로 제어 — `close`(친한친구=상세 노출) / `normal`(바쁜 시간만). 일정 단위 `private` 는 close 에게도 "바쁨"으로만.
+- 핵심 개념: 일정 가시성 = **일정별 공유(public)/비공개(private)** × **그룹(Tier)**. 공유=친구 모두 상세, 비공개=선택 그룹 멤버만 상세(그 외 "바쁨"). 그룹은 사용자가 만들고 이메일/코드로 멤버 추가. (UI 표기는 '그룹', 코드 식별자는 `Tier`)
 
 ## 작업 방식
 - **기억에 의존하지 말 것** — 변수·타입·API 계약·시그니처는 추측 말고 실제 소스에서 확인 후 사용.

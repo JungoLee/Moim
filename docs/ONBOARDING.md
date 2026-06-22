@@ -51,7 +51,7 @@ npm run dev                        # http://localhost:3000
 ### 🔴 서버가 안 뜸 / DB 연결 타임아웃
 1. (Atlas) **Network Access** 에 지금 내 공인 IP 등록됐는지 (VPN이면 VPN 출구 IP) → 1순위.
 2. `MONGODB_URI` 의 사용자/비번/주소 정확한지. 로컬 Mongo면 서비스가 떠 있는지(`mongod`).
-3. 사내 VPN/방화벽이 27017 포트나 SRV(DNS) 막는지.
+3. 사내 VPN/방화벽이 27017 포트나 SRV(DNS) 막는지. **Node가 `mongodb+srv://` 조회에 `querySrv ECONNREFUSED` 를 내면** → Atlas "Connect → Drivers"의 표준(비-SRV) `mongodb://host1,host2,host3/...?ssl=true&replicaSet=...&authSource=admin` 문자열로 바꾸면 OS DNS 를 타서 해결됨.
 
 ### 🔴 `npm install` / `npm run build` 인증서(cert) 오류
 → VPN 의 사내 루트 CA 때문. **`NODE_OPTIONS=--use-system-ca`** 설정 후 새 터미널.
@@ -83,16 +83,17 @@ npm run dev                        # http://localhost:3000
 ## 5. 구조 한눈에
 ```
 frontend/  Next.js App Router
-  src/app/        라우트 (page.tsx 로그인 / dashboard / friends / u/[userId] / auth/callback)
-  src/components/ 공용 컴포넌트 (Nav)
+  src/app/        라우트 (page.tsx 로그인 / dashboard / friends / tiers(그룹) / u/[userId] / auth/callback)
+  src/components/ 공용 컴포넌트 (Nav · Calendar)
   src/lib/        api.ts(fetch+토큰) · types.ts · format.ts · brand.ts
 backend/   Express(ESM)
-  src/routes/     auth · events · friends · calendar
-  src/models/     User · Friendship · Event
+  src/routes/     auth · events · friends · tiers(그룹) · calendar
+  src/models/     User · Friendship · Tier(그룹) · Event
   src/middleware/ auth.js(requireAuth)
   src/config/     db.js · passport.js(Google)
 docs/      PLAN.md(로드맵·할 일) · refactoring-guide.md · ONBOARDING.md(이 문서)
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
+루트        package.json — `npm run dev` 로 backend+frontend 동시 실행(concurrently)
 ```
 
 ## 6. 어디서 뭘 고치나

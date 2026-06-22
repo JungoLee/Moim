@@ -104,7 +104,7 @@ export default function Friends() {
               <span className="app-muted">{f.user.email}</span>
               <span className="app-spacer" />
               <Link className="app-btn app-btn--ghost" href="/tiers">
-                등급에 추가
+                그룹에 추가
               </Link>
               <Link className="app-btn app-btn--ghost" href={`/u/${f.user._id}`}>
                 캘린더 보기
