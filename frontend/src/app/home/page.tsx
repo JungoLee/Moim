@@ -5,18 +5,19 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
 import Tooltip from '@/components/Tooltip';
+import Icon, { type IconName } from '@/components/Icon';
 import { api, getToken } from '@/lib/api';
 import { formatRange, displayName } from '@/lib/format';
 import type { MoimEvent, User, FriendRequest, RoomSummary } from '@/lib/types';
 import styles from './home.module.scss';
 
 // [경로, 아이콘, 라벨, 툴팁 설명]
-const TILES: Array<[string, string, string, string]> = [
-  ['/dashboard', '📅', '내 캘린더', '내 일정을 만들고 월/주 달력으로 관리해요'],
-  ['/friends', '👥', '친구', '이메일로 친구를 추가하고 받은 요청을 수락해요'],
-  ['/tiers', '🏷️', '그룹', '공개 그룹을 만들어 비공개 일정을 그 그룹에만 공유해요'],
-  ['/rooms', '🗓️', '모임', '방을 만들어 친구를 초대하고 모두 되는 날을 찾아요'],
-  ['/tools/leave', '🌴', '연차', '주말·공휴일을 활용한 최적 연차 계획을 추천해요'],
+const TILES: Array<[string, IconName, string, string]> = [
+  ['/dashboard', 'calendar', '내 캘린더', '내 일정을 만들고 월/주 달력으로 관리해요'],
+  ['/friends', 'users', '친구', '이메일로 친구를 추가하고 받은 요청을 수락해요'],
+  ['/tiers', 'tag', '그룹', '공개 그룹을 만들어 비공개 일정을 그 그룹에만 공유해요'],
+  ['/rooms', 'calendar-check', '모임', '방을 만들어 친구를 초대하고 모두 되는 날을 찾아요'],
+  ['/tools/leave', 'sun', '연차', '주말·공휴일을 활용한 최적 연차 계획을 추천해요'],
 ];
 
 export default function Home() {
@@ -68,7 +69,9 @@ export default function Home() {
           {TILES.map(([href, icon, label, desc]) => (
             <Tooltip key={href} label={desc}>
               <Link href={href} className={styles.tile}>
-                <span className={styles.icon}>{icon}</span>
+                <span className={styles.icon}>
+                  <Icon name={icon} size={26} />
+                </span>
                 <span className={styles.label}>{label}</span>
               </Link>
             </Tooltip>
@@ -83,7 +86,8 @@ export default function Home() {
 
         <div className="app-card">
           <div className={styles.sectionHead}>
-            <h3>📅 다가오는 일정</h3>
+            <Icon name="calendar" size={18} />
+            <h3>다가오는 일정</h3>
             <span className="app-spacer" />
             <Link className="app-btn app-btn--ghost" href="/dashboard">
               캘린더 →
@@ -104,7 +108,8 @@ export default function Home() {
 
         <div className="app-card">
           <div className={styles.sectionHead}>
-            <h3>🗓️ 내 모임</h3>
+            <Icon name="calendar-check" size={18} />
+            <h3>내 모임</h3>
             <span className="app-spacer" />
             <Link className="app-btn app-btn--ghost" href="/rooms">
               모임 →

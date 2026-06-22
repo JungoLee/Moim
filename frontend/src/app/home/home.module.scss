@@ -12,9 +12,9 @@
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: var(--space-3);
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-6);
 }
 .tile {
   display: flex;
@@ -34,8 +34,8 @@
   border-color: var(--color-primary);
 }
 .icon {
-  font-size: 1.7rem;
-  line-height: 1;
+  display: inline-flex;
+  color: var(--color-primary);
 }
 .label {
   font-weight: 600;
@@ -59,10 +59,13 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-1);
+  margin-bottom: var(--space-3);
 }
 .sectionHead h3 {
   margin: 0;
+}
+.sectionHead svg {
+  color: var(--color-primary);
 }
 .row {
   display: flex;
