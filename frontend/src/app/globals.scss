@@ -662,6 +662,15 @@ a.app-card:hover {
   padding: 0 3px;
   font-size: 0.74rem;
   cursor: pointer;
+  transition: filter 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease;
+}
+/* 이벤트 호버 — 색 있는 블록은 밝아지며 외곽선, 점 이벤트는 배경 하이라이트 */
+.fc .fc-daygrid-block-event:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+.fc .fc-daygrid-dot-event:hover {
+  background: var(--color-surface-3);
 }
 /* 선택 가능한 달력의 날짜 칸 커서 (지난 날짜는 비활성이라 기본 커서) */
 .fc.fc-theme-standard .fc-daygrid-day {
@@ -669,6 +678,10 @@ a.app-card:hover {
 }
 .fc.fc-theme-standard .fc-daygrid-day.fc-day-past {
   cursor: default;
+}
+/* 날짜 칸 높이 — 한 주가 너무 납작하지 않게 */
+.fc .fc-daygrid-day-frame {
+  min-height: 92px;
 }
 .fc .fc-event.evt-busy {
   background-color: var(--color-surface-3) !important;

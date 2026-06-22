@@ -56,6 +56,7 @@
 - [x] **배포(Render)** — `render.yaml` Blueprint로 `moim-api`(백)·`moim-web`(프론트) + Atlas. Render outbound IP를 Atlas Network Access에 등록 + 구글 콘솔 운영 콜백 URI 등록 (2026-06-22)
 - [x] **구글 로그인 팝업화** — 전체 이동 → `window.open` 팝업 + 동일 출처 localStorage `storage` 이벤트로 부모창 복귀(COOP 안전), 콜백 페이지는 팝업이면 자동 닫힘
 - [x] **랜딩 리디자인** — 글래스 카드 + 부유 광원, MOIM 워드마크(Black Ops One) 확대, Pretendard 전역 로드, 구글 공식 화이트 로그인 버튼
+- [x] **AdSense 코드 연동** — `NEXT_PUBLIC_ADSENSE_CLIENT` 설정 시 layout이 Auto ads 스크립트 로드 + 수동 배치용 `AdUnit` 컴포넌트 + `public/ads.txt`. (ID 미설정 시 광고 비활성 / 게시자 승인·도메인은 대기)
 
 ### 다음 작업 (남은 것)
 - [ ] **일정 입력 확장** — `allDay`·위치(`location`) 폼 미연결(제목·시간·메모·공개범위는 됨)
@@ -112,7 +113,8 @@
 
 ### Phase 8 — 수익화 & 배포
 - [x] 배포 ✅ — **Render**(백 `moim-api` + 프론트 `moim-web`) + Mongo Atlas, `render.yaml` Blueprint (2026-06-22)
-- [ ] **AdSense** 연동 (도메인 + 승인 필요)
+- [x] **AdSense 코드 연동** ✅ — layout Auto ads 스크립트 + 수동 슬롯 `AdUnit` + `public/ads.txt` + `NEXT_PUBLIC_ADSENSE_CLIENT` (2026-06-22)
+- [ ] **AdSense 활성화** — 게시자 ID 발급 + 도메인 + 애드센스 **승인** (코드는 준비됨, ID만 넣으면 동작)
 - [ ] 운영 보안: JWT → httpOnly 쿠키 전환, CORS/Rate limit, 입력 검증 강화
 - [ ] 커스텀 도메인 + free 플랜 콜드스타트 대응(starter 승격 또는 헬스 핑)
 

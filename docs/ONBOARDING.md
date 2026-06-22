@@ -84,8 +84,9 @@ npm run dev                        # http://localhost:3000
 ```
 frontend/  Next.js App Router
   src/app/        라우트 (로그인 / home / dashboard / friends / tiers(그룹) / rooms(모임) / requests(시간요청) / tools/leave(연차) / admin / u/[userId] / auth/callback)
-  src/components/ 공용 (Nav · Calendar=FullCalendar · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton)
-  src/lib/        api.ts(fetch+토큰) · types.ts · format.ts · brand.ts · leave.ts(연차 알고리즘) · holidays.ts
+  src/components/ 공용 (Nav · Calendar=FullCalendar · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton · AdUnit=광고)
+  src/lib/        api.ts(fetch+토큰) · types.ts · format.ts · brand.ts · leave.ts(연차 알고리즘) · holidays.ts · adsense.ts(애드센스 ID)
+  public/         ads.txt(애드센스 게시자 확인 → /ads.txt 로 서빙)
 backend/   Express(ESM)
   src/routes/     auth · events · friends · tiers(그룹) · rooms(모임) · calendar · admin · requests(시간요청)
   src/models/     User · Friendship · Tier(그룹) · Room(모임) · Event · TimeRequest(시간요청)
@@ -117,5 +118,6 @@ CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 - **Atlas Network Access**: Render outbound IP 대역(서비스 → Connect → Outbound)을 화이트리스트에 추가해야 백엔드가 DB에 붙음. 빠지면 `moim-api`가 DB 연결 실패로 죽고 `/api/health`가 503.
 - **구글 콘솔**: 운영 콜백 `https://moim-api.onrender.com/api/auth/google/callback`을 OAuth 클라이언트 "승인된 리디렉션 URI"에 추가.
 - **콜드스타트**: free 플랜은 15분 무트래픽 시 슬립 → 첫 요청 ~50s 지연.
+- **AdSense**(선택): `NEXT_PUBLIC_ADSENSE_CLIENT`(`ca-pub-…`) 설정 시 광고 로드. `public/ads.txt`가 `/ads.txt`로 서빙됨(게시자 확인). 미설정이면 광고 비활성.
 
 > Next.js(SSR)라 프론트는 정적 사이트가 아닌 **web 서비스**(자체 `next start`)로 배포 → 그래서 백/프론트 2개로 분리.

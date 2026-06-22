@@ -40,7 +40,7 @@
 
 ## 환경 · 시크릿
 - 백엔드 시크릿은 `backend/.env` 에만: `MONGODB_URI` · `JWT_SECRET`(고정 유지) · `GOOGLE_CLIENT_ID/SECRET`. 커밋 금지(`.env.example` 제공).
-- 프론트 공개 설정은 `frontend/.env.local`: `NEXT_PUBLIC_API_URL`.
+- 프론트 공개 설정은 `frontend/.env.local`: `NEXT_PUBLIC_API_URL` (선택: `NEXT_PUBLIC_BRAND_NAME`, `NEXT_PUBLIC_ADSENSE_CLIENT`).
 
 ## 소통
 - 모든 답변·주석·커밋은 **한국어**.

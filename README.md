@@ -68,6 +68,7 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 - Render → **New → Blueprint** → `JungoLee/Moim` 선택 → 시크릿(`MONGODB_URI`·`JWT_SECRET`·`GOOGLE_CLIENT_SECRET`) 입력 → **Apply**. 이후 `main` push 시 **autoDeploy**.
 - **Atlas Network Access** 에 Render outbound IP 대역 등록(아니면 백엔드 DB 연결 실패 → `/api/health` 503).
 - **구글 콘솔** OAuth 클라이언트에 운영 콜백 `https://moim-api.onrender.com/api/auth/google/callback` 등록.
+- (선택) **AdSense**: `NEXT_PUBLIC_ADSENSE_CLIENT` 설정 시 광고 로드, `public/ads.txt`가 `/ads.txt`로 서빙(게시자 확인).
 - 자세히 → [docs/ONBOARDING.md](docs/ONBOARDING.md) §7.
 
 ---
@@ -114,6 +115,6 @@ Moim/
 └─ frontend/
    └─ src/
       ├─ app/           # home · dashboard · friends · tiers · rooms · requests · tools/leave · admin · u/[userId] · auth/callback
-      ├─ components/    # Nav · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton
-      └─ lib/           # api · types · format · brand · leave · holidays
+      ├─ components/    # Nav · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · AccountDrawer · LegalModal · CopyButton · AdUnit
+      └─ lib/           # api · types · format · brand · leave · holidays · adsense
 ```

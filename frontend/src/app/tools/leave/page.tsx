@@ -8,6 +8,7 @@ import Nav from '@/components/Nav';
 import { addDays, findBridges, selectPeriods, toKey, formatDate, type Bridge, type LeaveStyle } from '@/lib/leave';
 import { getHolidays } from '@/lib/holidays';
 import DatePicker from '@/components/DatePicker';
+import Icon from '@/components/Icon';
 import styles from './leave.module.scss';
 
 const MAX_LIST = 40; // 후보 목록 표시 상한
@@ -126,7 +127,10 @@ export default function LeavePlanner() {
     <>
       <Nav />
       <main className="app-container">
-        <h2>🌴 연차 계산기</h2>
+        <h2 className={styles.title}>
+          <Icon name="sun" size={24} />
+          연차 계산기
+        </h2>
         <p className="app-muted">
           잔여 연차와 갱신일을 입력하면 주말·공휴일을 활용해 <strong>최소 연차로 최대 연휴</strong>를 만드는 계획을 추천합니다.
           (효율 = 연차 1일당 얻는 총 휴무일 수)
