@@ -313,8 +313,9 @@ input[type='radio'] {
 /* 브랜드 마크 — 그라데이션 텍스트 */
 .brand-mark {
   display: inline-block;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-family: 'Black Ops One', system-ui, sans-serif; // Gilo 아이덴티티 폰트
+  font-weight: 400;
+  letter-spacing: 0.06em;
   background: var(--grad-brand);
   -webkit-background-clip: text;
   background-clip: text;
