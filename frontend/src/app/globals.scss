@@ -153,7 +153,8 @@ h3 {
   background: var(--color-surface-2);
 }
 .app-nav .brand-mark {
-  margin-right: var(--space-2);
+  margin-right: var(--space-3);
+  font-size: 1.6rem;
 }
 
 /* 버튼 */
@@ -267,6 +268,34 @@ input[type='radio'] {
   box-shadow: var(--shadow-glow);
 }
 
+/* 계정 드로어 (우측 슬라이드) */
+.app-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: flex-end;
+}
+.app-drawer {
+  width: 100%;
+  max-width: 340px;
+  height: 100%;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-5);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.app-drawer-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 /* 모달 */
 .app-modal-backdrop {
   position: fixed;
@@ -315,6 +344,7 @@ input[type='radio'] {
   display: inline-block;
   font-family: 'Black Ops One', system-ui, sans-serif; // Gilo 아이덴티티 폰트
   font-weight: 400;
+  text-transform: uppercase;
   letter-spacing: 0.06em;
   background: var(--grad-brand);
   -webkit-background-clip: text;

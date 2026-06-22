@@ -1,17 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { clearToken } from '@/lib/api';
 import { BRAND_NAME } from '@/lib/brand';
+import AccountDrawer from '@/components/AccountDrawer';
 
 export default function Nav() {
-  const router = useRouter();
-
-  function logout() {
-    clearToken();
-    router.push('/');
-  }
+  const [open, setOpen] = useState(false);
 
   return (
     <nav className="app-nav">
@@ -24,9 +19,10 @@ export default function Nav() {
       <Link href="/rooms">모임</Link>
       <Link href="/tools/leave">연차</Link>
       <span className="app-spacer" />
-      <button className="app-btn app-btn--ghost" onClick={logout}>
-        로그아웃
+      <button className="app-btn app-btn--ghost" onClick={() => setOpen(true)}>
+        계정
       </button>
+      {open && <AccountDrawer onClose={() => setOpen(false)} />}
     </nav>
   );
 }

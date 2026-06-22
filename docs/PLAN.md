@@ -42,8 +42,9 @@
 구현됨:
 - [x] 백엔드: Express, MongoDB(Atlas) 연결, Google OAuth+JWT, requireAuth, 시작 시 env 가드
 - [x] 모델: User / Friendship / Tier(그룹) / Room(모임) / Event
-- [x] 라우트: auth · events(CRUD) · friends(요청/수락/거절) · tiers(그룹) · rooms(방·코드입장·가용성) · calendar(공유/비공개·그룹 반영)
-- [x] 프론트: 랜딩 · OAuth 콜백 · 대시보드(일정 생성/삭제 + **FullCalendar**(월/주) + 클릭·드래그 기간선택 + 공유/비공개·그룹) · 친구 · 그룹 관리(`/tiers`) · 친구 캘린더 · 모임(`/rooms`) · 연차계산기(`/tools/leave`)
+- [x] 라우트: auth · events(CRUD) · friends · tiers(그룹) · rooms(방·가용성) · calendar · admin(가입자/권한)
+- [x] 프론트: 랜딩 · 대시보드(**FullCalendar** 월/주 + 클릭·드래그 → 일정 모달[날짜+24시 시간 분리] + 공유/비공개·그룹) · 친구 · 그룹(`/tiers`) · 친구 캘린더 · 모임(`/rooms`) · 연차(`/tools/leave`) · 관리자(`/admin`)
+- [x] 계정 메뉴(드로어): 고유 번호 복사 · 관리자 페이지 링크(권한 시) · 로그아웃 · 이용약관/개인정보. 기본 관리자 `tough123181@gmail.com`(env `ADMIN_EMAILS` 오버라이드), 관리자 페이지에서 권한 부여/회수
 - [x] 디자인 시스템 고도화(globals.scss 토큰·버튼·카드·네비·캘린더)
 - [x] 루트 통합 실행(`concurrently`, `npm run dev`) · 문서(README/CLAUDE/PLAN/ONBOARDING)
 - [x] 환경: `backend/.env`(Atlas 연결·구글 OAuth 입력 완료) + `frontend/.env.local` (gitignore)
