@@ -7,6 +7,7 @@ import AvailabilityCalendar, { type DaySummary } from '@/components/Availability
 import CopyButton from '@/components/CopyButton';
 import Avatar from '@/components/Avatar';
 import { api, getToken } from '@/lib/api';
+import { confirmDialog } from '@/lib/confirm';
 import UserProfileModal from '@/components/UserProfileModal';
 import type { RoomDetail, User, Mark, AvailStatus } from '@/lib/types';
 
@@ -116,7 +117,7 @@ export default function RoomPage() {
   }
 
   async function deleteRoom() {
-    if (!window.confirm('이 모임을 삭제할까요? 되돌릴 수 없습니다.')) return;
+    if (!(await confirmDialog({ message: '이 모임을 삭제할까요? 되돌릴 수 없습니다.', confirmText: '삭제', danger: true }))) return;
     try {
       await api(`/api/rooms/${roomId}`, { method: 'DELETE' });
       router.push('/rooms');

@@ -5,6 +5,7 @@ import './globals.scss';
 import { BRAND_NAME } from '@/lib/brand';
 import { ADSENSE_CLIENT } from '@/lib/adsense';
 import Toaster from '@/components/Toaster';
+import ConfirmHost from '@/components/ConfirmHost';
 
 export const metadata: Metadata = {
   title: BRAND_NAME,
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         )}
         {children}
         <Toaster />
+        <ConfirmHost />
       </body>
     </html>
   );

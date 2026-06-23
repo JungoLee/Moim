@@ -7,6 +7,7 @@ import Nav from '@/components/Nav';
 import CopyButton from '@/components/CopyButton';
 import ColorPalette from '@/components/ColorPalette';
 import { api, getToken } from '@/lib/api';
+import { confirmDialog } from '@/lib/confirm';
 import { DEFAULT_TIER_COLOR } from '@/lib/colors';
 import type { Tier } from '@/lib/types';
 import Notice from '@/components/Notice';
@@ -55,7 +56,7 @@ export default function Tiers() {
   }
 
   async function deleteTier(id: string) {
-    if (!window.confirm('이 그룹을 삭제할까요? 되돌릴 수 없습니다.')) return;
+    if (!(await confirmDialog({ message: '이 그룹을 삭제할까요? 되돌릴 수 없습니다.', confirmText: '삭제', danger: true }))) return;
     await api(`/api/tiers/${id}`, { method: 'DELETE' });
     load();
   }

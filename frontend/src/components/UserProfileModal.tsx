@@ -69,62 +69,60 @@ export default function UserProfileModal({ user, onClose }: { user: ProfileUser;
 
   return (
     <div className="app-modal-backdrop" onClick={onClose}>
-      <div className="app-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '23rem' }}>
-        <div className="app-drawer-profile">
-          <Avatar src={user.picture} alt={user.name} />
-          <div style={{ minWidth: 0 }}>
-            <h3 style={{ margin: 0 }}>{user.name}</h3>
+      <div className="app-modal app-profile" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="app-profile-x" onClick={onClose} aria-label="닫기">
+          ✕
+        </button>
+
+        <div className="app-profile-head">
+          <Avatar src={user.picture} alt={user.name} className="app-avatar-lg" />
+          <div className="app-profile-id">
+            <h3>{user.name}</h3>
             <span className="app-muted">{user.email}</span>
           </div>
         </div>
 
-        <div className="app-row" style={{ flexWrap: 'wrap' }}>
+        <div className="app-profile-actions">
           <button className="app-btn" onClick={goCalendar}>
-            캘린더 보기
+            📅 캘린더 보기
           </button>
           {isFriend === false && (
             <button className="app-btn" onClick={requestFriend} disabled={busy}>
-              친구 요청
+              ➕ 친구 요청
             </button>
           )}
           {isFriend === true && (
             <button className="app-btn" onClick={goTimeRequest}>
-              시간 요청
+              ⏰ 시간 요청
             </button>
           )}
-          <CopyButton text={user.email} label="이메일 복사" />
+          <CopyButton text={user.email} label="📋 이메일 복사" />
         </div>
 
         {tiers.length > 0 && (
-          <>
-            <label className="app-muted">그룹에 추가</label>
-            <div className="app-row" style={{ flexWrap: 'wrap' }}>
+          <div className="app-profile-section">
+            <span className="app-profile-label">그룹에 추가</span>
+            <div className="app-profile-tiers">
               {tiers.map((t) => {
                 const already = t.members?.some((m) => m._id === user._id);
                 return (
                   <button
                     key={t._id}
                     type="button"
-                    className="app-btn app-btn--ghost"
+                    className={already ? 'app-tier-chip is-in' : 'app-tier-chip'}
                     onClick={() => addToTier(t._id)}
                     disabled={already}
                     title={already ? '이미 포함된 그룹' : `${t.name} 그룹에 추가`}
                   >
                     <i className="app-dot" style={{ background: t.color || 'var(--color-primary)' }} />
                     {t.name}
-                    {already ? ' ✓' : ''}
+                    {already && ' ✓'}
                   </button>
                 );
               })}
             </div>
-          </>
+          </div>
         )}
-
-        <div className="app-row" style={{ justifyContent: 'flex-end' }}>
-          <button type="button" className="app-btn app-btn--ghost" onClick={onClose}>
-            닫기
-          </button>
-        </div>
       </div>
     </div>
   );

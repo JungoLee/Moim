@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { api } from '@/lib/api';
+import { confirmDialog } from '@/lib/confirm';
 import Avatar from '@/components/Avatar';
 import UserProfileModal from '@/components/UserProfileModal';
 import type { RoomComment, RoomDetail, User } from '@/lib/types';
@@ -85,7 +86,7 @@ export default function RoomChat({ roomId, onClose }: { roomId: string; onClose:
   }, [comments]);
 
   async function deleteMessage(id: string) {
-    if (!window.confirm('이 메시지를 삭제할까요?')) return;
+    if (!(await confirmDialog({ message: '이 메시지를 삭제할까요?', confirmText: '삭제', danger: true }))) return;
     try {
       await api(`/api/rooms/${roomId}/comments/${id}`, { method: 'DELETE' });
       await refresh();

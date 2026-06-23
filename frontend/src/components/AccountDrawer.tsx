@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api, clearToken } from '@/lib/api';
+import { confirmDialog } from '@/lib/confirm';
+import { toast } from '@/lib/toast';
 import { displayName } from '@/lib/format';
 import CopyButton from '@/components/CopyButton';
 import LegalModal from '@/components/LegalModal';
@@ -41,14 +43,21 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
   }
 
   async function deleteAccount() {
-    if (!window.confirm('정말 탈퇴하시겠어요?\n내 일정·그룹·모임·친구 관계 등 모든 데이터가 삭제되며 되돌릴 수 없습니다.')) return;
+    if (
+      !(await confirmDialog({
+        message: '정말 탈퇴하시겠어요?\n내 일정·그룹·모임·친구 관계 등 모든 데이터가 삭제되며 되돌릴 수 없습니다.',
+        confirmText: '탈퇴',
+        danger: true,
+      }))
+    )
+      return;
     try {
       await api('/api/auth/me', { method: 'DELETE' });
       clearToken();
       onClose();
       router.push('/');
     } catch {
-      window.alert('탈퇴 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      toast('탈퇴 처리에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
     }
   }
 

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import { api, getToken } from '@/lib/api';
+import { confirmDialog } from '@/lib/confirm';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import type { User } from '@/lib/types';
@@ -83,7 +84,14 @@ export default function Admin() {
   }
 
   async function deleteUser(u: User) {
-    if (!window.confirm(`'${displayName(u)}' 회원을 삭제할까요? 이 사용자의 일정·그룹·모임 등 데이터가 함께 삭제됩니다.`)) return;
+    if (
+      !(await confirmDialog({
+        message: `'${displayName(u)}' 회원을 삭제할까요?\n이 사용자의 일정·그룹·모임 등 데이터가 함께 삭제됩니다.`,
+        confirmText: '삭제',
+        danger: true,
+      }))
+    )
+      return;
     try {
       await api(`/api/admin/users/${u._id}`, { method: 'DELETE' });
       toast('회원을 삭제했습니다', 'success');
@@ -94,7 +102,7 @@ export default function Admin() {
   }
 
   async function deleteEntity(kind: 'rooms' | 'tiers', e: Entity) {
-    if (!window.confirm(`'${e.name}'을(를) 삭제할까요?`)) return;
+    if (!(await confirmDialog({ message: `'${e.name}'을(를) 삭제할까요?`, confirmText: '삭제', danger: true }))) return;
     try {
       await api(`/api/admin/${kind}/${e._id}`, { method: 'DELETE' });
       toast('삭제했습니다', 'success');
