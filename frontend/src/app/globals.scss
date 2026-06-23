@@ -898,9 +898,13 @@ a.app-card:hover {
   bottom: calc(var(--space-5) + 4rem);
   z-index: 96;
   width: 22rem;
-  max-width: calc(100vw - 2 * var(--space-5));
+  min-width: 15rem;
+  max-width: calc(100% - 4rem);
   height: 28rem;
-  max-height: calc(100vh - 9rem);
+  min-height: 16rem;
+  max-height: calc(100% - 9rem);
+  /* 사용자가 좌상단 방향으로 크기 조절 (우/하단 고정) */
+  resize: both;
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
