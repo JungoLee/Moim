@@ -82,6 +82,10 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+/* 가로 스크롤 방지 (FAB 닫힘 시 화면 밖 항목 등) — clip 은 스크롤 컨테이너를 만들지 않아 sticky 유지 */
+body {
+  overflow-x: clip;
+}
 
 ::selection {
   background: rgba(124, 140, 255, 0.35);
@@ -158,6 +162,10 @@ h3 {
   }
   .app-nav a {
     padding: var(--space-1) var(--space-2);
+  }
+  .app-modal,
+  .app-confirm {
+    padding: var(--space-4);
   }
 }
 
@@ -931,25 +939,19 @@ a.app-card:hover {
 }
 /* 공용 색 팔레트 (프리셋 + 커스텀 휠은 팝업 박스로) */
 .app-palette {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   margin-top: var(--space-1);
 }
-/* 🎨 버튼 기준으로 팝업이 바로 아래에 뜨도록 */
-.app-palette-anchor {
-  position: relative;
-  display: inline-flex;
-}
+/* 커스텀 휠은 인라인으로 펼쳐짐(절대배치 X) → 모달 overflow 에 잘리지 않음 */
 .app-palette-box {
-  position: absolute;
-  z-index: 90;
-  top: calc(100% + 8px);
-  left: 0;
-  width: 220px;
-  max-width: calc(100vw - 28px);
-  background: var(--color-surface-2);
+  width: 13.75rem;
+  max-width: 100%;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   padding: var(--space-3);
   display: flex;
   flex-direction: column;

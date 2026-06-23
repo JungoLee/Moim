@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -24,6 +24,7 @@ export default function Nav() {
   const pathname = usePathname() || '';
   const [open, setOpen] = useState(false);
   const [picture, setPicture] = useState('');
+  const linksRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api<{ user: User }>('/api/auth/me')
@@ -31,13 +32,19 @@ export default function Nav() {
       .catch(() => {});
   }, []);
 
+  // 현재 페이지 메뉴를 가로 스크롤 네비 중앙으로 (이동/새로고침 시 자리 찾기)
+  useEffect(() => {
+    const el = linksRef.current?.querySelector('[aria-current="page"]') as HTMLElement | null;
+    el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [pathname]);
+
   return (
     <>
       <nav className="app-nav">
         <Link href="/home" className="brand-mark">
           {BRAND_NAME}
         </Link>
-        <div className="app-nav-links">
+        <div className="app-nav-links" ref={linksRef}>
           {LINKS.map(([href, label, feature]) => {
             const active = href === '/home' ? pathname === '/home' : pathname.startsWith(href);
             return (

@@ -52,40 +52,38 @@ export default function ColorPalette({ value, onChange, immediate = false }: Pro
             aria-pressed={c === value}
           />
         ))}
-        <span className="app-palette-anchor">
-          <button
-            type="button"
-            className={open ? 'app-swatch-toggle is-on' : 'app-swatch-toggle'}
-            onClick={toggle}
-            aria-pressed={open}
-            title="커스텀 색 선택"
-          >
-            🎨
-          </button>
-          {open && (
-            <div className="app-palette-box" role="dialog" aria-label="커스텀 색 선택">
-              <div className="app-palette-preview">
-                <span className="app-swatch-preview" style={{ background: current }} />
-                <span className="app-palette-hex">{current.toUpperCase()}</span>
-              </div>
-              <ColorWheel value={current} onChange={immediate ? onChange : setPreview} />
-              {!immediate && (
-                <button
-                  type="button"
-                  className="app-btn"
-                  style={{ width: '100%' }}
-                  onClick={() => {
-                    onChange(preview);
-                    setOpen(false);
-                  }}
-                >
-                  이 색으로 적용
-                </button>
-              )}
-            </div>
-          )}
-        </span>
+        <button
+          type="button"
+          className={open ? 'app-swatch-toggle is-on' : 'app-swatch-toggle'}
+          onClick={toggle}
+          aria-pressed={open}
+          title="커스텀 색 선택"
+        >
+          🎨
+        </button>
       </div>
+      {open && (
+        <div className="app-palette-box" role="dialog" aria-label="커스텀 색 선택">
+          <div className="app-palette-preview">
+            <span className="app-swatch-preview" style={{ background: current }} />
+            <span className="app-palette-hex">{current.toUpperCase()}</span>
+          </div>
+          <ColorWheel value={current} onChange={immediate ? onChange : setPreview} />
+          {!immediate && (
+            <button
+              type="button"
+              className="app-btn"
+              style={{ width: '100%' }}
+              onClick={() => {
+                onChange(preview);
+                setOpen(false);
+              }}
+            >
+              이 색으로 적용
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
