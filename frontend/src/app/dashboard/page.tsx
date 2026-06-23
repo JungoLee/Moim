@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import Calendar from '@/components/Calendar';
 import DatePicker from '@/components/DatePicker';
+import ColorWheel from '@/components/ColorWheel';
 import { api, getToken } from '@/lib/api';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
@@ -30,8 +31,9 @@ export default function Dashboard() {
   const [events, setEvents] = useState<MoimEvent[]>([]);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [error, setError] = useState('');
-  // 범례에서 팔레트가 열린 그룹 id (없으면 null)
+  // 범례에서 팔레트가 열린 그룹 id (없으면 null) + 휠 미리보기 색
   const [paletteFor, setPaletteFor] = useState<string | null>(null);
+  const [wheelColor, setWheelColor] = useState('');
 
   // 일정 생성/수정 공용 모달
   const [open, setOpen] = useState(false);
@@ -213,7 +215,13 @@ export default function Dashboard() {
                 <button
                   type="button"
                   className="app-legend-trigger"
-                  onClick={() => setPaletteFor(paletteFor === t._id ? null : t._id)}
+                  onClick={() => {
+                    if (paletteFor === t._id) setPaletteFor(null);
+                    else {
+                      setWheelColor(cur);
+                      setPaletteFor(t._id);
+                    }
+                  }}
                   aria-label={`${t.name} 색상 변경`}
                 >
                   <i style={{ background: cur }} />
@@ -238,15 +246,19 @@ export default function Dashboard() {
                             aria-pressed={c === cur}
                           />
                         ))}
-                        <input
-                          type="color"
-                          className="app-swatch-custom"
-                          value={cur}
-                          onChange={(e) => updateTierColor(t._id, e.target.value)}
-                          aria-label="커스텀 색상 선택"
-                          title="커스텀 색상"
-                        />
                       </div>
+                      <ColorWheel value={wheelColor || cur} onChange={setWheelColor} />
+                      <button
+                        type="button"
+                        className="app-btn"
+                        style={{ marginTop: 'var(--space-3)', width: '100%' }}
+                        onClick={() => {
+                          updateTierColor(t._id, wheelColor || cur);
+                          setPaletteFor(null);
+                        }}
+                      >
+                        이 색으로 적용
+                      </button>
                     </div>
                   </>
                 )}
