@@ -30,14 +30,12 @@ export default function QuickActions() {
     setChatOpen(!!roomId);
   }, [roomId]);
 
-  // FAB 메뉴를 세션당 한 번만 잠깐 펼쳐 보여줌(5초). 페이지 이동마다 열리면 거슬려서 1회로 제한.
+  // 페이지 진입 시 FAB 메뉴를 스태거 모션으로 잠깐 펼쳐 보여주고 2.5초 뒤 자동 닫기
   useEffect(() => {
-    if (typeof window === 'undefined' || sessionStorage.getItem('moim:fabPeeked')) return;
-    sessionStorage.setItem('moim:fabPeeked', '1');
     setMenuOpen(true);
-    const t = setTimeout(() => setMenuOpen(false), 5000);
+    const t = setTimeout(() => setMenuOpen(false), 2500);
     return () => clearTimeout(t);
-  }, []);
+  }, [pathname]);
 
   // 메뉴 바깥 클릭 시 닫기 (화면을 가리지 않고 클릭은 그대로 통과)
   useEffect(() => {

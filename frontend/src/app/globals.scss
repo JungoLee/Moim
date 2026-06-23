@@ -220,8 +220,11 @@ h3 {
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+/* 활성 메뉴 호버는 일반 호버처럼 — 그라데이션 텍스트 해제(배경 클립 깨져 블롭 되던 것 방지) */
 .app-nav a[aria-current='page']:hover {
-  background: var(--grad-brand);
+  background: var(--color-surface-2);
+  -webkit-text-fill-color: var(--color-text);
+  color: var(--color-text);
 }
 /* 주 기능 강조(모임) — 반짝이는 셔머 스윕 */
 .app-nav a.app-nav-feature {
