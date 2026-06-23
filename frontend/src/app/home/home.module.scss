@@ -27,16 +27,26 @@
   border-radius: var(--radius-lg);
   color: var(--color-text);
   box-shadow: var(--shadow-sm);
-  transition: transform var(--transition), border-color var(--transition);
+  transition: border-color var(--transition);
 }
 .tile:hover {
-  transform: translateY(-3px);
   border-color: var(--color-primary);
 }
-/* 주 기능(모임) 강조 — 은은한 테두리/배경만 (배지 없이) */
+/* 주 기능(모임) 강조 — 은은한 테두리/배경 + 반짝이는 셔머 스윕 */
 .featured {
+  position: relative;
+  overflow: hidden;
   border-color: var(--color-primary);
   background: linear-gradient(180deg, rgba(124, 140, 255, 0.14) 0%, rgba(20, 26, 44, 0.85) 100%);
+}
+.featured::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.16) 50%, transparent 60%);
+  transform: translateX(-160%);
+  animation: app-shimmer 3.6s ease-in-out infinite;
+  pointer-events: none;
 }
 .featured .icon {
   color: var(--color-accent);

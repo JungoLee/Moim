@@ -11,7 +11,7 @@ import { api, getToken } from '@/lib/api';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import { PUBLIC_COLOR, PRIVATE_COLOR, DEFAULT_TIER_COLOR, eventColor } from '@/lib/colors';
-import type { MoimEvent, Tier, User } from '@/lib/types';
+import type { MoimEvent, Tier, User, TimeRequest } from '@/lib/types';
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, m) => String(m * 5).padStart(2, '0')); // 00,05,…,55
@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [events, setEvents] = useState<MoimEvent[]>([]);
   const [tiers, setTiers] = useState<Tier[]>([]);
+  const [sentRequests, setSentRequests] = useState<TimeRequest[]>([]);
   const [error, setError] = useState('');
   // 범례에서 팔레트가 열린 그룹 id (없으면 null)
   const [paletteFor, setPaletteFor] = useState<string | null>(null);
@@ -63,6 +64,8 @@ export default function Dashboard() {
       setUser(meRes.user);
       const evRes = await api<{ events: MoimEvent[] }>('/api/events');
       setEvents(evRes.events);
+      const sentRes = await api<{ requests: TimeRequest[] }>('/api/requests/sent');
+      setSentRequests(sentRes.requests.filter((r) => r.status === 'pending'));
     } catch (e) {
       setError(e instanceof Error ? e.message : '불러오기 실패');
     }
@@ -219,7 +222,7 @@ export default function Dashboard() {
         <p className="app-muted">달력의 날짜를 클릭하거나 드래그하면 일정 추가 창이 열립니다. 일정을 클릭하면 수정·삭제할 수 있어요.</p>
         {error && <p className="app-error">{error}</p>}
 
-        <Calendar events={events} onSelectRange={openCreate} onSelectEvent={openEdit} tierColors={tierColors} />
+        <Calendar events={events} onSelectRange={openCreate} onSelectEvent={openEdit} tierColors={tierColors} requests={sentRequests} />
 
         <div className="app-legend">
           <span><i style={{ background: PUBLIC_COLOR }} />공개</span>

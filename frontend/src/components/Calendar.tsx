@@ -21,9 +21,11 @@ type Props = {
   onSelectEvent?: (id: string) => void;
   /** 그룹 id → 색상. 비공개+그룹지정 일정의 라인 색을 그룹 색으로 칠한다. */
   tierColors?: Record<string, string>;
+  /** 내가 보낸(대기 중) 시간 요청 — 연한 색 블록으로 함께 표시 */
+  requests?: { _id: string; title: string; start: string; end: string; allDay?: boolean }[];
 };
 
-export default function Calendar({ events, onSelectRange, onSelectEvent, tierColors }: Props) {
+export default function Calendar({ events, onSelectRange, onSelectEvent, tierColors, requests }: Props) {
   // FullCalendar 는 클라이언트에서만 렌더 (SSR/하이드레이션 이슈 회피)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -34,35 +36,44 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
     return t;
   }, []);
 
-  const fcEvents: EventInput[] = useMemo(
-    () =>
-      events.map((ev) => {
-        // 볼 수 없는 일정(busy): 회색 + 시간 숨김(종일 블록) — 주 뷰에서도 시간대 미노출
-        if (ev.busy) {
-          return {
-            id: ev._id,
-            title: '비공개 일정',
-            start: ev.start,
-            end: ev.end,
-            allDay: true,
-            classNames: ['evt-busy'],
-          };
-        }
-        // 그 외: 공개=초록 / 비공개=주황 / 비공개+그룹지정=그룹색
-        const color = eventColor(ev, tierColors);
+  const fcEvents: EventInput[] = useMemo(() => {
+    const evs: EventInput[] = events.map((ev) => {
+      // 볼 수 없는 일정(busy): 회색 + 시간 숨김(종일 블록) — 주 뷰에서도 시간대 미노출
+      if (ev.busy) {
         return {
           id: ev._id,
-          title: ev.title || '(제목 없음)',
+          title: '비공개 일정',
           start: ev.start,
           end: ev.end,
-          allDay: ev.allDay,
-          backgroundColor: color,
-          borderColor: color,
-          textColor: readableText(color),
+          allDay: true,
+          classNames: ['evt-busy'],
         };
-      }),
-    [events, tierColors]
-  );
+      }
+      // 그 외: 공개=초록 / 비공개=주황 / 비공개+그룹지정=그룹색
+      const color = eventColor(ev, tierColors);
+      return {
+        id: ev._id,
+        title: ev.title || '(제목 없음)',
+        start: ev.start,
+        end: ev.end,
+        allDay: ev.allDay,
+        backgroundColor: color,
+        borderColor: color,
+        textColor: readableText(color),
+      };
+    });
+    // 내가 보낸 대기 중 시간 요청 — 연한 점선 블록으로 표시 (클릭/수정 대상 아님)
+    const reqs: EventInput[] = (requests || []).map((r) => ({
+      id: `req-${r._id}`,
+      title: `🕖 ${r.title}`,
+      start: r.start,
+      end: r.end,
+      allDay: r.allDay,
+      display: 'block',
+      classNames: ['evt-request'],
+    }));
+    return [...evs, ...reqs];
+  }, [events, tierColors, requests]);
 
   function handleSelect(info: DateSelectArg) {
     if (!onSelectRange) return;

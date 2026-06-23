@@ -285,6 +285,12 @@ export default function RoomPage() {
             {mode === 'after' && `클릭한 날은 "${afterTime} 이후 가능"으로 표시됩니다 (예: 퇴근 후).`}
           </p>
           <AvailabilityCalendar myMarks={myMarks} summary={summary} total={total} mode={mode} onApply={onApply} />
+          <div className="app-legend">
+            <span><i style={{ background: '#4ad295' }} />가능</span>
+            <span><i style={{ background: '#ff9b9b' }} />안 됨</span>
+            <span><i style={{ background: '#f0a85a' }} />시간 이후</span>
+            <span><i style={{ background: 'rgba(74, 210, 149, 0.5)' }} />모두 가능</span>
+          </div>
         </div>
           </div>
 

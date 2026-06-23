@@ -166,10 +166,21 @@ h3 {
   color: var(--color-text);
   background: var(--color-surface-2);
 }
-/* 주 기능 강조(모임) */
+/* 주 기능 강조(모임) — 반짝이는 셔머 스윕 */
 .app-nav a.app-nav-feature {
   color: var(--color-accent);
   font-weight: 700;
+  position: relative;
+  overflow: hidden;
+}
+.app-nav a.app-nav-feature::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.5) 50%, transparent 62%);
+  transform: translateX(-160%);
+  animation: app-shimmer 3.2s ease-in-out infinite;
+  pointer-events: none;
 }
 .app-nav a.app-nav-feature:hover {
   color: var(--color-accent);
@@ -636,6 +647,11 @@ input[type='radio'] {
 @keyframes app-pop-in {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to { opacity: 1; transform: none; }
+}
+/* 반짝이는 셔머 스윕 (모임 강조) */
+@keyframes app-shimmer {
+  0% { transform: translateX(-160%); }
+  55%, 100% { transform: translateX(160%); }
 }
 @keyframes app-slide-in {
   from { transform: translateX(100%); }
@@ -1118,6 +1134,12 @@ a.app-card:hover {
   background-color: var(--color-surface-3) !important;
   border-color: var(--color-border) !important;
   color: var(--color-muted) !important;
+}
+/* 내가 보낸 시간 요청(대기) — 연한 점선 블록 */
+.fc .fc-event.evt-request {
+  background-color: rgba(168, 85, 247, 0.18) !important;
+  border: 1px dashed rgba(168, 85, 247, 0.75) !important;
+  color: var(--color-text) !important;
 }
 .fc .fc-event.evt-holiday {
   background-color: rgba(255, 107, 107, 0.85) !important;

@@ -87,3 +87,34 @@
   color: var(--color-success);
   font-weight: 700;
 }
+
+/* 내 표시(가능/불가/시간 이후) — 색 배지로 가독성 ↑ */
+.mark {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.mYes {
+  background: rgba(74, 210, 149, 0.22);
+  color: var(--color-success);
+}
+.mNo {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff9b9b;
+}
+.mAfter {
+  background: rgba(224, 138, 60, 0.22);
+  color: #f0a85a;
+}
+.afterNote {
+  color: var(--color-muted);
+  font-weight: 400;
+}
+/* 드래그 선택 중 강조 */
+.selecting {
+  border-color: var(--color-primary);
+  background: rgba(124, 140, 255, 0.18);
+}
