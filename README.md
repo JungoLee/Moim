@@ -91,8 +91,8 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 | POST | `/api/tiers/join` | 코드로 그룹 가입 |
 | GET | `/api/calendar/:userId` | 공유/비공개·그룹 반영한 친구 캘린더 조회 |
 | GET/POST | `/api/rooms` · `/join` | 모임 방 목록·생성 / 코드 입장 |
-| GET/PUT | `/api/rooms/:id` · `/availability` | 방 상세(멤버·가용성·댓글) / 내 가능표시 저장 |
-| POST/DELETE | `/api/rooms/:id/comments[/:cid]` | 방 댓글 작성 / 삭제 |
+| GET/PUT | `/api/rooms/:id` · `/availability` | 방 상세(멤버·가용성·채팅 메시지) / 내 가능표시 저장 |
+| POST/DELETE | `/api/rooms/:id/comments[/:cid]` | 방 채팅 메시지 작성 / 삭제(본인·방장) |
 | PATCH | `/api/auth/me` | 닉네임 설정 |
 | GET | `/api/requests/received`·`/sent` | 받은 / 보낸 시간요청 |
 | POST | `/api/requests` | 시간요청 생성(친구에게) |

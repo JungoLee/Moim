@@ -84,8 +84,11 @@ npm run dev                        # http://localhost:3000
 ```
 frontend/  Next.js App Router
   src/app/        라우트 (로그인 / home / dashboard / friends / tiers(그룹) / rooms(모임) / requests(시간요청) / tools/leave(연차) / admin / u/[userId] / auth/callback)
-  src/components/ 공용 (Nav · Calendar=FullCalendar · AvailabilityCalendar · DatePicker · Avatar · Notice · AccountDrawer · LegalModal · CopyButton · AdUnit=광고)
-  src/lib/        api.ts(fetch+토큰) · types.ts · format.ts · brand.ts · colors.ts(그룹/일정 색) · leave.ts(연차 알고리즘) · holidays.ts · adsense.ts(애드센스 ID)
+  src/components/ 공용:
+                  Nav(+우하단 FAB=QuickActions) · Calendar=FullCalendar · AvailabilityCalendar · DatePicker(일정 점 표시)
+                  RoomChat(모임 플로팅 채팅·말풍선·폴링) · UserProfileModal(타인 프로필 액션) · Modal(공용 모달 래퍼) · ConfirmHost(커스텀 확인창) · Toaster
+                  Select(커스텀 드롭다운) · TimeSelect(24시 시/분) · ColorPalette+ColorWheel(그룹 색) · Avatar · Notice · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · AdUnit(광고)
+  src/lib/        api.ts(fetch+토큰) · types.ts · format.ts · brand.ts · colors.ts(그룹/일정 색) · datetime.ts(날짜·시간 유틸) · marks.ts(달력 점 계산) · confirm.ts(커스텀 확인창) · toast.ts(토스트) · leave.ts(연차) · holidays.ts · adsense.ts
   public/         ads.txt(애드센스 게시자 확인 → /ads.txt 로 서빙)
 backend/   Express(ESM)
   src/routes/     auth · events · friends · tiers(그룹) · rooms(모임) · calendar · admin · requests(시간요청)

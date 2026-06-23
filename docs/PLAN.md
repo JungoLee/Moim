@@ -32,9 +32,9 @@
 - **User**: `googleId`, `email`, `name`, `nickname`(표시명, 있으면 우선), `picture`, `isAdmin`
 - **Friendship**: `requester`, `recipient`, `status`(pending|accepted) — 친구 그래프 = 캘린더 열람 권한. 가시성 제어는 그룹/일정으로 분리
 - **Tier(그룹)**: `owner`, `name`, `code`(고유), `color`(캘린더 라인 색), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가. 생성 시 색상 지정
-- **Room(모임 방)**: `owner`, `name`, `code`(초대), `members[]`, `availabilities[{user, marks[{date,status(yes|no|after),time}]}]`, `comments[]` — 멤버별 가능/불가/시간 → 모두 되는 날 집계 + 댓글
+- **Room(모임 방)**: `owner`, `name`, `code`(초대), `members[]`, `availabilities[{user, marks[{date,status(yes|no|after),time}]}]`, `comments[]` — 멤버별 가능/불가/시간 → 모두 되는 날 집계 + 채팅(메시지=comments, 작성자 picture 동봉)
 - **Event**: `owner`, `title`, `start`, `end`, `allDay`, `location`, `memo`, `visibility`(public|private), `audienceTiers[]`(비공개 시 상세 열람 그룹)
-- **TimeRequest**: `from`, `to`, `title`, `start`, `end`, `message`, `status`(pending|accepted|declined) — 친구에게 시간 요청, 수락 시 양쪽 일정 생성
+- **TimeRequest**: `from`, `to`, `title`, `start`, `end`, `allDay`, `message`, `status`(pending|accepted|declined) — 친구에게 시간 요청, 수락 시 양쪽 일정 생성(allDay 반영)
 
 ---
 
@@ -62,6 +62,17 @@
 - [x] **일정 입력 확장** — 종일(`allDay`) 토글(체크 시 시간 select 숨김·하루 전체 저장)·위치(`location`) 입력 추가. 목록/캘린더/포맷(`formatRange` allDay 인지)·수정 흐름 반영
 - [x] **그룹 색 사후 변경** — `PATCH /api/tiers/:id`(본인 소유·`#rrggbb` 검증) + `/tiers` 각 그룹 카드 색상 스와치로 기존 색 변경
 
+#### 2026-06-23 묶음 (UX 고도화 + 모임 채팅 + 리팩토링)
+- [x] **달력 표시 통일** — 모든 달력 제목 `YYYY-MM`, 하루 일정도 막대(블록), 시간 24시 표기·제목 말줄임·시간영역 고정, 주 뷰 시간 드래그는 종일 아님(드래그 시각 프리필)
+- [x] **rem 반응형** — 루트 `font-size: clamp(14~16px)` + `--space-*`/`--radius-*` 토큰 rem화 → 전 화면 연속 스케일. 모바일 네비 **가로 스크롤**(글자 깨짐 해결)·여백 컴팩트
+- [x] **그룹 색 팔레트 고도화** — 공용 `ColorPalette`(프리셋 + 🎨 토글 **원형 컬러휠**`@uiw/react-color`), 대시보드 범례에서도 색 변경
+- [x] **커스텀 드롭다운(Select)** — 요청 폼 친구 선택 등 네이티브 select 대체. 요청 폼 라벨형 재구성
+- [x] **네이티브 alert/confirm 제거** — 전역 커스텀 확인창(`lib/confirm`+`ConfirmHost`, Promise 기반, danger 변형)
+- [x] **모임 채팅** — 댓글 사이드 → 우하단 FAB **플로팅 채팅**(말풍선·6초 폴링·좌상단 리사이즈·본인 삭제). 진짜 푸시는 Socket.io(Phase 4)
+- [x] **시간 요청 종일** — `TimeRequest.allDay`, 수락 시 종일 일정 생성
+- [x] **타인 프로필 모달** — 멤버 칩/채팅 아바타 클릭 → 캘린더 보기·친구/시간 요청·그룹 추가·이메일 복사. 홈 다가오는 일정 **D-day** 배지
+- [x] **공용화 리팩토링** — `lib/datetime`(HOURS/MINUTES·날짜 헬퍼)·`lib/marks`·`components/TimeSelect`·`components/Modal` 로 중복 제거, 호버 떠오름 효과 일괄 제거
+
 ### 다음 작업 (남은 것)
 - [ ] **안 읽음 표시 본격화** — 홈에 받은 친구요청 배지는 됨. 새 댓글/모임 변경 등 알림은 추후(lastSeen 기반)
 - [ ] **날짜 picker 라이브러리화** — 현재 자체 커스텀 달력. 필요 시 react-datepicker 등으로 교체 검토
@@ -87,7 +98,7 @@
 ## 백로그 (Phase 2+ — 우선순위 순)
 
 ### Phase 2 — 공통 빈 시간 찾기 (핵심 가치)
-- [x] **모임 방(약속 잡기)** ✅ — `Room`(코드 초대) + `/rooms`. 3모드(되는날 / 안되는날 드래그 / 시간만 가능) → **모두 되는 날** + 시간 조율 가능일, 사이드 **댓글**(스티키). Nav '모임'
+- [x] **모임 방(약속 잡기)** ✅ — `Room`(코드 초대) + `/rooms`. 3모드(되는날 / 안되는날 드래그 / 시간만 가능) → **모두 되는 날** + 시간 조율 가능일, 우하단 **플로팅 채팅**(말풍선·6초 폴링·본인 메시지 삭제·방 입장 시 자동 오픈). Nav '모임'
 - [x] **부분 가용** ✅ — "시간만 가능" 모드로 "HH:MM 이후" 표시·집계
 - [ ] 기존 등록 일정(Event)에서 자동 취합 (수동 표시 없이 겹치는 빈 시간 계산)
 - [ ] 빈 시간 결과 시각화(히트맵/추천 날짜)
