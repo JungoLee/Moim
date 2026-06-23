@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -17,6 +17,11 @@ export default function QuickActions() {
   const [chatOpen, setChatOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
+
+  // 모임 방 진입 시 채팅 자동 열기, 나가면 닫기
+  useEffect(() => {
+    setChatOpen(!!roomId);
+  }, [roomId]);
 
   function openAddFriend() {
     setMenuOpen(false);

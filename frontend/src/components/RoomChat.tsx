@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { FormEvent } from 'react';
+import type { FormEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { api } from '@/lib/api';
 import Avatar from '@/components/Avatar';
 import UserProfileModal from '@/components/UserProfileModal';
@@ -15,7 +15,33 @@ export default function RoomChat({ roomId, onClose }: { roomId: string; onClose:
   const [comments, setComments] = useState<RoomComment[]>([]);
   const [text, setText] = useState('');
   const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // 좌상단 핸들 드래그 → 좌상단 방향으로 크기 조절 (우/하단 고정)
+  function onResizeStart(e: ReactPointerEvent<HTMLDivElement>) {
+    e.preventDefault();
+    const rect = panelRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = rect.width;
+    const startH = rect.height;
+    const maxW = window.innerWidth - 64; // 4rem 여백
+    const maxH = window.innerHeight - 144; // 9rem 여백
+    const move = (ev: PointerEvent) => {
+      const w = Math.min(maxW, Math.max(240, startW + (startX - ev.clientX)));
+      const h = Math.min(maxH, Math.max(256, startH + (startY - ev.clientY)));
+      setSize({ w, h });
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  }
 
   const refresh = useCallback(async () => {
     try {
@@ -58,6 +84,16 @@ export default function RoomChat({ roomId, onClose }: { roomId: string; onClose:
     if (el) el.scrollTop = el.scrollHeight;
   }, [comments]);
 
+  async function deleteMessage(id: string) {
+    if (!window.confirm('이 메시지를 삭제할까요?')) return;
+    try {
+      await api(`/api/rooms/${roomId}/comments/${id}`, { method: 'DELETE' });
+      await refresh();
+    } catch {
+      /* 실패 무시 */
+    }
+  }
+
   async function send(e: FormEvent) {
     e.preventDefault();
     const t = text.trim();
@@ -73,7 +109,14 @@ export default function RoomChat({ roomId, onClose }: { roomId: string; onClose:
 
   return (
     <>
-    <div className="app-chat" role="dialog" aria-label="모임 채팅">
+    <div
+      className="app-chat"
+      role="dialog"
+      aria-label="모임 채팅"
+      ref={panelRef}
+      style={size ? { width: size.w, height: size.h } : undefined}
+    >
+      <div className="app-chat-resize" onPointerDown={onResizeStart} title="크기 조절" aria-hidden />
       <div className="app-chat-head">
         <strong>💬 {roomName || '채팅'}</strong>
         <span className="app-spacer" />
@@ -102,6 +145,17 @@ export default function RoomChat({ roomId, onClose }: { roomId: string; onClose:
                 {!mine && <span className="app-msg-name">{c.name || '익명'}</span>}
                 <div className="app-msg-bubble">{c.text}</div>
               </div>
+              {mine && (
+                <button
+                  type="button"
+                  className="app-msg-del"
+                  onClick={() => deleteMessage(c._id)}
+                  aria-label="메시지 삭제"
+                  title="삭제"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           );
         })}
