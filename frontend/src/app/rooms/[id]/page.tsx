@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import type { FormEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import AvailabilityCalendar, { type DaySummary } from '@/components/AvailabilityCalendar';
@@ -9,7 +8,7 @@ import CopyButton from '@/components/CopyButton';
 import Avatar from '@/components/Avatar';
 import { api, getToken } from '@/lib/api';
 import { toast } from '@/lib/toast';
-import type { RoomDetail, User, Mark, AvailStatus, RoomComment } from '@/lib/types';
+import type { RoomDetail, User, Mark, AvailStatus } from '@/lib/types';
 
 const MODES: Array<[AvailStatus, string]> = [
   ['yes', '되는 날'],
@@ -29,24 +28,19 @@ export default function RoomPage() {
   const [room, setRoom] = useState<RoomDetail | null>(null);
   const [availabilities, setAvailabilities] = useState<Record<string, Mark[]>>({});
   const [meId, setMeId] = useState('');
-  const [mePicture, setMePicture] = useState('');
   const [error, setError] = useState('');
   const [mode, setMode] = useState<AvailStatus>('yes');
   const [afterTime, setAfterTime] = useState('18:00');
-  const [comments, setComments] = useState<RoomComment[]>([]);
-  const [commentText, setCommentText] = useState('');
 
   const load = useCallback(async () => {
     try {
       const me = await api<{ user: User }>('/api/auth/me');
       setMeId(me.user._id);
-      setMePicture(me.user.picture || '');
-      const res = await api<{ room: RoomDetail; availabilities: Record<string, Mark[]>; comments: RoomComment[] }>(
+      const res = await api<{ room: RoomDetail; availabilities: Record<string, Mark[]> }>(
         `/api/rooms/${roomId}`
       );
       setRoom(res.room);
       setAvailabilities(res.availabilities || {});
-      setComments(res.comments || []);
     } catch (e) {
       setError(e instanceof Error ? e.message : '불러오기 실패');
     }
@@ -99,13 +93,6 @@ export default function RoomPage() {
     [summary, total]
   );
 
-  // 댓글 작성자 → 프로필 이미지 매핑 (댓글엔 picture 가 없어 멤버 목록에서 조회)
-  const memberById = useMemo(() => {
-    const map: Record<string, User> = {};
-    for (const m of room?.members || []) map[m._id] = m;
-    return map;
-  }, [room]);
-
   async function onApply(dates: string[], isDrag: boolean) {
     if (!meId) return;
     const map: Record<string, Mark> = {};
@@ -124,27 +111,6 @@ export default function RoomPage() {
       await api(`/api/rooms/${roomId}/availability`, { method: 'PUT', body: { marks: arr } });
     } catch (e) {
       setError(e instanceof Error ? e.message : '저장 실패');
-    }
-  }
-
-  async function addComment(e: FormEvent) {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-    try {
-      await api(`/api/rooms/${roomId}/comments`, { method: 'POST', body: { text: commentText } });
-      setCommentText('');
-      load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '댓글 작성 실패');
-    }
-  }
-
-  async function deleteComment(id: string) {
-    try {
-      await api(`/api/rooms/${roomId}/comments/${id}`, { method: 'DELETE' });
-      load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '삭제 실패');
     }
   }
 
@@ -242,8 +208,6 @@ export default function RoomPage() {
           </div>
         </div>
 
-        <div className="room-grid">
-          <div className="room-main">
         <div className="app-card">
           <div className="app-row">
             {MODES.map(([v, label]) => (
@@ -291,43 +255,6 @@ export default function RoomPage() {
             <span><i style={{ background: '#f0a85a' }} />시간 이후</span>
             <span><i style={{ background: 'rgba(74, 210, 149, 0.5)' }} />모두 가능</span>
           </div>
-        </div>
-          </div>
-
-          <aside className="room-aside">
-            <div className="app-card">
-              <h3>댓글 ({comments.length})</h3>
-              <form className="app-row" style={{ flexWrap: 'nowrap' }} onSubmit={addComment}>
-                <Avatar src={mePicture} />
-                <input
-                  className="app-input"
-                  placeholder="댓글 입력"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  style={{ flex: 1, minWidth: 0 }}
-                />
-                <button className="app-btn" style={{ flexShrink: 0 }} type="submit">
-                  등록
-                </button>
-              </form>
-              {comments.length === 0 && <p className="app-muted">아직 댓글이 없습니다.</p>}
-              {comments.map((c) => (
-                <div key={c._id} className="room-comment">
-                  <div className="app-row">
-                    <Avatar src={memberById[c.user]?.picture} alt={c.name} />
-                    <strong>{c.name || '익명'}</strong>
-                    <span className="app-spacer" />
-                    {c.user === meId && (
-                      <button className="app-btn app-btn--ghost" onClick={() => deleteComment(c._id)}>
-                        삭제
-                      </button>
-                    )}
-                  </div>
-                  <div className="room-comment-text">{c.text}</div>
-                </div>
-              ))}
-            </div>
-          </aside>
         </div>
 
         <div className="app-card">

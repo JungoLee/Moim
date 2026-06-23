@@ -2,13 +2,19 @@
 
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
 import Notice from '@/components/Notice';
+import RoomChat from '@/components/RoomChat';
 
-/** 모든 페이지 우하단 플로팅 + 버튼. 누르면 퀵 액션 메뉴가 열리고, '친구 추가'로 친구 요청 팝업을 띄운다. */
+/** 모든 페이지 우하단 플로팅 + 버튼. '친구 추가'(전역) + 모임 방에선 '채팅'(플로팅). */
 export default function QuickActions() {
+  const pathname = usePathname();
+  const roomId = (pathname?.match(/^\/rooms\/([a-zA-Z0-9]+)$/) || [])[1] || '';
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -39,6 +45,18 @@ export default function QuickActions() {
           <>
             <button type="button" className="app-fab-catcher" aria-label="닫기" onClick={() => setMenuOpen(false)} />
             <div className="app-fab-menu">
+              {roomId && (
+                <button
+                  type="button"
+                  className="app-fab-item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setChatOpen(true);
+                  }}
+                >
+                  💬 채팅
+                </button>
+              )}
               <button type="button" className="app-fab-item" onClick={openAddFriend}>
                 👤 친구 추가
               </button>
@@ -81,6 +99,8 @@ export default function QuickActions() {
           </form>
         </div>
       )}
+
+      {roomId && chatOpen && <RoomChat roomId={roomId} onClose={() => setChatOpen(false)} />}
     </>
   );
 }
