@@ -632,6 +632,10 @@ input[type='radio'] {
   gap: var(--space-3);
   animation: app-pop-in 180ms cubic-bezier(0.2, 0.7, 0.3, 1);
 }
+/* 래퍼(form 등)가 부모 레이아웃에 투명하게 참여 — Modal 안에 form 을 둘 때 */
+.app-contents {
+  display: contents;
+}
 
 /* 타인 프로필 모달 — 깔끔한 프로필 시트 */
 .app-profile {

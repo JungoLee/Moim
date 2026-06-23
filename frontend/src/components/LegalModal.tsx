@@ -1,26 +1,25 @@
 'use client';
 
 import { BRAND_NAME } from '@/lib/brand';
+import Modal from '@/components/Modal';
 
 type Props = { type: 'terms' | 'privacy'; onClose: () => void };
 
 export default function LegalModal({ type, onClose }: Props) {
   return (
-    <div className="app-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="app-modal" style={{ maxWidth: 640, textAlign: 'left' }}>
-        <div className="app-row">
-          <h3 style={{ margin: 0 }}>{type === 'terms' ? '이용약관' : '개인정보 처리방침'}</h3>
-          <span className="app-spacer" />
-          <button className="app-btn app-btn--ghost" onClick={onClose}>
-            닫기
-          </button>
-        </div>
-        <p className="app-muted" style={{ fontSize: '0.8rem' }}>
-          ⚠️ 표준 템플릿입니다. 정식 출시 전 사업자 정보·연락처를 채우고 법률 검토를 받으세요.
-        </p>
-        {type === 'terms' ? <Terms /> : <Privacy />}
+    <Modal onClose={onClose} maxWidth={640}>
+      <div className="app-row">
+        <h3 style={{ margin: 0 }}>{type === 'terms' ? '이용약관' : '개인정보 처리방침'}</h3>
+        <span className="app-spacer" />
+        <button className="app-btn app-btn--ghost" onClick={onClose}>
+          닫기
+        </button>
       </div>
-    </div>
+      <p className="app-muted" style={{ fontSize: '0.8rem' }}>
+        ⚠️ 표준 템플릿입니다. 정식 출시 전 사업자 정보·연락처를 채우고 법률 검토를 받으세요.
+      </p>
+      {type === 'terms' ? <Terms /> : <Privacy />}
+    </Modal>
   );
 }
 

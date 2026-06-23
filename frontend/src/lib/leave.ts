@@ -37,7 +37,7 @@ function isHoliday(d: Date, holidays: Holidays): boolean {
   return !!holidays[toKey(d)];
 }
 
-export function isNonWorking(d: Date, holidays: Holidays): boolean {
+function isNonWorking(d: Date, holidays: Holidays): boolean {
   return isWeekend(d) || isHoliday(d, holidays);
 }
 
@@ -46,7 +46,7 @@ export function formatDate(d: Date): string {
   return `${d.getMonth() + 1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
 }
 
-export function getHolidayNames(start: Date, end: Date, holidays: Holidays): string[] {
+function getHolidayNames(start: Date, end: Date, holidays: Holidays): string[] {
   const names = new Set<string>();
   let cur = new Date(start);
   while (cur.getTime() <= end.getTime()) {

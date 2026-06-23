@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
 import Notice from '@/components/Notice';
+import Modal from '@/components/Modal';
 import RoomChat from '@/components/RoomChat';
 
 /** 모든 페이지 우하단 플로팅 + 버튼. '친구 추가'(전역) + 모임 방에선 '채팅'(플로팅). */
@@ -80,8 +81,8 @@ export default function QuickActions() {
       </div>
 
       {addOpen && (
-        <div className="app-modal-backdrop" onClick={() => setAddOpen(false)}>
-          <form className="app-modal" onClick={(e) => e.stopPropagation()} onSubmit={sendRequest}>
+        <Modal onClose={() => setAddOpen(false)}>
+          <form className="app-contents" onSubmit={sendRequest}>
             <h3>친구 추가</h3>
             <p className="app-muted">친구의 이메일로 요청을 보내세요. 상대가 수락하면 친구가 됩니다.</p>
             <input
@@ -102,7 +103,7 @@ export default function QuickActions() {
               </button>
             </div>
           </form>
-        </div>
+        </Modal>
       )}
 
       {roomId && chatOpen && <RoomChat roomId={roomId} onClose={() => setChatOpen(false)} />}

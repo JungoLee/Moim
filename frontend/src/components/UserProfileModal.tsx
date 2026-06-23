@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { toast } from '@/lib/toast';
 import Avatar from '@/components/Avatar';
 import CopyButton from '@/components/CopyButton';
+import Modal from '@/components/Modal';
 import type { Friend, Tier } from '@/lib/types';
 
 export type ProfileUser = { _id: string; name: string; email: string; picture?: string };
@@ -68,11 +69,10 @@ export default function UserProfileModal({ user, onClose }: { user: ProfileUser;
   }
 
   return (
-    <div className="app-modal-backdrop" onClick={onClose}>
-      <div className="app-modal app-profile" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="app-profile-x" onClick={onClose} aria-label="닫기">
-          ✕
-        </button>
+    <Modal onClose={onClose} className="app-profile">
+      <button type="button" className="app-profile-x" onClick={onClose} aria-label="닫기">
+        ✕
+      </button>
 
         <div className="app-profile-head">
           <Avatar src={user.picture} alt={user.name} className="app-avatar-lg" />
@@ -123,7 +123,6 @@ export default function UserProfileModal({ user, onClose }: { user: ProfileUser;
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </Modal>
   );
 }

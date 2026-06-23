@@ -8,6 +8,7 @@ import Calendar from '@/components/Calendar';
 import DatePicker from '@/components/DatePicker';
 import ColorPalette from '@/components/ColorPalette';
 import TimeSelect from '@/components/TimeSelect';
+import Modal from '@/components/Modal';
 import { api, getToken } from '@/lib/api';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
@@ -237,8 +238,8 @@ export default function Dashboard() {
         </div>
 
         {open && (
-          <div className="app-modal-backdrop" onClick={() => setOpen(false)}>
-            <form className="app-modal" onClick={(e) => e.stopPropagation()} onSubmit={saveForm}>
+          <Modal onClose={() => setOpen(false)}>
+            <form className="app-contents" onSubmit={saveForm}>
               <h3>{mode === 'edit' ? '일정 수정' : '새 일정'}</h3>
               <input className="app-input" placeholder="일정 제목" value={fTitle} onChange={(e) => setFTitle(e.target.value)} />
 
@@ -292,7 +293,7 @@ export default function Dashboard() {
                 )}
               </div>
             </form>
-          </div>
+          </Modal>
         )}
       </main>
     </>
