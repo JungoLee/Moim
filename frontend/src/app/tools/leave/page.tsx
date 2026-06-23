@@ -5,11 +5,15 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import type { EventInput } from '@fullcalendar/core';
 import Nav from '@/components/Nav';
-import { addDays, findBridges, selectPeriods, toKey, formatDate, type Bridge, type LeaveStyle } from '@/lib/leave';
+import { addDays, computeLeavePlan, toKey, formatDate, metricLabel, type Bridge, type LeaveStyle } from '@/lib/leave';
 import { getHolidays } from '@/lib/holidays';
+import { api, getToken } from '@/lib/api';
 import DatePicker from '@/components/DatePicker';
 import Icon from '@/components/Icon';
+import Accordion from '@/components/Accordion';
 import styles from './leave.module.scss';
+
+type LeaveSettings = { remaining: number; start: string; renewal: string; maxConsec: number; style: LeaveStyle };
 
 const MAX_LIST = 40; // 후보 목록 표시 상한
 
@@ -34,6 +38,7 @@ type Result = {
   comboOff: number;
   calEvents: EventInput[];
   initialDate: string;
+  style: LeaveStyle; // 표시 지표(효율/점수) 결정용
 };
 
 const STYLES: Array<[LeaveStyle, string]> = [
@@ -54,6 +59,22 @@ export default function LeavePlanner() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  // 저장된 설정 로드 (로그인 시). 갱신일이 지났으면 서버가 자동으로 다음 해로 이월해 내려준다.
+  useEffect(() => {
+    if (!getToken()) return;
+    api<{ leave: LeaveSettings }>('/api/auth/leave')
+      .then((r) => {
+        const s = r.leave;
+        if (!s) return;
+        if (typeof s.remaining === 'number') setRemaining(String(s.remaining));
+        if (s.start) setStart(s.start);
+        if (s.renewal) setRenewal(s.renewal);
+        if (typeof s.maxConsec === 'number') setMaxConsec(String(s.maxConsec));
+        if (s.style) setStyle(s.style);
+      })
+      .catch(() => {});
+  }, []);
+
   function calculate() {
     setError('');
     const from = parseDate(start) || todayMidnight();
@@ -69,44 +90,26 @@ export default function LeavePlanner() {
     for (let y = from.getFullYear(); y <= to.getFullYear(); y++) years.push(y);
     const holidays = getHolidays(years);
 
-    const bridges = findBridges(from, to, maxC, holidays);
-    // 효율 2.0x 미만 제거 + 동일 기간 중복 제거
-    const seen = new Set<string>();
-    const deduped = bridges.filter((b) => {
-      if (b.efficiency < 2.0) return false;
-      const key = `${toKey(b.bridgeStart)}~${toKey(b.bridgeEnd)}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    const { combo, comboLeave, comboOff, candidates } = computeLeavePlan(from, to, rem, maxC, style, holidays);
 
-    // 후보 목록 (스타일 필터 + 정렬)
-    let candidates = deduped;
-    if (style === 'short') {
-      const s = candidates.filter((c) => c.leaveDays <= 2);
-      if (s.length) candidates = s;
-    } else if (style === 'long') {
-      const l = candidates.filter((c) => c.leaveDays >= 3);
-      if (l.length) candidates = l;
-    }
-    candidates = [...candidates].sort((a, b) =>
-      style === 'long' ? b.totalDays - a.totalDays || b.efficiency - a.efficiency : b.efficiency - a.efficiency
-    );
-
-    // 잔여 연차로 가능한 겹치지 않는 최적 조합
-    const { selected, usedDays } = selectPeriods(deduped, rem, style, from, to);
-    const comboOff = selected.reduce((s, p) => s + p.totalDays, 0);
-
-    // 달력용 이벤트: 휴무 span(배경) + 실제 연차일 + 공휴일
+    // 달력용 이벤트: 휴무 span(초록 배경) + 실제 연차일(블록·효율 표기) + 공휴일.
+    // FullCalendar 월 뷰는 문자열 날짜 + allDay:true 여야 종일 블록으로 제대로 렌더된다(Date 객체는 시간 이벤트로 오인).
     const calEvents: EventInput[] = [];
-    for (const p of selected) {
+    for (const p of combo) {
       calEvents.push({
-        start: p.spanStart,
-        end: addDays(p.spanEnd, 1), // FullCalendar end 는 배타적
+        start: toKey(p.spanStart),
+        end: toKey(addDays(p.spanEnd, 1)), // FullCalendar end 는 배타적
         display: 'background',
         color: 'rgba(74, 210, 149, 0.35)',
+        allDay: true,
       });
-      calEvents.push({ title: `🏖 연차 ${p.leaveDays}일`, start: p.bridgeStart, end: addDays(p.bridgeEnd, 1) });
+      calEvents.push({
+        title: `🏖 연차 ${p.leaveDays}일 · ${metricLabel(p, style)}`,
+        start: toKey(p.bridgeStart),
+        end: toKey(addDays(p.bridgeEnd, 1)),
+        allDay: true,
+        classNames: ['evt-leave'],
+      });
     }
     for (const [dateStr, name] of Object.entries(holidays)) {
       calEvents.push({ title: `🎌 ${name}`, start: dateStr, allDay: true, classNames: ['evt-holiday'] });
@@ -115,26 +118,40 @@ export default function LeavePlanner() {
     setResult({
       candidates,
       shownCandidates: candidates.slice(0, MAX_LIST),
-      combo: selected,
-      comboLeave: usedDays,
+      combo,
+      comboLeave,
       comboOff,
       calEvents,
-      initialDate: selected.length ? toKey(selected[0].spanStart) : toKey(from),
+      initialDate: combo.length ? toKey(combo[0].spanStart) : toKey(from),
+      style,
     });
+
+    // 설정 저장 (로그인 시) — 시작일/갱신일 등을 다음 방문에도 유지
+    if (getToken()) {
+      api('/api/auth/leave', {
+        method: 'PUT',
+        body: { remaining: rem, start, renewal, maxConsec: maxC, style },
+      }).catch(() => {});
+    }
   }
 
   return (
     <>
       <Nav />
       <main className="app-container">
-        <h2 className={styles.title}>
-          <Icon name="sun" size={24} />
-          연차 계산기
-        </h2>
-        <p className="app-muted">
-          잔여 연차와 갱신일을 입력하면 주말·공휴일을 활용해 <strong>최소 연차로 최대 연휴</strong>를 만드는 계획을 추천합니다.
-          (효율 = 연차 1일당 얻는 총 휴무일 수)
-        </p>
+        <header className={styles.hero}>
+          <span className={styles.heroIcon}>
+            <Icon name="sun" size={30} />
+          </span>
+          <div className={styles.heroText}>
+            <h2 className={styles.heroTitle}>연차 계산기</h2>
+            <p className={styles.heroDesc}>
+              잔여 연차와 갱신일만 입력하면, 주말·공휴일을 엮어 <strong>최소 연차로 최대 연휴</strong>를 만드는 계획을 추천해요.
+              <br />
+              <span className={styles.heroNote}>짧게·균형 = 효율(Nx, 가성비) · 길게 몰아서 = 점수(+N = 휴무×2−연차)</span>
+            </p>
+          </div>
+        </header>
         {error && <p className="app-error">{error}</p>}
 
         <div className="app-card">
@@ -159,7 +176,7 @@ export default function LeavePlanner() {
           <div className="app-row" style={{ marginTop: 'var(--space-3)' }}>
             <span className="app-muted">스타일:</span>
             {STYLES.map(([v, label]) => (
-              <label key={v} className="app-muted">
+              <label key={v} className={styles.styleOpt}>
                 <input type="radio" name="style" checked={style === v} onChange={() => setStyle(v)} /> {label}
               </label>
             ))}
@@ -172,69 +189,87 @@ export default function LeavePlanner() {
 
         {result && (
           <>
+            {/* 메인: 요약 + 달력 (한눈에 보기) */}
             <div className="app-card">
               <h3>내 잔여 연차로 추천 조합</h3>
               {result.combo.length === 0 ? (
                 <p className="app-muted">추천할 조합이 없습니다. 잔여 연차나 기간/조건을 조정해보세요.</p>
               ) : (
-                <p>
-                  연차 <strong>{result.comboLeave}일</strong> 써서 총 <strong>{result.comboOff}일</strong> 휴무{' '}
-                  <span className="app-muted">({result.combo.length}개 구간, 겹치지 않게 자동 선택)</span>
-                </p>
+                <>
+                  <p>
+                    연차 <strong>{result.comboLeave}일</strong> 써서 총 <strong>{result.comboOff}일</strong> 휴무{' '}
+                    <span className="app-muted">({result.combo.length}개 구간, 겹치지 않게 자동 선택)</span>
+                  </p>
+                  {mounted && (
+                    <>
+                      <p className={styles.legend}>
+                        <span className={styles.legSpan}>휴무 기간</span>
+                        <span className={styles.legLeave}>
+                          실제 쓰는 연차 · {result.style === 'long' ? '점수(+N)' : '효율(N x)'}
+                        </span>
+                        <span className={styles.legHoliday}>🎌 공휴일</span>
+                      </p>
+                      <FullCalendar
+                        key={result.initialDate}
+                        plugins={[dayGridPlugin]}
+                        initialView="dayGridMonth"
+                        initialDate={result.initialDate}
+                        locale="ko"
+                        height="auto"
+                        headerToolbar={{ left: 'prev,next', center: 'title', right: 'today' }}
+                        buttonText={{ today: '오늘' }}
+                        events={result.calEvents}
+                        displayEventTime={false}
+                      />
+                    </>
+                  )}
+                </>
               )}
-              {result.combo.map((p, i) => (
-                <div className={styles.row} key={`c${i}`}>
-                  <span className={styles.eff}>{p.efficiency}x</span>
-                  <strong>
-                    {formatDate(p.spanStart)} ~ {formatDate(p.spanEnd)}
-                  </strong>
-                  <span className="app-muted">
-                    연차 {p.leaveDays}일 → {p.totalDays}일 휴무
-                  </span>
-                  {p.holidayNames.length > 0 && <span className="app-muted">🎌 {p.holidayNames.join(' · ')}</span>}
-                </div>
-              ))}
             </div>
 
-            {mounted && result.combo.length > 0 && (
+            {/* 추천 구간 상세 (접기) */}
+            {result.combo.length > 0 && (
               <div className="app-card">
-                <h3>달력 보기</h3>
-                <p className="app-muted">초록 배경 = 휴무 기간, 파란 칸 = 실제 쓰는 연차, 🎌 = 공휴일</p>
-                <FullCalendar
-                  key={result.initialDate}
-                  plugins={[dayGridPlugin]}
-                  initialView="dayGridMonth"
-                  initialDate={result.initialDate}
-                  locale="ko"
-                  height="auto"
-                  headerToolbar={{ left: 'prev,next', center: 'title', right: 'today' }}
-                  buttonText={{ today: '오늘' }}
-                  events={result.calEvents}
-                  displayEventTime={false}
-                />
+                <Accordion title={`추천 구간 ${result.combo.length}개 자세히 보기`}>
+                  {result.combo.map((p, i) => (
+                    <div className={styles.row} key={`c${i}`}>
+                      <span className={styles.eff}>{metricLabel(p, result.style)}</span>
+                      <strong>
+                        {formatDate(p.spanStart)} ~ {formatDate(p.spanEnd)}
+                      </strong>
+                      <span className="app-muted">
+                        연차 {p.leaveDays}일 → {p.totalDays}일 휴무
+                      </span>
+                      {p.holidayNames.length > 0 && <span className="app-muted">🎌 {p.holidayNames.join(' · ')}</span>}
+                    </div>
+                  ))}
+                </Accordion>
               </div>
             )}
 
-            <h3>
-              전체 추천 {result.candidates.length}개
-              {result.candidates.length > MAX_LIST && <span className="app-muted"> (상위 {MAX_LIST}개 표시)</span>}
-            </h3>
-            {result.candidates.length === 0 && <p className="app-muted">조건에 맞는 추천이 없습니다.</p>}
-            {result.shownCandidates.map((p, i) => (
-              <div className="app-card" key={`a${i}`}>
-                <div className="app-row">
-                  <span className={styles.eff}>{p.efficiency}x</span>
-                  <strong>
-                    {formatDate(p.spanStart)} ~ {formatDate(p.spanEnd)}
-                  </strong>
-                  <span className="app-spacer" />
-                  <span className="app-muted">
-                    연차 {p.leaveDays}일 · 총 {p.totalDays}일 휴무
-                  </span>
-                </div>
-                {p.holidayNames.length > 0 && <div className="app-muted">🎌 {p.holidayNames.join(' · ')}</div>}
+            {/* 전체 후보 (접기) */}
+            {result.candidates.length > 0 && (
+              <div className="app-card">
+                <Accordion
+                  title={`전체 추천 ${result.candidates.length}개 보기`}
+                  aside={result.candidates.length > MAX_LIST ? `상위 ${MAX_LIST}개` : undefined}
+                >
+                  {result.shownCandidates.map((p, i) => (
+                    <div className={styles.row} key={`a${i}`}>
+                      <span className={styles.eff}>{metricLabel(p, result.style)}</span>
+                      <strong>
+                        {formatDate(p.spanStart)} ~ {formatDate(p.spanEnd)}
+                      </strong>
+                      <span className="app-spacer" />
+                      <span className="app-muted">
+                        연차 {p.leaveDays}일 · 총 {p.totalDays}일 휴무
+                      </span>
+                      {p.holidayNames.length > 0 && <span className="app-muted">🎌 {p.holidayNames.join(' · ')}</span>}
+                    </div>
+                  ))}
+                </Accordion>
               </div>
-            ))}
+            )}
           </>
         )}
       </main>

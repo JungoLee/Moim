@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 
-export type IconName = 'calendar' | 'users' | 'tag' | 'calendar-check' | 'sun';
+export type IconName = 'calendar' | 'users' | 'tag' | 'calendar-check' | 'sun' | 'chevron';
 
 const ICONS: Record<IconName, ReactNode> = {
+  chevron: <polyline points="9 6 15 12 9 18" />,
   calendar: (
     <>
       <rect x="3" y="4" width="18" height="18" rx="2" />

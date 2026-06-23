@@ -6,6 +6,7 @@ import Nav from '@/components/Nav';
 import { api, getToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
 import { displayName } from '@/lib/format';
+import { dayLabel } from '@/lib/datetime';
 import { toast } from '@/lib/toast';
 import type { User } from '@/lib/types';
 import styles from './admin.module.scss';
@@ -31,7 +32,7 @@ const TABS: Array<[Tab, string]> = [
 ];
 
 function fmtDate(s?: string): string {
-  return s ? new Date(s).toLocaleDateString('ko-KR') : '';
+  return s ? dayLabel(new Date(s)) : '';
 }
 
 export default function Admin() {

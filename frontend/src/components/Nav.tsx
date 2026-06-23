@@ -2,13 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
 import { BRAND_NAME } from '@/lib/brand';
 import AccountDrawer from '@/components/AccountDrawer';
 import QuickActions from '@/components/QuickActions';
 import type { User } from '@/lib/types';
 
+// [경로, 라벨, 주요기능(모임)?]
+const LINKS: Array<[string, string, boolean?]> = [
+  ['/home', '홈'],
+  ['/dashboard', '내 캘린더'],
+  ['/friends', '친구'],
+  ['/requests', '시간 요청'],
+  ['/tiers', '공유 그룹'],
+  ['/rooms', '모임', true],
+  ['/tools/leave', '연차 계산'],
+];
+
 export default function Nav() {
+  const pathname = usePathname() || '';
   const [open, setOpen] = useState(false);
   const [picture, setPicture] = useState('');
 
@@ -25,13 +38,19 @@ export default function Nav() {
           {BRAND_NAME}
         </Link>
         <div className="app-nav-links">
-          <Link href="/home">홈</Link>
-          <Link href="/dashboard">내 캘린더</Link>
-          <Link href="/friends">친구</Link>
-          <Link href="/requests">시간 요청</Link>
-          <Link href="/tiers">공유 그룹</Link>
-          <Link href="/rooms" className="app-nav-feature">모임</Link>
-          <Link href="/tools/leave">연차 계산</Link>
+          {LINKS.map(([href, label, feature]) => {
+            const active = href === '/home' ? pathname === '/home' : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={feature ? 'app-nav-feature' : undefined}
+                aria-current={active ? 'page' : undefined}
+              >
+                {label}
+              </Link>
+            );
+          })}
         </div>
         <button className="app-nav-acct" onClick={() => setOpen(true)} aria-label="계정 메뉴">
           {picture ? (

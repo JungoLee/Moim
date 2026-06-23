@@ -100,9 +100,9 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
         initialView="dayGridMonth"
         locale="ko"
         height="auto"
-        headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' }}
+        headerToolbar={{ left: 'prev,next today', center: 'title', right: '' }}
         titleFormat={ymTitle}
-        buttonText={{ today: '오늘', month: '월', week: '주' }}
+        buttonText={{ today: '오늘' }}
         events={fcEvents}
         eventDisplay="block"
         eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}

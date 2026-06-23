@@ -57,4 +57,59 @@ router.delete('/me', requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
+// ── 연차 계산기 설정 (사용자별 유지 + 갱신일 자동 이월) ──────────────────────────
+const pad2 = (n) => String(n).padStart(2, '0');
+// 한국(KST) 기준 오늘 (서버가 UTC여도 동일하게 동작)
+function kstToday() {
+  const k = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  return `${k.getUTCFullYear()}-${pad2(k.getUTCMonth() + 1)}-${pad2(k.getUTCDate())}`;
+}
+function addOneYear(ymd) {
+  if (!ymd) return ymd;
+  const [y, m, d] = ymd.split('-').map(Number);
+  const dt = new Date(y + 1, m - 1, d);
+  return `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}-${pad2(dt.getDate())}`;
+}
+// 갱신일이 오늘 이하면 시작일·갱신일을 1년씩 미뤄 다음 주기로 이월. 바뀌면 true.
+function rollForward(leave) {
+  const today = kstToday();
+  let changed = false;
+  // 'YYYY-MM-DD' 는 사전순 비교 == 날짜순 비교
+  while (leave.renewal && leave.renewal <= today) {
+    leave.start = addOneYear(leave.start);
+    leave.renewal = addOneYear(leave.renewal);
+    changed = true;
+  }
+  return changed;
+}
+
+// 내 연차 설정 조회 (조회 시점에 갱신일 자동 이월)
+router.get('/leave', requireAuth, async (req, res) => {
+  const user = await User.findById(req.userId);
+  if (!user) return res.status(404).json({ ok: false, message: '사용자를 찾을 수 없습니다.' });
+  if (!user.leave) user.leave = {}; // 이 필드 이전에 가입한 사용자 대비
+  if (rollForward(user.leave)) {
+    user.markModified('leave');
+    await user.save();
+  }
+  res.json({ ok: true, leave: user.leave });
+});
+
+// 내 연차 설정 저장
+router.put('/leave', requireAuth, async (req, res) => {
+  const b = req.body || {};
+  const styles = ['short', 'balanced', 'long'];
+  const leave = {
+    remaining: Number.isFinite(+b.remaining) ? +b.remaining : 15,
+    start: typeof b.start === 'string' ? b.start.slice(0, 10) : '',
+    renewal: typeof b.renewal === 'string' ? b.renewal.slice(0, 10) : '',
+    maxConsec: Number.isFinite(+b.maxConsec) ? Math.min(20, Math.max(1, Math.trunc(+b.maxConsec))) : 5,
+    style: styles.includes(b.style) ? b.style : 'balanced',
+  };
+  rollForward(leave);
+  const user = await User.findByIdAndUpdate(req.userId, { leave }, { new: true }).select('-__v');
+  if (!user) return res.status(404).json({ ok: false, message: '사용자를 찾을 수 없습니다.' });
+  res.json({ ok: true, leave: user.leave });
+});
+
 export default router;

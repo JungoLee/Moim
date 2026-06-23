@@ -9,6 +9,7 @@ import DatePicker from '@/components/DatePicker';
 import ColorPalette from '@/components/ColorPalette';
 import TimeSelect from '@/components/TimeSelect';
 import Modal from '@/components/Modal';
+import PageHero from '@/components/PageHero';
 import { api, getToken } from '@/lib/api';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
@@ -190,14 +191,16 @@ export default function Dashboard() {
     <>
       <Nav />
       <main className="app-container">
-        <div className="app-row">
-          <h2 style={{ margin: 0 }}>{user ? `${displayName(user)} 님의 캘린더` : '내 캘린더'}</h2>
-          <span className="app-spacer" />
-          <button className="app-btn" onClick={openToday}>
-            + 새 일정
-          </button>
-        </div>
-        <p className="app-muted">달력의 날짜를 클릭하거나 드래그하면 일정 추가 창이 열립니다. 일정을 클릭하면 수정·삭제할 수 있어요.</p>
+        <PageHero
+          icon="calendar"
+          title={user ? `${displayName(user)} 님의 캘린더` : '내 캘린더'}
+          desc="날짜를 클릭·드래그하면 일정을 추가하고, 일정을 클릭하면 수정·삭제할 수 있어요."
+          action={
+            <button className="app-btn" onClick={openToday}>
+              + 새 일정
+            </button>
+          }
+        />
         {error && <p className="app-error">{error}</p>}
 
         <Calendar events={events} onSelectRange={openCreate} onSelectEvent={openEdit} tierColors={tierColors} requests={sentRequests} />
@@ -250,13 +253,13 @@ export default function Dashboard() {
 
               <label className="app-muted">시작</label>
               <div className="app-row">
-                <DatePicker value={fStartDate} onChange={setFStartDate} markedDates={markedDates} />
+                <DatePicker value={fStartDate} onChange={setFStartDate} markedDates={markedDates} block />
                 {!fAllDay && <TimeSelect value={fStartTime} onChange={setFStartTime} hourLabel="시작 시" minuteLabel="시작 분" />}
               </div>
 
               <label className="app-muted">종료</label>
               <div className="app-row">
-                <DatePicker value={fEndDate} onChange={setFEndDate} markedDates={markedDates} />
+                <DatePicker value={fEndDate} onChange={setFEndDate} markedDates={markedDates} block />
                 {!fAllDay && <TimeSelect value={fEndTime} onChange={setFEndTime} hourLabel="종료 시" minuteLabel="종료 분" />}
               </div>
 

@@ -11,10 +11,12 @@ type Props = {
   onChange: (v: string) => void;
   /** 날짜별 표시 색 ("YYYY-MM-DD" → 색). 내 일정을 점으로만 표시 (글자 없음). */
   markedDates?: Record<string, string>;
+  /** true 면 가로 폭을 꽉 채움 (행에서 flex 로 늘어남) */
+  block?: boolean;
 };
 
 // 네이티브 date 대신 쓰는 커스텀 달력 입력
-export default function DatePicker({ value, onChange, markedDates }: Props) {
+export default function DatePicker({ value, onChange, markedDates, block }: Props) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<Date>(() => parseDateKey(value) || new Date());
   const ref = useRef<HTMLDivElement>(null);
@@ -45,7 +47,7 @@ export default function DatePicker({ value, onChange, markedDates }: Props) {
   }
 
   return (
-    <div className={styles.wrap} ref={ref}>
+    <div className={block ? `${styles.wrap} ${styles.wrapBlock}` : styles.wrap} ref={ref}>
       <button type="button" className={`app-input ${styles.field}`} onClick={toggle}>
         {value || '날짜 선택'}
       </button>

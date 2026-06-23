@@ -19,6 +19,19 @@ export function timeKey(d: Date): string {
   return `${pad2(d.getHours())}:${pad2(Math.floor(d.getMinutes() / 5) * 5)}`;
 }
 
+const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+
+/** Date → 'YYYY-MM-DD (요일)' — 앱 전역 날짜 표기 형식 */
+export function dayLabel(d: Date): string {
+  return `${dateKey(d)} (${DOW[d.getDay()]})`;
+}
+
+/** 'YYYY-MM-DD' 문자열 → 'YYYY-MM-DD (요일)' (파싱 실패 시 원본 반환) */
+export function dayLabelKey(key: string): string {
+  const d = parseDateKey(key);
+  return d ? dayLabel(d) : key;
+}
+
 /** 오늘 'YYYY-MM-DD' */
 export function todayKey(): string {
   return dateKey(new Date());

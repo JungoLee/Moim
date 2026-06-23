@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import PageHero from '@/components/PageHero';
 import { api, getToken } from '@/lib/api';
 import type { Friend, FriendRequest } from '@/lib/types';
 
@@ -41,8 +42,7 @@ export default function Friends() {
     <>
       <Nav />
       <main className="app-container">
-        <h2>친구</h2>
-        <p className="app-muted">친구 추가는 오른쪽 아래 + 버튼으로 할 수 있어요.</p>
+        <PageHero icon="users" title="친구" desc="친구를 추가하고 받은 요청을 수락하세요." />
 
         {requests.length > 0 && (
           <div className="app-card">

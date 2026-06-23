@@ -6,8 +6,11 @@ import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import CopyButton from '@/components/CopyButton';
 import ColorPalette from '@/components/ColorPalette';
+import Modal from '@/components/Modal';
+import PageHero from '@/components/PageHero';
 import { api, getToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
+import { setQuickActions } from '@/lib/quickActions';
 import { DEFAULT_TIER_COLOR } from '@/lib/colors';
 import type { Tier } from '@/lib/types';
 import Notice from '@/components/Notice';
@@ -24,6 +27,19 @@ export default function Tiers() {
   const [memberErr, setMemberErr] = useState<Record<string, string>>({});
   // 그룹별 멤버 추가 입력값
   const [memberEmail, setMemberEmail] = useState<Record<string, string>>({});
+  // 추가/가입 모달 (FAB 퀵액션으로 열림)
+  const [createOpen, setCreateOpen] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
+
+  // FAB 컨텍스트 퀵액션 등록
+  useEffect(
+    () =>
+      setQuickActions([
+        { id: 'tier-create', label: '＋ 공개 그룹 만들기', onSelect: () => { setCreateErr(''); setCreateOpen(true); } },
+        { id: 'tier-join', label: '🔑 코드로 가입', onSelect: () => { setJoinMsg(null); setJoinOpen(true); } },
+      ]),
+    []
+  );
 
   const load = useCallback(async () => {
     try {
@@ -49,6 +65,7 @@ export default function Tiers() {
     try {
       await api('/api/tiers', { method: 'POST', body: { name, color } });
       setName('');
+      setCreateOpen(false);
       load();
     } catch (err) {
       setCreateErr(err instanceof Error ? err.message : '그룹 생성 실패');
@@ -109,45 +126,64 @@ export default function Tiers() {
     <>
       <Nav />
       <main className="app-container">
-        <h2>공개 그룹</h2>
-        <p className="app-muted">
-          비공개 일정은 선택한 그룹의 멤버에게만 상세가 보입니다. 멤버는 이메일로 추가하거나, 상대가 코드로 가입할 수 있어요.
-        </p>
+        <PageHero
+          icon="tag"
+          title="공유 그룹"
+          desc="비공개 일정은 선택한 그룹 멤버에게만 상세가 보여요. 멤버는 이메일로 추가하거나 코드로 가입."
+        />
         {pageErr && <Notice>{pageErr}</Notice>}
 
-        <form className="app-card" onSubmit={createTier}>
-          <div className="app-row">
-            <input
-              className="app-input"
-              placeholder="새 그룹 이름 (예: 친한친구, 회사)"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <button className="app-btn" type="submit">
-              그룹 만들기
-            </button>
-          </div>
-          <div style={{ marginTop: 'var(--space-2)' }}>
-            <span className="app-muted">색상</span>
-            <ColorPalette value={color} onChange={setColor} immediate />
-          </div>
-          {createErr && <Notice>{createErr}</Notice>}
-        </form>
+        {createOpen && (
+          <Modal onClose={() => setCreateOpen(false)}>
+            <form className="app-contents" onSubmit={createTier}>
+              <h3>공개 그룹 만들기</h3>
+              <input
+                className="app-input"
+                placeholder="새 그룹 이름 (예: 친한친구, 회사)"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+              />
+              <div>
+                <span className="app-muted">색상</span>
+                <ColorPalette value={color} onChange={setColor} immediate />
+              </div>
+              {createErr && <Notice>{createErr}</Notice>}
+              <div className="app-row">
+                <button className="app-btn" type="submit">
+                  그룹 만들기
+                </button>
+                <button type="button" className="app-btn app-btn--ghost" onClick={() => setCreateOpen(false)}>
+                  닫기
+                </button>
+              </div>
+            </form>
+          </Modal>
+        )}
 
-        <form className="app-card" onSubmit={joinByCode}>
-          <div className="app-row">
-            <input
-              className="app-input"
-              placeholder="코드로 그룹 가입"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value)}
-            />
-            <button className="app-btn app-btn--ghost" type="submit">
-              가입
-            </button>
-          </div>
-          {joinMsg && <Notice ok={joinMsg.ok}>{joinMsg.text}</Notice>}
-        </form>
+        {joinOpen && (
+          <Modal onClose={() => setJoinOpen(false)}>
+            <form className="app-contents" onSubmit={joinByCode}>
+              <h3>코드로 그룹 가입</h3>
+              <input
+                className="app-input"
+                placeholder="초대 코드 입력"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value)}
+                autoFocus
+              />
+              {joinMsg && <Notice ok={joinMsg.ok}>{joinMsg.text}</Notice>}
+              <div className="app-row">
+                <button className="app-btn" type="submit">
+                  가입
+                </button>
+                <button type="button" className="app-btn app-btn--ghost" onClick={() => setJoinOpen(false)}>
+                  닫기
+                </button>
+              </div>
+            </form>
+          </Modal>
+        )}
 
         <h3>내 그룹</h3>
         {tiers.length === 0 && <p className="app-muted">아직 만든 그룹이 없습니다.</p>}

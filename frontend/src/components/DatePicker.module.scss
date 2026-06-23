@@ -2,6 +2,15 @@
   position: relative;
   display: inline-block;
 }
+/* 행에서 가로 폭을 채우는 모드 (필드 버튼만 full — 팝업은 영향 없음) */
+.wrapBlock {
+  display: block;
+  flex: 1 1 8rem;
+  min-width: 8rem;
+}
+.wrapBlock .field {
+  width: 100%;
+}
 .field {
   cursor: pointer;
   min-width: 132px;

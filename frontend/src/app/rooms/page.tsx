@@ -6,7 +6,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
 import Notice from '@/components/Notice';
+import Modal from '@/components/Modal';
+import PageHero from '@/components/PageHero';
 import { api, getToken } from '@/lib/api';
+import { setQuickActions } from '@/lib/quickActions';
 import type { RoomSummary } from '@/lib/types';
 
 export default function Rooms() {
@@ -17,6 +20,8 @@ export default function Rooms() {
   const [pageErr, setPageErr] = useState('');
   const [createErr, setCreateErr] = useState('');
   const [joinErr, setJoinErr] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -34,6 +39,16 @@ export default function Rooms() {
     }
     load();
   }, [router, load]);
+
+  // FAB 컨텍스트 퀵액션 등록
+  useEffect(
+    () =>
+      setQuickActions([
+        { id: 'room-create', label: '＋ 모임 만들기', onSelect: () => { setCreateErr(''); setCreateOpen(true); } },
+        { id: 'room-join', label: '🔑 초대 코드로 입장', onSelect: () => { setJoinErr(''); setJoinOpen(true); } },
+      ]),
+    []
+  );
 
   async function createRoom(e: FormEvent) {
     e.preventDefault();
@@ -63,31 +78,60 @@ export default function Rooms() {
     <>
       <Nav />
       <main className="app-container">
-        <h2>모임 (약속 잡기)</h2>
-        <p className="app-muted">
-          방을 만들어 코드로 친구를 초대하고, 각자 가능한 날짜를 표시하면 모두 되는 날을 찾아줍니다.
-        </p>
+        <PageHero
+          icon="calendar-check"
+          title="모임"
+          desc="친구를 초대해 각자 가능한 날짜를 표시하면, 다 같이 되는 날을 찾아줘요."
+        />
         {pageErr && <Notice>{pageErr}</Notice>}
 
-        <form className="app-card" onSubmit={createRoom}>
-          <div className="app-row">
-            <input className="app-input" placeholder="새 모임 이름 (예: 제주 여행)" value={name} onChange={(e) => setName(e.target.value)} />
-            <button className="app-btn" type="submit">
-              방 만들기
-            </button>
-          </div>
-          {createErr && <Notice>{createErr}</Notice>}
-        </form>
+        {createOpen && (
+          <Modal onClose={() => setCreateOpen(false)}>
+            <form className="app-contents" onSubmit={createRoom}>
+              <h3>모임 만들기</h3>
+              <input
+                className="app-input"
+                placeholder="새 모임 이름 (예: 제주 여행)"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+              />
+              {createErr && <Notice>{createErr}</Notice>}
+              <div className="app-row">
+                <button className="app-btn" type="submit">
+                  방 만들기
+                </button>
+                <button type="button" className="app-btn app-btn--ghost" onClick={() => setCreateOpen(false)}>
+                  닫기
+                </button>
+              </div>
+            </form>
+          </Modal>
+        )}
 
-        <form className="app-card" onSubmit={joinRoom}>
-          <div className="app-row">
-            <input className="app-input" placeholder="초대 코드로 입장" value={code} onChange={(e) => setCode(e.target.value)} />
-            <button className="app-btn app-btn--ghost" type="submit">
-              입장
-            </button>
-          </div>
-          {joinErr && <Notice>{joinErr}</Notice>}
-        </form>
+        {joinOpen && (
+          <Modal onClose={() => setJoinOpen(false)}>
+            <form className="app-contents" onSubmit={joinRoom}>
+              <h3>초대 코드로 입장</h3>
+              <input
+                className="app-input"
+                placeholder="초대 코드 입력"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                autoFocus
+              />
+              {joinErr && <Notice>{joinErr}</Notice>}
+              <div className="app-row">
+                <button className="app-btn" type="submit">
+                  입장
+                </button>
+                <button type="button" className="app-btn app-btn--ghost" onClick={() => setJoinOpen(false)}>
+                  닫기
+                </button>
+              </div>
+            </form>
+          </Modal>
+        )}
 
         <h3>내 모임</h3>
         {rooms.length === 0 && <p className="app-muted">아직 모임이 없습니다.</p>}

@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
+import { subscribeQuickActions, type QuickAction } from '@/lib/quickActions';
 import Notice from '@/components/Notice';
 import Modal from '@/components/Modal';
 import RoomChat from '@/components/RoomChat';
 
-/** 모든 페이지 우하단 플로팅 + 버튼. '친구 추가'(전역) + 모임 방에선 '채팅'(플로팅). */
+/** 모든 페이지 우하단 플로팅 + 버튼. 페이지별 '추가' 액션(레지스트리) + '친구 추가'(전역) + 모임 방 '채팅'. */
 export default function QuickActions() {
   const pathname = usePathname();
   const roomId = (pathname?.match(/^\/rooms\/([a-zA-Z0-9]+)$/) || [])[1] || '';
@@ -18,11 +19,33 @@ export default function QuickActions() {
   const [chatOpen, setChatOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
+  // 현재 페이지가 등록한 컨텍스트 액션 (공개 그룹 만들기, 시간 요청 등)
+  const [pageActions, setPageActions] = useState<QuickAction[]>([]);
+  useEffect(() => subscribeQuickActions(setPageActions), []);
+
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   // 모임 방 진입 시 채팅 자동 열기, 나가면 닫기
   useEffect(() => {
     setChatOpen(!!roomId);
   }, [roomId]);
+
+  // 페이지 진입 시 FAB 메뉴를 잠깐 펼쳐 어떤 액션이 있는지 보여주고 5초 뒤 자동 닫기
+  useEffect(() => {
+    setMenuOpen(true);
+    const t = setTimeout(() => setMenuOpen(false), 5000);
+    return () => clearTimeout(t);
+  }, [pathname]);
+
+  // 메뉴 바깥 클릭 시 닫기 (화면을 가리지 않고 클릭은 그대로 통과)
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onDown(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [menuOpen]);
 
   function openAddFriend() {
     setMenuOpen(false);
@@ -46,29 +69,37 @@ export default function QuickActions() {
 
   return (
     <>
-      <div className="app-fab-wrap">
-        {menuOpen && (
-          <>
-            <button type="button" className="app-fab-catcher" aria-label="닫기" onClick={() => setMenuOpen(false)} />
-            <div className="app-fab-menu">
-              {roomId && (
-                <button
-                  type="button"
-                  className="app-fab-item"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setChatOpen(true);
-                  }}
-                >
-                  💬 채팅
-                </button>
-              )}
-              <button type="button" className="app-fab-item" onClick={openAddFriend}>
-                👤 친구 추가
-              </button>
-            </div>
-          </>
-        )}
+      <div className="app-fab-wrap" ref={wrapRef}>
+        <div className={menuOpen ? 'app-fab-menu is-open' : 'app-fab-menu'}>
+          {roomId && (
+            <button
+              type="button"
+              className="app-fab-item"
+              onClick={() => {
+                setMenuOpen(false);
+                setChatOpen(true);
+              }}
+            >
+              💬 채팅
+            </button>
+          )}
+          {pageActions.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              className="app-fab-item"
+              onClick={() => {
+                setMenuOpen(false);
+                a.onSelect();
+              }}
+            >
+              {a.label}
+            </button>
+          ))}
+          <button type="button" className="app-fab-item" onClick={openAddFriend}>
+            👤 친구 추가
+          </button>
+        </div>
         <button
           type="button"
           className="app-fab"

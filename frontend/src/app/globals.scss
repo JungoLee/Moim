@@ -153,7 +153,7 @@ h3 {
     padding: var(--space-2) var(--space-3);
   }
   .app-nav .brand-mark {
-    font-size: 1.3rem;
+    font-size: 1.6rem;
     margin-right: var(--space-2);
   }
   .app-nav a {
@@ -204,6 +204,17 @@ h3 {
   color: var(--color-text);
   background: var(--color-surface-2);
 }
+/* 현재 페이지 메뉴 강조 — 굵게 + visual-top 타이틀과 동일한 브랜드 그라데이션 색 */
+.app-nav a[aria-current='page'] {
+  font-weight: 800;
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.app-nav a[aria-current='page']:hover {
+  background: var(--grad-brand);
+}
 /* 주 기능 강조(모임) — 반짝이는 셔머 스윕 */
 .app-nav a.app-nav-feature {
   color: var(--color-accent);
@@ -226,7 +237,7 @@ h3 {
 }
 .app-nav .brand-mark {
   margin-right: var(--space-3);
-  font-size: 1.6rem;
+  font-size: 2.05rem;
 }
 .app-nav-acct {
   width: 2.25rem;
@@ -1021,12 +1032,18 @@ a.app-card:hover {
 .app-fab:hover { filter: brightness(1.08); }
 .app-fab[aria-expanded='true'] { transform: rotate(45deg); }
 .app-fab-menu {
-  position: relative;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--space-2));
   z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: var(--space-2);
+  pointer-events: none; /* 닫힘 시 클릭 통과 */
+}
+.app-fab-menu.is-open {
+  pointer-events: auto;
 }
 .app-fab-item {
   display: inline-flex;
@@ -1041,7 +1058,24 @@ a.app-card:hover {
   cursor: pointer;
   box-shadow: var(--shadow-md);
   white-space: nowrap;
+  /* 닫힘: 오른쪽(X 150%)으로 밀려나 숨김 — 닫힐 땐 위 항목부터 빠져나감 */
+  transform: translateX(150%);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.25s ease;
 }
+.app-fab-item:nth-child(1) { transition-delay: 0s; }
+.app-fab-item:nth-child(2) { transition-delay: 0.05s; }
+.app-fab-item:nth-child(3) { transition-delay: 0.1s; }
+.app-fab-item:nth-child(4) { transition-delay: 0.15s; }
+/* 열림: 제자리(X 0)로 슬라이드 — 열릴 땐 아래 항목부터 들어옴 */
+.app-fab-menu.is-open .app-fab-item {
+  transform: none;
+  opacity: 1;
+}
+.app-fab-menu.is-open .app-fab-item:nth-last-child(1) { transition-delay: 0s; }
+.app-fab-menu.is-open .app-fab-item:nth-last-child(2) { transition-delay: 0.05s; }
+.app-fab-menu.is-open .app-fab-item:nth-last-child(3) { transition-delay: 0.1s; }
+.app-fab-menu.is-open .app-fab-item:nth-last-child(4) { transition-delay: 0.15s; }
 .app-fab-item:hover { border-color: var(--color-primary); }
 
 /* 모임 채팅 — 우하단 플로팅 패널 (말풍선: 내 메시지 오른쪽 / 상대 왼쪽) */
@@ -1085,7 +1119,7 @@ a.app-card:hover {
   height: 7px;
   border-top: 1.5px solid var(--color-muted);
   border-left: 1.5px solid var(--color-muted);
-  border-top-left-radius: 4px;
+  border-top-left-radius: 8px;
   opacity: 0.35;
   transition: opacity var(--transition), border-color var(--transition);
 }
@@ -1464,6 +1498,13 @@ a.app-card:hover {
   background-color: rgba(255, 107, 107, 0.85) !important;
   border-color: transparent !important;
   color: #fff !important;
+}
+/* 연차 계산기: 실제 쓰는 연차일 블록 (효율 배수 표기) */
+.fc .fc-event.evt-leave {
+  background-color: var(--color-primary) !important;
+  border-color: transparent !important;
+  color: var(--color-primary-text) !important;
+  font-weight: 600;
 }
 .fc .fc-daygrid-day.fc-day-today {
   background: var(--fc-today-bg-color);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
@@ -8,8 +8,19 @@ import Tooltip from '@/components/Tooltip';
 import Icon, { type IconName } from '@/components/Icon';
 import { api, getToken } from '@/lib/api';
 import { formatRange, displayName } from '@/lib/format';
+import { computeLeavePlan, formatDate, metricLabel, type LeaveStyle } from '@/lib/leave';
+import { getHolidays } from '@/lib/holidays';
 import type { MoimEvent, User, FriendRequest, RoomSummary, TimeRequest } from '@/lib/types';
 import styles from './home.module.scss';
+
+type LeaveSettings = { remaining: number; start: string; renewal: string; maxConsec: number; style: LeaveStyle };
+
+function parseYMD(s: string): Date | null {
+  if (!s) return null;
+  const [y, m, d] = s.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
 
 // 오늘 기준 D-day 라벨 (당일/진행 중=D-DAY, 이후=D-n)
 function ddayLabel(start: string): string {
@@ -26,7 +37,7 @@ const TILES: Array<[string, IconName, string, string, boolean?]> = [
   ['/dashboard', 'calendar', '내 캘린더', '내 일정을 만들고 월/주 달력으로 관리해요'],
   ['/friends', 'users', '친구', '이메일로 친구를 추가하고 받은 요청을 수락해요'],
   ['/tiers', 'tag', '그룹', '공개 그룹을 만들어 비공개 일정을 그 그룹에만 공유해요'],
-  ['/rooms', 'calendar-check', '모임', '방을 만들어 친구를 초대하고 모두 되는 날을 찾아요', true],
+  ['/rooms', 'calendar-check', '모임', '친구를 초대해 각자 되는 날을 표시하면, 다 같이 가능한 날을 찾아 약속을 잡아요', true],
   ['/tools/leave', 'sun', '연차', '주말·공휴일을 활용한 최적 연차 계획을 추천해요'],
 ];
 
@@ -37,6 +48,7 @@ export default function Home() {
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [timeReqs, setTimeReqs] = useState<TimeRequest[]>([]);
   const [rooms, setRooms] = useState<RoomSummary[]>([]);
+  const [leaveSettings, setLeaveSettings] = useState<LeaveSettings | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -50,6 +62,8 @@ export default function Home() {
       setTimeReqs(tr.requests.filter((r) => r.status === 'pending'));
       const rm = await api<{ rooms: RoomSummary[] }>('/api/rooms');
       setRooms(rm.rooms);
+      const lv = await api<{ leave: LeaveSettings }>('/api/auth/leave');
+      setLeaveSettings(lv.leave);
     } catch {
       /* 401 이면 api 가 자동 로그아웃 처리 */
     }
@@ -68,6 +82,27 @@ export default function Home() {
     .filter((e) => new Date(e.end).getTime() >= now)
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
     .slice(0, 5);
+
+  // 추천 연차 — 저장된 설정으로 계획 계산 (연차 계산기와 동일 로직)
+  const leavePlan = useMemo(() => {
+    if (!leaveSettings) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const from = parseYMD(leaveSettings.start) || today;
+    const to = parseYMD(leaveSettings.renewal) || new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+    if (from.getTime() >= to.getTime()) return null;
+    const years: number[] = [];
+    for (let y = from.getFullYear(); y <= to.getFullYear(); y++) years.push(y);
+    return computeLeavePlan(
+      from,
+      to,
+      leaveSettings.remaining || 0,
+      leaveSettings.maxConsec || 5,
+      leaveSettings.style || 'balanced',
+      getHolidays(years)
+    );
+  }, [leaveSettings]);
+  const upcomingLeave = leavePlan ? leavePlan.combo.filter((b) => b.spanEnd.getTime() >= now).slice(0, 3) : [];
 
   return (
     <>
@@ -125,6 +160,35 @@ export default function Home() {
             ))
           )}
         </div>
+
+        {leavePlan && leavePlan.combo.length > 0 && (
+          <div className="app-card">
+            <div className={styles.sectionHead}>
+              <Icon name="sun" size={18} />
+              <h3>추천 연차</h3>
+              <span className="app-spacer" />
+              <Link className="app-btn app-btn--ghost" href="/tools/leave">
+                연차 계산 →
+              </Link>
+            </div>
+            <p className="app-muted">
+              연차 <strong>{leavePlan.comboLeave}일</strong>로 총 <strong>{leavePlan.comboOff}일</strong> 휴무 만들기
+            </p>
+            {upcomingLeave.map((b, i) => (
+              <div key={i} className={styles.row}>
+                <strong>
+                  {formatDate(b.spanStart)} ~ {formatDate(b.spanEnd)}
+                </strong>
+                <span className="app-spacer" />
+                <span className="app-pill">{metricLabel(b, leaveSettings?.style || 'balanced')}</span>
+                <span className="app-muted">
+                  연차 {b.leaveDays}일 · {b.totalDays}일 휴무
+                  {b.holidayNames.length > 0 && ` · 🎌 ${b.holidayNames.join(' · ')}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="app-card">
           <div className={styles.sectionHead}>

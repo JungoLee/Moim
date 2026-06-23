@@ -8,6 +8,7 @@ import CopyButton from '@/components/CopyButton';
 import Avatar from '@/components/Avatar';
 import { api, getToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
+import { dayLabelKey } from '@/lib/datetime';
 import TimeSelect from '@/components/TimeSelect';
 import UserProfileModal from '@/components/UserProfileModal';
 import type { RoomDetail, User, Mark, AvailStatus } from '@/lib/types';
@@ -235,7 +236,7 @@ export default function RoomPage() {
           ) : (
             <div className="app-row">
               {fullDays.map((d) => (
-                <span key={d}>📅 {d}</span>
+                <span key={d}>📅 {dayLabelKey(d)}</span>
               ))}
             </div>
           )}
@@ -245,7 +246,7 @@ export default function RoomPage() {
               <div className="app-row">
                 {partialDays.map((d) => (
                   <span key={d} className="app-muted">
-                    📅 {d} ({summary[d].afterMax}~)
+                    📅 {dayLabelKey(d)} ({summary[d].afterMax}~)
                   </span>
                 ))}
               </div>
