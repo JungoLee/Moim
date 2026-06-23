@@ -9,7 +9,7 @@ import { addDays, computeLeavePlan, toKey, formatDate, metricLabel, type Bridge,
 import { getHolidays } from '@/lib/holidays';
 import { api, getToken } from '@/lib/api';
 import DatePicker from '@/components/DatePicker';
-import Icon from '@/components/Icon';
+import PageHero from '@/components/PageHero';
 import Accordion from '@/components/Accordion';
 import styles from './leave.module.scss';
 
@@ -139,19 +139,16 @@ export default function LeavePlanner() {
     <>
       <Nav />
       <main className="app-container">
-        <header className={styles.hero}>
-          <span className={styles.heroIcon}>
-            <Icon name="sun" size={30} />
-          </span>
-          <div className={styles.heroText}>
-            <h2 className={styles.heroTitle}>연차 계산기</h2>
-            <p className={styles.heroDesc}>
+        <PageHero
+          icon="sun"
+          title="연차 계산기"
+          desc={
+            <>
               잔여 연차와 갱신일만 입력하면, 주말·공휴일을 엮어 <strong>최소 연차로 최대 연휴</strong>를 만드는 계획을 추천해요.
-              <br />
-              <span className={styles.heroNote}>짧게·균형 = 효율(Nx, 가성비) · 길게 몰아서 = 점수(+N = 휴무×2−연차)</span>
-            </p>
-          </div>
-        </header>
+            </>
+          }
+          note="짧게·균형 = 효율(Nx, 가성비) · 길게 몰아서 = 점수(+N = 휴무×2−연차)"
+        />
         {error && <p className="app-error">{error}</p>}
 
         <div className="app-card">

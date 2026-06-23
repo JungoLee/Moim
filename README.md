@@ -94,6 +94,7 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 | GET/PUT | `/api/rooms/:id` · `/availability` | 방 상세(멤버·가용성·채팅 메시지) / 내 가능표시 저장 |
 | POST/DELETE | `/api/rooms/:id/comments[/:cid]` | 방 채팅 메시지 작성 / 삭제(본인·방장) |
 | PATCH | `/api/auth/me` | 닉네임 설정 |
+| GET/PUT | `/api/auth/leave` | 연차 계산기 설정 조회(갱신일 자동 이월) / 저장 |
 | GET | `/api/requests/received`·`/sent` | 받은 / 보낸 시간요청 |
 | POST | `/api/requests` | 시간요청 생성(친구에게) |
 | POST | `/api/requests/:id/accept`·`/decline` | 수락(양쪽 일정 생성) / 거절 |

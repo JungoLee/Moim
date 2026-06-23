@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import type { EventInput, DateSelectArg } from '@fullcalendar/core';
 import type { MoimEvent } from '@/lib/types';
@@ -77,16 +76,11 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
 
   function handleSelect(info: DateSelectArg) {
     if (!onSelectRange) return;
-    if (info.allDay) {
-      // 월 뷰(종일): end 는 배타적(다음날) → 포함 마지막 날로 변환
-      const lastDay = new Date(info.end);
-      lastDay.setDate(lastDay.getDate() - 1);
-      const end = lastDay.getTime() < info.start.getTime() ? info.start : lastDay;
-      onSelectRange(info.start, end, true);
-    } else {
-      // 주 뷰(시간 지정): 선택한 시작·종료 시각을 그대로 사용 (종일 아님)
-      onSelectRange(info.start, info.end, false);
-    }
+    // 월 뷰만 사용 → 선택은 항상 종일. end 는 배타적(다음날) → 포함 마지막 날로 변환
+    const lastDay = new Date(info.end);
+    lastDay.setDate(lastDay.getDate() - 1);
+    const end = lastDay.getTime() < info.start.getTime() ? info.start : lastDay;
+    onSelectRange(info.start, end, true);
   }
 
   if (!mounted) {
@@ -96,7 +90,7 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
   return (
     <div className="app-card">
       <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         locale="ko"
         height="auto"

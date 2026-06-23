@@ -29,7 +29,7 @@
 - 배포: **Render**(`render.yaml` Blueprint) — 백 `moim-api`(`moim-api.onrender.com`)·프론트 `moim-web`(`moim-web.onrender.com`) 2개 web 서비스 + MongoDB Atlas. 프론트 `NEXT_PUBLIC_API_URL`=백엔드 URL, main push 시 autoDeploy
 
 ### 데이터 모델 (현재)
-- **User**: `googleId`, `email`, `name`, `nickname`(표시명, 있으면 우선), `picture`, `isAdmin`
+- **User**: `googleId`, `email`, `name`, `nickname`(표시명, 있으면 우선), `picture`, `isAdmin`, `leave`(연차 계산기 설정: remaining·start·renewal·maxConsec·style — 갱신일 지나면 서버가 자동 이월)
 - **Friendship**: `requester`, `recipient`, `status`(pending|accepted) — 친구 그래프 = 캘린더 열람 권한. 가시성 제어는 그룹/일정으로 분리
 - **Tier(그룹)**: `owner`, `name`, `code`(고유), `color`(캘린더 라인 색), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가. 생성 시 색상 지정
 - **Room(모임 방)**: `owner`, `name`, `code`(초대), `members[]`, `availabilities[{user, marks[{date,status(yes|no|after),time}]}]`, `comments[]` — 멤버별 가능/불가/시간 → 모두 되는 날 집계 + 채팅(메시지=comments, 작성자 picture 동봉)
@@ -72,11 +72,17 @@
 - [x] **시간 요청 종일** — `TimeRequest.allDay`, 수락 시 종일 일정 생성
 - [x] **타인 프로필 모달** — 멤버 칩/채팅 아바타 클릭 → 캘린더 보기·친구/시간 요청·그룹 추가·이메일 복사. 홈 다가오는 일정 **D-day** 배지
 - [x] **공용화 리팩토링** — `lib/datetime`(HOURS/MINUTES·날짜 헬퍼)·`lib/marks`·`components/TimeSelect`·`components/Modal` 로 중복 제거, 호버 떠오름 효과 일괄 제거
+- [x] **전 탭 PageHero(visual-top)** — 아이콘 배지+그라데이션 제목+설명 공용 헤더(대시보드/친구/모임/그룹/요청/친구 캘린더/연차). 연차 hero 도 PageHero 로 통합
+- [x] **네비 현재 메뉴 강조** — `aria-current` 브랜드 그라데이션 + 로고 확대 + 가로 스크롤 시 활성 탭 중앙 정렬(paint 전 즉시), 아바타 모듈 캐시(이동 깜빡임 제거)
+- [x] **우하단 FAB 컨텍스트 액션** — `lib/quickActions` 레지스트리(페이지가 '만들기' 등 등록) + 세션 1회 자동 펼침 + 스태거 X 슬라이드 모션, 바깥 클릭 통과
+- [x] **달력 월/주 토글 제거** — 월 뷰 고정(timeGridPlugin 제거)
+- [x] **연차 설정 저장** — `User.leave` + `GET/PUT /api/auth/leave`(갱신일 자동 이월), 홈 '추천 연차' 카드, 연차 폼 세그먼트 칩·풀폭 정렬, `Accordion` 컴포넌트
+- [x] **DatePicker `block`(풀폭) + 일정 점 표시**, 2차 리팩토링(leave.ts 날짜헬퍼 datetime 재사용, 미사용 plugin/CSS 정리)
 
 ### 다음 작업 (남은 것)
-- [ ] **안 읽음 표시 본격화** — 홈에 받은 친구요청 배지는 됨. 새 댓글/모임 변경 등 알림은 추후(lastSeen 기반)
-- [ ] **날짜 picker 라이브러리화** — 현재 자체 커스텀 달력. 필요 시 react-datepicker 등으로 교체 검토
-- [ ] **주 뷰 빈 시간 스킵(목록/아젠다 뷰)** — FullCalendar timeGrid 는 빈 시간대 줄을 접을 수 없음(이벤트가 시간 좌표로 절대배치돼 `display:none` 시 깨짐). `@fullcalendar/list` 플러그인 설치 후 헤더에 "월 / 주 / 목록" 토글 추가 → 목록(listWeek) 뷰는 이벤트 있는 시간만 나열해 빈 공간 0. (의존성 설치 승인 대기)
+- [ ] **안 읽음 표시 본격화** — 홈에 받은 친구요청 배지는 됨. 새 채팅/모임 변경 등 알림은 추후(lastSeen 기반)
+- [ ] **Nav 공통 레이아웃화** — 현재 각 페이지가 `<Nav/>` 렌더 → 이동마다 리마운트(짧은 깜빡임). route group 레이아웃으로 올려 네비/FAB 고정·본문만 교체하면 SPA 체감 향상
+- [ ] **실시간 채팅(Socket.io)** — 현재 6초 폴링. 진짜 푸시는 Phase 4
 
 ---
 

@@ -1,6 +1,11 @@
 // 연차 계획 — MyBudget의 "브릿지" 알고리즘 이식.
 // 공휴일/주말 사이의 근무일을 연차로 메워 최소 연차로 최대 연휴를 만든다.
 
+// 날짜 헬퍼는 공용(lib/datetime)을 재사용 — 중복 정의 제거. (기존 import 호환 위해 이름 유지)
+import { addDays, dateKey } from '@/lib/datetime';
+export { addDays };
+export const toKey = dateKey;
+
 export type LeaveStyle = 'short' | 'balanced' | 'long';
 export type Holidays = Record<string, string>; // 'YYYY-MM-DD' -> 공휴일명
 
@@ -16,18 +21,6 @@ export type Bridge = {
   holidayNames: string[];
 };
 
-export function toKey(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-export function addDays(d: Date, n: number): Date {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
-}
 
 function isWeekend(d: Date): boolean {
   const day = d.getDay();
