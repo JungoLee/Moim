@@ -7,9 +7,9 @@ import Nav from '@/components/Nav';
 import Calendar from '@/components/Calendar';
 import DatePicker from '@/components/DatePicker';
 import { api, getToken } from '@/lib/api';
-import { formatRange, displayName } from '@/lib/format';
+import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
-import { eventColor, PUBLIC_COLOR, PRIVATE_COLOR, DEFAULT_TIER_COLOR } from '@/lib/colors';
+import { PUBLIC_COLOR, PRIVATE_COLOR, DEFAULT_TIER_COLOR, TIER_PALETTE } from '@/lib/colors';
 import type { MoimEvent, Tier, User } from '@/lib/types';
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
@@ -30,6 +30,8 @@ export default function Dashboard() {
   const [events, setEvents] = useState<MoimEvent[]>([]);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [error, setError] = useState('');
+  // 범례에서 팔레트가 열린 그룹 id (없으면 null)
+  const [paletteFor, setPaletteFor] = useState<string | null>(null);
 
   // 일정 생성/수정 공용 모달
   const [open, setOpen] = useState(false);
@@ -80,16 +82,16 @@ export default function Dashboard() {
     [tiers]
   );
 
-  // 달력 클릭/드래그 → 생성 모달
-  function openCreate(startDay: Date, endDay: Date) {
+  // 달력 클릭/드래그 → 생성 모달. allDay=월 뷰(종일 기본), false=주 뷰 시간 선택
+  function openCreate(startDay: Date, endDay: Date, allDay = true) {
     setMode('create');
     setEditId('');
     setFTitle('');
     setFStartDate(dateStr(startDay));
-    setFStartTime('09:00');
+    setFStartTime(allDay ? '09:00' : timeStr(startDay));
     setFEndDate(dateStr(endDay));
-    setFEndTime('10:00');
-    setFAllDay(false);
+    setFEndTime(allDay ? '10:00' : timeStr(endDay));
+    setFAllDay(allDay);
     setFLocation('');
     setFMemo('');
     setFShare('public');
@@ -163,21 +165,21 @@ export default function Dashboard() {
     }
   }
 
+  // 범례에서 그룹 색 변경 (그룹만 — 공개/비공개 제외)
+  async function updateTierColor(tierId: string, color: string) {
+    try {
+      await api(`/api/tiers/${tierId}`, { method: 'PATCH', body: { color } });
+      await loadTiers();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : '색상 변경 실패', 'error');
+    }
+  }
+
   async function deleteEvent() {
     if (!editId) return;
     try {
       await api(`/api/events/${editId}`, { method: 'DELETE' });
       setOpen(false);
-      load();
-      toast('일정을 삭제했습니다');
-    } catch (err) {
-      toast(err instanceof Error ? err.message : '삭제 실패', 'error');
-    }
-  }
-
-  async function removeFromList(id: string) {
-    try {
-      await api(`/api/events/${id}`, { method: 'DELETE' });
       load();
       toast('일정을 삭제했습니다');
     } catch (err) {
@@ -204,34 +206,54 @@ export default function Dashboard() {
         <div className="app-legend">
           <span><i style={{ background: PUBLIC_COLOR }} />공개</span>
           <span><i style={{ background: PRIVATE_COLOR }} />비공개</span>
-          {tiers.map((t) => (
-            <span key={t._id}>
-              <i style={{ background: t.color || DEFAULT_TIER_COLOR }} />
-              {t.name}
-            </span>
-          ))}
+          {tiers.map((t) => {
+            const cur = t.color || DEFAULT_TIER_COLOR;
+            return (
+              <span className="app-legend-group" key={t._id}>
+                <button
+                  type="button"
+                  className="app-legend-trigger"
+                  onClick={() => setPaletteFor(paletteFor === t._id ? null : t._id)}
+                  aria-label={`${t.name} 색상 변경`}
+                >
+                  <i style={{ background: cur }} />
+                  {t.name}
+                </button>
+                {paletteFor === t._id && (
+                  <>
+                    <button type="button" className="app-fab-catcher" aria-label="닫기" onClick={() => setPaletteFor(null)} />
+                    <div className="app-palette-pop">
+                      <div className="app-swatches">
+                        {TIER_PALETTE.map((c) => (
+                          <button
+                            type="button"
+                            key={c}
+                            className={c === cur ? 'app-swatch is-on' : 'app-swatch'}
+                            style={{ background: c }}
+                            onClick={() => {
+                              updateTierColor(t._id, c);
+                              setPaletteFor(null);
+                            }}
+                            aria-label={`색상 ${c}`}
+                            aria-pressed={c === cur}
+                          />
+                        ))}
+                        <input
+                          type="color"
+                          className="app-swatch-custom"
+                          value={cur}
+                          onChange={(e) => updateTierColor(t._id, e.target.value)}
+                          aria-label="커스텀 색상 선택"
+                          title="커스텀 색상"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </span>
+            );
+          })}
         </div>
-
-        <h3>일정 목록</h3>
-        {events.length === 0 && <p className="app-muted">아직 일정이 없습니다.</p>}
-        {events.map((ev) => (
-          <div className="app-card" key={ev._id}>
-            <div className="app-row">
-              <i className="app-dot" style={{ background: eventColor(ev, tierColors) }} />
-              <strong>{ev.title}</strong>
-              {ev.visibility === 'private' && <span className="app-muted">· 비공개</span>}
-              <span className="app-spacer" />
-              <button className="app-btn app-btn--ghost" onClick={() => openEdit(ev._id)}>
-                수정
-              </button>
-              <button className="app-btn app-btn--ghost" onClick={() => removeFromList(ev._id)}>
-                삭제
-              </button>
-            </div>
-            <div className="app-muted">{formatRange(ev.start, ev.end, ev.allDay)}</div>
-            {ev.location && <div className="app-muted">📍 {ev.location}</div>}
-          </div>
-        ))}
 
         {open && (
           <div className="app-modal-backdrop" onClick={() => setOpen(false)}>

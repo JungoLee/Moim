@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
-import Notice from '@/components/Notice';
 import { api, getToken } from '@/lib/api';
 import type { Friend, FriendRequest } from '@/lib/types';
 
@@ -13,8 +11,6 @@ export default function Friends() {
   const router = useRouter();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
-  const [email, setEmail] = useState('');
-  const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
 
   const load = useCallback(async () => {
     const f = await api<{ friends: Friend[] }>('/api/friends');
@@ -31,19 +27,6 @@ export default function Friends() {
     load();
   }, [router, load]);
 
-  async function sendRequest(e: FormEvent) {
-    e.preventDefault();
-    setFeedback(null);
-    try {
-      await api('/api/friends/requests', { method: 'POST', body: { email } });
-      setEmail('');
-      setFeedback({ ok: true, text: '요청을 보냈습니다.' });
-      load();
-    } catch (err) {
-      setFeedback({ ok: false, text: err instanceof Error ? err.message : '요청 실패' });
-    }
-  }
-
   async function accept(id: string) {
     await api(`/api/friends/requests/${id}/accept`, { method: 'POST' });
     load();
@@ -59,22 +42,7 @@ export default function Friends() {
       <Nav />
       <main className="app-container">
         <h2>친구</h2>
-
-        <form className="app-card" onSubmit={sendRequest}>
-          <div className="app-row">
-            <input
-              className="app-input"
-              type="email"
-              placeholder="친구 이메일"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button className="app-btn" type="submit">
-              친구 요청
-            </button>
-          </div>
-          {feedback && <Notice ok={feedback.ok}>{feedback.text}</Notice>}
-        </form>
+        <p className="app-muted">친구 추가는 오른쪽 아래 + 버튼으로 할 수 있어요.</p>
 
         {requests.length > 0 && (
           <div className="app-card">

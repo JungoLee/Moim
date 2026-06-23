@@ -11,6 +11,16 @@ import { formatRange, displayName } from '@/lib/format';
 import type { MoimEvent, User, FriendRequest, RoomSummary, TimeRequest } from '@/lib/types';
 import styles from './home.module.scss';
 
+// 오늘 기준 D-day 라벨 (당일/진행 중=D-DAY, 이후=D-n)
+function ddayLabel(start: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const s = new Date(start);
+  s.setHours(0, 0, 0, 0);
+  const diff = Math.round((s.getTime() - today.getTime()) / 86400000);
+  return diff <= 0 ? 'D-DAY' : `D-${diff}`;
+}
+
 // [경로, 아이콘, 라벨, 툴팁 설명, 주요기능?]
 const TILES: Array<[string, IconName, string, string, boolean?]> = [
   ['/dashboard', 'calendar', '내 캘린더', '내 일정을 만들고 월/주 달력으로 관리해요'],
@@ -109,6 +119,7 @@ export default function Home() {
               <div key={e._id} className={styles.row}>
                 <strong>{e.title}</strong>
                 <span className="app-spacer" />
+                <span className="app-pill">{ddayLabel(e.start)}</span>
                 <span className="app-muted">{formatRange(e.start, e.end)}</span>
               </div>
             ))

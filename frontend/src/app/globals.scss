@@ -220,12 +220,10 @@ h3 {
   transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 }
 .app-btn:hover {
-  transform: translateY(-1px);
   filter: brightness(1.07);
   box-shadow: var(--shadow-md);
 }
 .app-btn:active {
-  transform: translateY(0);
   filter: brightness(0.97);
 }
 .app-btn:focus-visible {
@@ -300,6 +298,23 @@ h3 {
 .app-field {
   flex: 1;
   min-width: 0;
+}
+/* 날짜+시간 한 줄: 가로 폭을 꽉 채워 다른 행과 오른쪽 끝을 맞춤 */
+.app-when {
+  gap: var(--space-2);
+}
+.app-when-date {
+  flex: 1 1 150px;
+  min-width: 130px;
+  display: flex;
+}
+.app-when-date > div,
+.app-when-date button {
+  width: 100%;
+}
+.app-when > .app-select {
+  flex: 1 1 0;
+  min-width: 68px;
 }
 /* 카드 안 폼 행: 첫 입력칸이 남은 너비를 채워 오른쪽 빈칸 제거 */
 .app-card .app-row > .app-input:first-child {
@@ -403,6 +418,18 @@ input[type='radio'] {
   font-size: 0.9rem;
   white-space: nowrap;
 }
+/* 멤버 칩 버튼(친구 요청) — 호버 시 색 반전만, 떠오름 없음 */
+.room-member--btn {
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.room-member--btn:hover {
+  background: var(--color-surface-3);
+  border-color: var(--color-primary);
+}
 
 /* 모임 방 레이아웃: 본문 + 댓글 사이드(스티키) */
 .room-grid {
@@ -423,7 +450,7 @@ input[type='radio'] {
 .room-comment {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
   padding: var(--space-4) 0;
   border-top: 1px solid var(--color-border-soft);
 }
@@ -541,10 +568,9 @@ input[type='radio'] {
 }
 /* 클릭 가능한 카드(링크) 호버 */
 a.app-card {
-  transition: transform var(--transition), border-color var(--transition);
+  transition: border-color var(--transition);
 }
 a.app-card:hover {
-  transform: translateY(-2px);
   border-color: var(--color-primary);
 }
 /* prefers-reduced-motion 존중 */
@@ -622,14 +648,121 @@ a.app-card:hover {
   border: 2px solid transparent;
   padding: 0;
   cursor: pointer;
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition: filter var(--transition), box-shadow var(--transition);
 }
 .app-swatch:hover {
-  transform: scale(1.12);
+  filter: brightness(1.12);
 }
 .app-swatch.is-on {
   border-color: var(--color-text);
   box-shadow: var(--shadow-glow);
+}
+/* 커스텀 색 선택 (input[type=color]) — 스와치와 같은 크기 */
+.app-swatch-custom {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-3);
+  cursor: pointer;
+}
+.app-swatch-custom::-webkit-color-swatch-wrapper { padding: 2px; }
+.app-swatch-custom::-webkit-color-swatch { border: none; border-radius: 3px; }
+
+/* 우하단 플로팅 퀵 액션 (+ 버튼) */
+.app-fab-wrap {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+.app-fab-catcher {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: transparent;
+  border: none;
+  cursor: default;
+}
+.app-fab {
+  position: relative;
+  z-index: 2;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--grad-primary);
+  color: var(--color-primary-text);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition), filter var(--transition);
+}
+.app-fab:hover { filter: brightness(1.08); }
+.app-fab[aria-expanded='true'] { transform: rotate(45deg); }
+.app-fab-menu {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+.app-fab-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  padding: var(--space-2) var(--space-4);
+  font: inherit;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
+}
+.app-fab-item:hover { border-color: var(--color-primary); }
+
+/* 범례에서 그룹 색 클릭 → 팔레트 팝오버 (그룹만) */
+.app-legend-group {
+  position: relative;
+}
+.app-legend-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.app-legend-trigger i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.app-palette-pop {
+  position: absolute;
+  z-index: 80;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-3);
 }
 
 /* 브랜드 마크 — 그라데이션 텍스트 */
@@ -806,6 +939,22 @@ a.app-card:hover {
   line-height: 1.4;
   cursor: pointer;
   transition: filter 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease;
+}
+/* 블록 이벤트 제목은 한 줄 말줄임 (칸 너비 초과 시 …) */
+.fc .fc-daygrid-block-event .fc-event-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* 시간 영역은 고정 — 잘리거나 줄바꿈되지 않게 (제목만 …) */
+.fc .fc-event-time {
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: visible;
+}
+/* 주 뷰: 24시간이 너무 길어지지 않도록 슬롯을 촘촘하게 */
+.fc .fc-timegrid-slot {
+  height: 1.4em;
 }
 /* 이벤트 호버 — 색 있는 블록은 밝아지며 외곽선, 점 이벤트는 배경 하이라이트 */
 .fc .fc-daygrid-block-event:hover {

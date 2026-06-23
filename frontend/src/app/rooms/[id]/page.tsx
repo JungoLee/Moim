@@ -8,6 +8,7 @@ import AvailabilityCalendar, { type DaySummary } from '@/components/Availability
 import CopyButton from '@/components/CopyButton';
 import Avatar from '@/components/Avatar';
 import { api, getToken } from '@/lib/api';
+import { toast } from '@/lib/toast';
 import type { RoomDetail, User, Mark, AvailStatus, RoomComment } from '@/lib/types';
 
 const MODES: Array<[AvailStatus, string]> = [
@@ -15,6 +16,10 @@ const MODES: Array<[AvailStatus, string]> = [
   ['no', '안 되는 날'],
   ['after', '시간 이후'],
 ];
+
+// 24시 표기 시/분 (오전·오후 없이)
+const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
+const MINUTES = Array.from({ length: 12 }, (_, m) => String(m * 5).padStart(2, '0'));
 
 export default function RoomPage() {
   const router = useRouter();
@@ -143,6 +148,27 @@ export default function RoomPage() {
     }
   }
 
+  async function deleteRoom() {
+    if (!window.confirm('이 모임을 삭제할까요? 되돌릴 수 없습니다.')) return;
+    try {
+      await api(`/api/rooms/${roomId}`, { method: 'DELETE' });
+      router.push('/rooms');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '모임 삭제 실패');
+    }
+  }
+
+  // 멤버 칩 클릭 → 그 사람에게 친구 요청
+  async function addFriend(member: User) {
+    if (member._id === meId) return;
+    try {
+      await api('/api/friends/requests', { method: 'POST', body: { email: member.email } });
+      toast(`${member.name || '상대'}님에게 친구 요청을 보냈습니다`, 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : '친구 요청 실패', 'error');
+    }
+  }
+
   if (error) {
     return (
       <>
@@ -179,6 +205,14 @@ export default function RoomPage() {
           <div className="room-head-top">
             <h2>{room.name}</h2>
             <span className="app-pill">멤버 {total}명</span>
+            {room.owner === meId && (
+              <>
+                <span className="app-spacer" />
+                <button className="app-btn app-btn--ghost" onClick={deleteRoom}>
+                  모임 삭제
+                </button>
+              </>
+            )}
           </div>
           <div className="room-code">
             <span className="app-muted">초대 코드</span>
@@ -186,12 +220,25 @@ export default function RoomPage() {
             <CopyButton text={room.code} label="코드 복사" />
           </div>
           <div className="room-members">
-            {room.members.map((m) => (
-              <span key={m._id} className="room-member">
-                <Avatar src={m.picture} alt={m.name} />
-                <span>{m.name}</span>
-              </span>
-            ))}
+            {room.members.map((m) =>
+              m._id === meId ? (
+                <span key={m._id} className="room-member">
+                  <Avatar src={m.picture} alt={m.name} />
+                  <span>{m.name}</span>
+                </span>
+              ) : (
+                <button
+                  key={m._id}
+                  type="button"
+                  className="room-member room-member--btn"
+                  onClick={() => addFriend(m)}
+                  title={`${m.name}님에게 친구 요청 보내기`}
+                >
+                  <Avatar src={m.picture} alt={m.name} />
+                  <span>{m.name}</span>
+                </button>
+              )
+            )}
           </div>
         </div>
 
@@ -211,16 +258,25 @@ export default function RoomPage() {
           </div>
           {mode === 'after' && (
             <div className="app-row">
-              <label htmlFor="after-time" className="app-muted">
-                몇 시 이후부터 가능한가요?
-              </label>
-              <input
-                id="after-time"
-                className="app-input"
-                type="time"
-                value={afterTime}
-                onChange={(e) => setAfterTime(e.target.value)}
-              />
+              <label className="app-muted">몇 시 이후부터 가능한가요?</label>
+              <select
+                className="app-select"
+                value={afterTime.slice(0, 2)}
+                onChange={(e) => setAfterTime(`${e.target.value}:${afterTime.slice(3)}`)}
+              >
+                {HOURS.map((h) => (
+                  <option key={h} value={h}>{h}시</option>
+                ))}
+              </select>
+              <select
+                className="app-select"
+                value={afterTime.slice(3)}
+                onChange={(e) => setAfterTime(`${afterTime.slice(0, 2)}:${e.target.value}`)}
+              >
+                {MINUTES.map((m) => (
+                  <option key={m} value={m}>{m}분</option>
+                ))}
+              </select>
             </div>
           )}
           <p className="app-muted">

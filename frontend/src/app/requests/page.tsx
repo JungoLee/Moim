@@ -118,8 +118,10 @@ export default function Requests() {
               ))}
             </select>
           </div>
-          <div className="app-row">
-            <DatePicker value={date} onChange={setDate} />
+          <div className="app-row app-when">
+            <span className="app-when-date">
+              <DatePicker value={date} onChange={setDate} />
+            </span>
             <select className="app-select" value={startTime.slice(0, 2)} onChange={(e) => setStartTime(`${e.target.value}:${startTime.slice(3)}`)}>
               {HOURS.map((h) => (
                 <option key={h} value={h}>{h}시</option>

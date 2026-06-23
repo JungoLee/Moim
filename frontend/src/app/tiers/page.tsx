@@ -54,6 +54,7 @@ export default function Tiers() {
   }
 
   async function deleteTier(id: string) {
+    if (!window.confirm('이 그룹을 삭제할까요? 되돌릴 수 없습니다.')) return;
     await api(`/api/tiers/${id}`, { method: 'DELETE' });
     load();
   }
@@ -138,6 +139,14 @@ export default function Tiers() {
                   aria-pressed={c === color}
                 />
               ))}
+              <input
+                type="color"
+                className="app-swatch-custom"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                aria-label="커스텀 색상 선택"
+                title="커스텀 색상"
+              />
             </div>
           </div>
           {createErr && <Notice>{createErr}</Notice>}
@@ -190,6 +199,14 @@ export default function Tiers() {
                     />
                   );
                 })}
+                <input
+                  type="color"
+                  className="app-swatch-custom"
+                  value={t.color || DEFAULT_TIER_COLOR}
+                  onChange={(e) => updateColor(t._id, e.target.value)}
+                  aria-label="커스텀 색상 선택"
+                  title="커스텀 색상"
+                />
               </div>
             </div>
 
