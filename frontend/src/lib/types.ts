@@ -64,6 +64,7 @@ export type RoomComment = {
   _id: string;
   user: string;
   name: string;
+  picture?: string;
   text: string;
   createdAt: string;
 };

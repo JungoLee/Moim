@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api } from '@/lib/api';
 import Avatar from '@/components/Avatar';
+import UserProfileModal from '@/components/UserProfileModal';
 import type { RoomComment, RoomDetail, User } from '@/lib/types';
 
 /** 모임 방 채팅 — 우하단 플로팅 패널. 내 메시지=오른쪽, 상대=왼쪽. 6초 폴링으로 near-realtime. */
@@ -13,6 +14,7 @@ export default function RoomChat({ roomId, onClose }: { roomId: string; onClose:
   const [roomName, setRoomName] = useState('');
   const [comments, setComments] = useState<RoomComment[]>([]);
   const [text, setText] = useState('');
+  const [profileUser, setProfileUser] = useState<User | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   const refresh = useCallback(async () => {
@@ -70,6 +72,7 @@ export default function RoomChat({ roomId, onClose }: { roomId: string; onClose:
   }
 
   return (
+    <>
     <div className="app-chat" role="dialog" aria-label="모임 채팅">
       <div className="app-chat-head">
         <strong>💬 {roomName || '채팅'}</strong>
@@ -82,9 +85,19 @@ export default function RoomChat({ roomId, onClose }: { roomId: string; onClose:
         {comments.length === 0 && <p className="app-muted">첫 메시지를 남겨보세요.</p>}
         {comments.map((c) => {
           const mine = c.user === meId;
+          const author = members[c.user];
           return (
             <div key={c._id} className={mine ? 'app-msg app-msg--mine' : 'app-msg'}>
-              {!mine && <Avatar src={members[c.user]?.picture} alt={c.name} />}
+              {!mine && (
+                <button
+                  type="button"
+                  className="app-msg-avatar"
+                  onClick={() => author && setProfileUser(author)}
+                  aria-label={`${c.name} 프로필`}
+                >
+                  <Avatar src={c.picture || author?.picture} alt={c.name} />
+                </button>
+              )}
               <div className="app-msg-col">
                 {!mine && <span className="app-msg-name">{c.name || '익명'}</span>}
                 <div className="app-msg-bubble">{c.text}</div>
@@ -106,5 +119,7 @@ export default function RoomChat({ roomId, onClose }: { roomId: string; onClose:
         </button>
       </form>
     </div>
+    {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
+    </>
   );
 }

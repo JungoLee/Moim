@@ -97,6 +97,10 @@ router.get('/:id', async (req, res) => {
     availabilities[a.user.toString()] = (a.marks || []).map((m) => ({ date: m.date, status: m.status, time: m.time || '' }));
   }
 
+  // 댓글 작성자 프로필 사진 매핑 (멤버 목록에서 조회)
+  const picById = {};
+  for (const m of room.members) picById[m._id.toString()] = m.picture || '';
+
   res.json({
     ok: true,
     room: {
@@ -111,6 +115,7 @@ router.get('/:id', async (req, res) => {
       _id: c._id,
       user: c.user,
       name: c.name,
+      picture: picById[c.user.toString()] || '',
       text: c.text,
       createdAt: c.createdAt,
     })),

@@ -66,6 +66,9 @@ export default function Requests() {
       return;
     }
     load();
+    // 프로필 모달 등에서 ?to=<userId> 로 진입 시 대상 친구 미리 선택
+    const to = new URLSearchParams(window.location.search).get('to');
+    if (to) setToId(to);
   }, [router, load]);
 
   // 날짜 → 색 (DatePicker 에 내 일정을 점으로 표시)

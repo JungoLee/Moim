@@ -7,7 +7,7 @@ import AvailabilityCalendar, { type DaySummary } from '@/components/Availability
 import CopyButton from '@/components/CopyButton';
 import Avatar from '@/components/Avatar';
 import { api, getToken } from '@/lib/api';
-import { toast } from '@/lib/toast';
+import UserProfileModal from '@/components/UserProfileModal';
 import type { RoomDetail, User, Mark, AvailStatus } from '@/lib/types';
 
 const MODES: Array<[AvailStatus, string]> = [
@@ -31,6 +31,7 @@ export default function RoomPage() {
   const [error, setError] = useState('');
   const [mode, setMode] = useState<AvailStatus>('yes');
   const [afterTime, setAfterTime] = useState('18:00');
+  const [profileUser, setProfileUser] = useState<User | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -124,17 +125,6 @@ export default function RoomPage() {
     }
   }
 
-  // 멤버 칩 클릭 → 그 사람에게 친구 요청
-  async function addFriend(member: User) {
-    if (member._id === meId) return;
-    try {
-      await api('/api/friends/requests', { method: 'POST', body: { email: member.email } });
-      toast(`${member.name || '상대'}님에게 친구 요청을 보냈습니다`, 'success');
-    } catch (err) {
-      toast(err instanceof Error ? err.message : '친구 요청 실패', 'error');
-    }
-  }
-
   if (error) {
     return (
       <>
@@ -197,8 +187,8 @@ export default function RoomPage() {
                   key={m._id}
                   type="button"
                   className="room-member room-member--btn"
-                  onClick={() => addFriend(m)}
-                  title={`${m.name}님에게 친구 요청 보내기`}
+                  onClick={() => setProfileUser(m)}
+                  title={`${m.name} 프로필`}
                 >
                   <Avatar src={m.picture} alt={m.name} />
                   <span>{m.name}</span>
@@ -282,6 +272,7 @@ export default function RoomPage() {
           )}
         </div>
       </main>
+      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
     </>
   );
 }

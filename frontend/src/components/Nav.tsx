@@ -24,14 +24,15 @@ export default function Nav() {
         <Link href="/home" className="brand-mark">
           {BRAND_NAME}
         </Link>
-        <Link href="/home">홈</Link>
-        <Link href="/dashboard">내 캘린더</Link>
-        <Link href="/friends">친구</Link>
-        <Link href="/requests">시간 요청</Link>
-        <Link href="/tiers">공유 그룹</Link>
-        <Link href="/rooms" className="app-nav-feature">모임</Link>
-        <Link href="/tools/leave">연차 계산</Link>
-        <span className="app-spacer" />
+        <div className="app-nav-links">
+          <Link href="/home">홈</Link>
+          <Link href="/dashboard">내 캘린더</Link>
+          <Link href="/friends">친구</Link>
+          <Link href="/requests">시간 요청</Link>
+          <Link href="/tiers">공유 그룹</Link>
+          <Link href="/rooms" className="app-nav-feature">모임</Link>
+          <Link href="/tools/leave">연차 계산</Link>
+        </div>
         <button className="app-nav-acct" onClick={() => setOpen(true)} aria-label="계정 메뉴">
           {picture ? (
             // eslint-disable-next-line @next/next/no-img-element

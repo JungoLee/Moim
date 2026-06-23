@@ -144,6 +144,22 @@ h3 {
   margin: 0 auto;
   padding: var(--space-8) var(--space-5);
 }
+/* 모바일: 여백 축소로 콘텐츠 폭 확보 + 네비 컴팩트 */
+@media (max-width: 600px) {
+  .app-container {
+    padding: var(--space-5) var(--space-3);
+  }
+  .app-nav {
+    padding: var(--space-2) var(--space-3);
+  }
+  .app-nav .brand-mark {
+    font-size: 1.3rem;
+    margin-right: var(--space-2);
+  }
+  .app-nav a {
+    padding: var(--space-1) var(--space-2);
+  }
+}
 
 /* 상단 네비 — 스티키 + 블러 */
 .app-nav {
@@ -153,17 +169,36 @@ h3 {
   display: flex;
   gap: var(--space-2);
   align-items: center;
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-3) var(--space-4);
   background: rgba(10, 13, 24, 0.72);
   backdrop-filter: saturate(140%) blur(12px);
   border-bottom: 1px solid var(--color-border-soft);
+}
+/* 링크는 가로 스크롤 영역 — 브랜드/계정은 고정, 모바일에서 줄바꿈 없이 옆으로 스크롤 */
+.app-nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.app-nav-links::-webkit-scrollbar {
+  display: none;
 }
 .app-nav a {
   color: var(--color-muted);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: color var(--transition), background var(--transition);
+}
+.app-nav .brand-mark,
+.app-nav-acct {
+  flex-shrink: 0;
 }
 .app-nav a:hover {
   color: var(--color-text);
@@ -904,12 +939,21 @@ a.app-card:hover {
 .app-msg {
   display: flex;
   gap: var(--space-2);
-  align-items: flex-end;
+  align-items: flex-start;
   max-width: 85%;
 }
 .app-msg--mine {
   align-self: flex-end;
   flex-direction: row-reverse;
+}
+.app-msg-avatar {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 0;
 }
 .app-msg-col {
   display: flex;
