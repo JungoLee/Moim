@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ColorWheel from '@/components/ColorWheel';
 import { TIER_PALETTE } from '@/lib/colors';
 
@@ -16,18 +16,30 @@ type Props = {
   immediate?: boolean;
 };
 
-/** 프리셋 스와치 + 커스텀 휠(토글) 공용 팔레트. 그룹 색 선택 어디서나 동일하게 사용. */
+/** 프리셋 스와치 + 커스텀 휠(🎨 버튼 아래 팝업 박스, 미리보기 포함) 공용 팔레트. */
 export default function ColorPalette({ value, onChange, immediate = false }: Props) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState(value);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
 
   function toggle() {
     setPreview(value);
     setOpen((v) => !v);
   }
 
+  const current = immediate ? value : preview;
+
   return (
-    <div className="app-palette">
+    <div className="app-palette" ref={ref}>
       <div className="app-swatches">
         {TIER_PALETTE.map((c) => (
           <button
@@ -40,38 +52,40 @@ export default function ColorPalette({ value, onChange, immediate = false }: Pro
             aria-pressed={c === value}
           />
         ))}
-        <button
-          type="button"
-          className={open ? 'app-swatch-toggle is-on' : 'app-swatch-toggle'}
-          onClick={toggle}
-          aria-pressed={open}
-          title="커스텀 색 선택"
-        >
-          🎨
-        </button>
-      </div>
-      {open &&
-        (immediate ? (
-          <div className="app-palette-wheel">
-            <ColorWheel value={value} onChange={onChange} />
-          </div>
-        ) : (
-          <div className="app-palette-wheel">
-            <ColorWheel value={preview} onChange={setPreview} />
-            <div className="app-row" style={{ justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
-              <button
-                type="button"
-                className="app-btn"
-                onClick={() => {
-                  onChange(preview);
-                  setOpen(false);
-                }}
-              >
-                이 색으로 적용
-              </button>
+        <span className="app-palette-anchor">
+          <button
+            type="button"
+            className={open ? 'app-swatch-toggle is-on' : 'app-swatch-toggle'}
+            onClick={toggle}
+            aria-pressed={open}
+            title="커스텀 색 선택"
+          >
+            🎨
+          </button>
+          {open && (
+            <div className="app-palette-box" role="dialog" aria-label="커스텀 색 선택">
+              <div className="app-palette-preview">
+                <span className="app-swatch-preview" style={{ background: current }} />
+                <span className="app-palette-hex">{current.toUpperCase()}</span>
+              </div>
+              <ColorWheel value={current} onChange={immediate ? onChange : setPreview} />
+              {!immediate && (
+                <button
+                  type="button"
+                  className="app-btn"
+                  style={{ width: '100%' }}
+                  onClick={() => {
+                    onChange(preview);
+                    setOpen(false);
+                  }}
+                >
+                  이 색으로 적용
+                </button>
+              )}
             </div>
-          </div>
-        ))}
+          )}
+        </span>
+      </div>
     </div>
   );
 }

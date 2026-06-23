@@ -76,6 +76,7 @@ export type TimeRequest = {
   title: string;
   start: string;
   end: string;
+  allDay?: boolean;
   message: string;
   status: 'pending' | 'accepted' | 'declined';
 };

@@ -15,6 +15,9 @@ import type { Friend, TimeRequest, MoimEvent } from '@/lib/types';
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, m) => String(m * 5).padStart(2, '0'));
 
+// 내가 보낸(대기 중) 시간 요청 날짜는 일정과 구분되는 색으로 표시
+const REQUEST_COLOR = '#a855f7';
+
 const STATUS: Record<TimeRequest['status'], string> = {
   pending: '대기 중',
   accepted: '수락됨',
@@ -36,6 +39,7 @@ export default function Requests() {
 
   const [toId, setToId] = useState('');
   const [date, setDate] = useState(todayStr());
+  const [allDay, setAllDay] = useState(false);
   const [startTime, setStartTime] = useState('19:00');
   const [endTime, setEndTime] = useState('20:00');
   const [title, setTitle] = useState('');
@@ -68,19 +72,23 @@ export default function Requests() {
   const markedDates = useMemo(() => {
     const pad = (n: number) => String(n).padStart(2, '0');
     const m: Record<string, string> = {};
-    for (const ev of events) {
-      const color = eventColor(ev);
-      const e = new Date(ev.end);
+    const mark = (startISO: string, endISO: string, color: string) => {
+      const e = new Date(endISO);
       const last = new Date(e.getFullYear(), e.getMonth(), e.getDate());
-      let cur = new Date(ev.start);
+      let cur = new Date(startISO);
       cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate());
       while (cur.getTime() <= last.getTime()) {
         m[`${cur.getFullYear()}-${pad(cur.getMonth() + 1)}-${pad(cur.getDate())}`] = color;
         cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
       }
+    };
+    for (const ev of events) mark(ev.start, ev.end, eventColor(ev));
+    // 내가 보낸(대기 중) 시간 요청은 일정과 다른 색으로 덮어 표시
+    for (const r of sent) {
+      if (r.status === 'pending') mark(r.start, r.end, REQUEST_COLOR);
     }
     return m;
-  }, [events]);
+  }, [events, sent]);
 
   async function send(e: FormEvent) {
     e.preventDefault();
@@ -89,9 +97,11 @@ export default function Requests() {
       return;
     }
     try {
+      const start = allDay ? `${date}T00:00` : `${date}T${startTime}`;
+      const end = allDay ? `${date}T23:59` : `${date}T${endTime}`;
       await api('/api/requests', {
         method: 'POST',
-        body: { to: toId, start: `${date}T${startTime}`, end: `${date}T${endTime}`, title, message },
+        body: { to: toId, start, end, allDay, title, message },
       });
       setTitle('');
       setMessage('');
@@ -147,29 +157,35 @@ export default function Requests() {
           </div>
 
           <label className="app-form-label">시간</label>
-          <div className="app-row app-when-times">
-            <select className="app-select" aria-label="시작 시" value={startTime.slice(0, 2)} onChange={(e) => setStartTime(`${e.target.value}:${startTime.slice(3)}`)}>
-              {HOURS.map((h) => (
-                <option key={h} value={h}>{h}시</option>
-              ))}
-            </select>
-            <select className="app-select" aria-label="시작 분" value={startTime.slice(3)} onChange={(e) => setStartTime(`${startTime.slice(0, 2)}:${e.target.value}`)}>
-              {MINUTES.map((m) => (
-                <option key={m} value={m}>{m}분</option>
-              ))}
-            </select>
-            <span className="app-muted">~</span>
-            <select className="app-select" aria-label="종료 시" value={endTime.slice(0, 2)} onChange={(e) => setEndTime(`${e.target.value}:${endTime.slice(3)}`)}>
-              {HOURS.map((h) => (
-                <option key={h} value={h}>{h}시</option>
-              ))}
-            </select>
-            <select className="app-select" aria-label="종료 분" value={endTime.slice(3)} onChange={(e) => setEndTime(`${endTime.slice(0, 2)}:${e.target.value}`)}>
-              {MINUTES.map((m) => (
-                <option key={m} value={m}>{m}분</option>
-              ))}
-            </select>
-          </div>
+          <label className="app-row" style={{ gap: 'var(--space-2)' }}>
+            <input type="checkbox" checked={allDay} onChange={(e) => setAllDay(e.target.checked)} />
+            <span>종일</span>
+          </label>
+          {!allDay && (
+            <div className="app-row app-when-times">
+              <select className="app-select" aria-label="시작 시" value={startTime.slice(0, 2)} onChange={(e) => setStartTime(`${e.target.value}:${startTime.slice(3)}`)}>
+                {HOURS.map((h) => (
+                  <option key={h} value={h}>{h}시</option>
+                ))}
+              </select>
+              <select className="app-select" aria-label="시작 분" value={startTime.slice(3)} onChange={(e) => setStartTime(`${startTime.slice(0, 2)}:${e.target.value}`)}>
+                {MINUTES.map((m) => (
+                  <option key={m} value={m}>{m}분</option>
+                ))}
+              </select>
+              <span className="app-muted">~</span>
+              <select className="app-select" aria-label="종료 시" value={endTime.slice(0, 2)} onChange={(e) => setEndTime(`${e.target.value}:${endTime.slice(3)}`)}>
+                {HOURS.map((h) => (
+                  <option key={h} value={h}>{h}시</option>
+                ))}
+              </select>
+              <select className="app-select" aria-label="종료 분" value={endTime.slice(3)} onChange={(e) => setEndTime(`${endTime.slice(0, 2)}:${e.target.value}`)}>
+                {MINUTES.map((m) => (
+                  <option key={m} value={m}>{m}분</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <label className="app-form-label">제목</label>
           <input className="app-input" placeholder="예: 저녁 같이 먹어요" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -205,7 +221,7 @@ export default function Requests() {
                 <span className="app-pill">{STATUS[r.status]}</span>
               )}
             </div>
-            <div className="app-muted">{formatRange(r.start, r.end)}</div>
+            <div className="app-muted">{formatRange(r.start, r.end, r.allDay)}</div>
             {r.message && <div className="app-muted">💬 {r.message}</div>}
           </div>
         ))}
@@ -225,7 +241,7 @@ export default function Requests() {
                 </button>
               )}
             </div>
-            <div className="app-muted">{formatRange(r.start, r.end)}</div>
+            <div className="app-muted">{formatRange(r.start, r.end, r.allDay)}</div>
           </div>
         ))}
       </main>

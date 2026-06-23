@@ -314,8 +314,8 @@ h3 {
 .app-form .app-input {
   width: 100%;
 }
-.app-form-date > div,
-.app-form-date button {
+/* DatePicker 의 래퍼와 필드 버튼만 풀폭 (팝업 안 ‹›/날짜 버튼은 제외) */
+.app-form-date > div {
   width: 100%;
 }
 .app-when-times {
@@ -739,15 +739,49 @@ a.app-card:hover {
   border-color: var(--color-text);
   box-shadow: var(--shadow-glow);
 }
-/* 공용 색 팔레트 (프리셋 + 커스텀 휠 토글) */
+/* 공용 색 팔레트 (프리셋 + 커스텀 휠은 팝업 박스로) */
 .app-palette {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  position: relative;
   margin-top: var(--space-1);
 }
-.app-palette-wheel {
-  margin-top: var(--space-1);
+/* 🎨 버튼 기준으로 팝업이 바로 아래에 뜨도록 */
+.app-palette-anchor {
+  position: relative;
+  display: inline-flex;
+}
+.app-palette-box {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 220px;
+  max-width: calc(100vw - 28px);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  animation: app-pop-in 140ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.app-palette-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.app-swatch-preview {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+.app-palette-hex {
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  color: var(--color-muted);
 }
 .app-swatch-toggle {
   width: 26px;

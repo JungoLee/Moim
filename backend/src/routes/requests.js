@@ -34,7 +34,7 @@ router.get('/sent', async (req, res) => {
 
 // 요청 보내기
 router.post('/', async (req, res) => {
-  const { to, start, end, title, message } = req.body;
+  const { to, start, end, title, message, allDay } = req.body;
   if (!mongoose.Types.ObjectId.isValid(to)) return res.status(400).json({ ok: false, message: '대상이 올바르지 않습니다.' });
   if (to === req.userId) return res.status(400).json({ ok: false, message: '본인에게는 요청할 수 없습니다.' });
   if (!start || !end) return res.status(400).json({ ok: false, message: '시작/종료 시간이 필요합니다.' });
@@ -46,6 +46,7 @@ router.post('/', async (req, res) => {
     to,
     start,
     end,
+    allDay: !!allDay,
     title: (title || '').trim() || '시간 요청',
     message: (message || '').trim(),
   });
@@ -62,8 +63,8 @@ router.post('/:id/accept', async (req, res) => {
   tr.status = 'accepted';
   await tr.save();
   await Event.create([
-    { owner: tr.to, title: tr.title, start: tr.start, end: tr.end, visibility: 'public' },
-    { owner: tr.from, title: tr.title, start: tr.start, end: tr.end, visibility: 'public' },
+    { owner: tr.to, title: tr.title, start: tr.start, end: tr.end, allDay: tr.allDay, visibility: 'public' },
+    { owner: tr.from, title: tr.title, start: tr.start, end: tr.end, allDay: tr.allDay, visibility: 'public' },
   ]);
   res.json({ ok: true });
 });

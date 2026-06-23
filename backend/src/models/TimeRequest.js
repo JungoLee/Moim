@@ -9,6 +9,7 @@ const timeRequestSchema = new mongoose.Schema(
     title: { type: String, default: '시간 요청' },
     start: { type: Date, required: true },
     end: { type: Date, required: true },
+    allDay: { type: Boolean, default: false },
     message: { type: String, default: '' },
     status: { type: String, enum: ['pending', 'accepted', 'declined'], default: 'pending' },
   },
