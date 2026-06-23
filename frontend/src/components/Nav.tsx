@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -8,6 +8,9 @@ import { BRAND_NAME } from '@/lib/brand';
 import AccountDrawer from '@/components/AccountDrawer';
 import QuickActions from '@/components/QuickActions';
 import type { User } from '@/lib/types';
+
+// SSR 안전 layout effect (클라이언트에선 paint 전에 실행 → 스크롤 점프 안 보이게)
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 // [경로, 라벨, 주요기능(모임)?]
 const LINKS: Array<[string, string, boolean?]> = [
@@ -39,10 +42,10 @@ export default function Nav() {
       .catch(() => {});
   }, []);
 
-  // 현재 페이지 메뉴를 가로 스크롤 네비 중앙으로 (이동/새로고침 시 자리 찾기)
-  useEffect(() => {
+  // 현재 페이지 메뉴를 가로 스크롤 네비 중앙으로 — paint 전에 즉시(애니메이션 X)라 '왼쪽→이동' 덜컥임 없음
+  useIsoLayoutEffect(() => {
     const el = linksRef.current?.querySelector('[aria-current="page"]') as HTMLElement | null;
-    el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    if (el) el.scrollIntoView({ inline: 'center', block: 'nearest' });
   }, [pathname]);
 
   return (
