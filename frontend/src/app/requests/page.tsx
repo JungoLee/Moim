@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import DatePicker from '@/components/DatePicker';
+import Select from '@/components/Select';
 import { api, getToken } from '@/lib/api';
 import { formatRange, displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
@@ -106,49 +107,55 @@ export default function Requests() {
         <h2>시간 요청</h2>
         <p className="app-muted">친구에게 “이때 시간 내주세요”를 보내고, 수락하면 양쪽 캘린더에 일정이 자동으로 추가됩니다.</p>
 
-        <form className="app-card" onSubmit={send}>
+        <form className="app-card app-form" onSubmit={send}>
           <h3>요청 보내기</h3>
-          <div className="app-row">
-            <select className="app-input app-field" value={toId} onChange={(e) => setToId(e.target.value)}>
-              <option value="">친구 선택</option>
-              {friends.map((f) => (
-                <option key={f.user._id} value={f.user._id}>
-                  {f.user.name} ({f.user.email})
-                </option>
-              ))}
-            </select>
+
+          <label className="app-form-label">누구에게</label>
+          <Select
+            value={toId}
+            onChange={setToId}
+            placeholder="친구 선택"
+            ariaLabel="친구 선택"
+            options={friends.map((f) => ({ value: f.user._id, label: `${f.user.name} (${f.user.email})` }))}
+          />
+
+          <label className="app-form-label">날짜</label>
+          <div className="app-form-date">
+            <DatePicker value={date} onChange={setDate} />
           </div>
-          <div className="app-row app-when">
-            <span className="app-when-date">
-              <DatePicker value={date} onChange={setDate} />
-            </span>
-            <select className="app-select" value={startTime.slice(0, 2)} onChange={(e) => setStartTime(`${e.target.value}:${startTime.slice(3)}`)}>
+
+          <label className="app-form-label">시간</label>
+          <div className="app-row app-when-times">
+            <select className="app-select" aria-label="시작 시" value={startTime.slice(0, 2)} onChange={(e) => setStartTime(`${e.target.value}:${startTime.slice(3)}`)}>
               {HOURS.map((h) => (
                 <option key={h} value={h}>{h}시</option>
               ))}
             </select>
-            <select className="app-select" value={startTime.slice(3)} onChange={(e) => setStartTime(`${startTime.slice(0, 2)}:${e.target.value}`)}>
+            <select className="app-select" aria-label="시작 분" value={startTime.slice(3)} onChange={(e) => setStartTime(`${startTime.slice(0, 2)}:${e.target.value}`)}>
               {MINUTES.map((m) => (
                 <option key={m} value={m}>{m}분</option>
               ))}
             </select>
             <span className="app-muted">~</span>
-            <select className="app-select" value={endTime.slice(0, 2)} onChange={(e) => setEndTime(`${e.target.value}:${endTime.slice(3)}`)}>
+            <select className="app-select" aria-label="종료 시" value={endTime.slice(0, 2)} onChange={(e) => setEndTime(`${e.target.value}:${endTime.slice(3)}`)}>
               {HOURS.map((h) => (
                 <option key={h} value={h}>{h}시</option>
               ))}
             </select>
-            <select className="app-select" value={endTime.slice(3)} onChange={(e) => setEndTime(`${endTime.slice(0, 2)}:${e.target.value}`)}>
+            <select className="app-select" aria-label="종료 분" value={endTime.slice(3)} onChange={(e) => setEndTime(`${endTime.slice(0, 2)}:${e.target.value}`)}>
               {MINUTES.map((m) => (
                 <option key={m} value={m}>{m}분</option>
               ))}
             </select>
           </div>
-          <div className="app-row">
-            <input className="app-input app-field" placeholder="제목 (예: 저녁 같이 먹어요)" value={title} onChange={(e) => setTitle(e.target.value)} />
-          </div>
-          <div className="app-row">
-            <input className="app-input app-field" placeholder="메시지 (선택)" value={message} onChange={(e) => setMessage(e.target.value)} />
+
+          <label className="app-form-label">제목</label>
+          <input className="app-input" placeholder="예: 저녁 같이 먹어요" value={title} onChange={(e) => setTitle(e.target.value)} />
+
+          <label className="app-form-label">메시지 (선택)</label>
+          <input className="app-input" placeholder="짧은 메시지를 남겨보세요" value={message} onChange={(e) => setMessage(e.target.value)} />
+
+          <div className="app-form-actions">
             <button className="app-btn" type="submit">
               보내기
             </button>

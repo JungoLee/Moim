@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import CopyButton from '@/components/CopyButton';
+import ColorWheel from '@/components/ColorWheel';
 import { api, getToken } from '@/lib/api';
 import { TIER_PALETTE, DEFAULT_TIER_COLOR } from '@/lib/colors';
 import type { Tier } from '@/lib/types';
@@ -22,6 +23,8 @@ export default function Tiers() {
   const [memberErr, setMemberErr] = useState<Record<string, string>>({});
   // 그룹별 멤버 추가 입력값
   const [memberEmail, setMemberEmail] = useState<Record<string, string>>({});
+  // 그룹별 컬러 휠 미리보기 색 (적용 전까지 PATCH 안 함)
+  const [tierWheel, setTierWheel] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     try {
@@ -139,16 +142,10 @@ export default function Tiers() {
                   aria-pressed={c === color}
                 />
               ))}
-              <input
-                type="color"
-                className="app-swatch-custom"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                aria-label="커스텀 색상 선택"
-                title="커스텀 색상"
-              />
+              <span className="app-dot" style={{ background: color, width: 26, height: 26, border: '2px solid var(--color-text)' }} aria-hidden />
             </div>
           </div>
+          <ColorWheel value={color} onChange={setColor} />
           {createErr && <Notice>{createErr}</Notice>}
         </form>
 
@@ -199,15 +196,20 @@ export default function Tiers() {
                     />
                   );
                 })}
-                <input
-                  type="color"
-                  className="app-swatch-custom"
-                  value={t.color || DEFAULT_TIER_COLOR}
-                  onChange={(e) => updateColor(t._id, e.target.value)}
-                  aria-label="커스텀 색상 선택"
-                  title="커스텀 색상"
-                />
               </div>
+            </div>
+            <ColorWheel
+              value={tierWheel[t._id] ?? (t.color || DEFAULT_TIER_COLOR)}
+              onChange={(hex) => setTierWheel((m) => ({ ...m, [t._id]: hex }))}
+            />
+            <div className="app-row" style={{ justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
+              <button
+                type="button"
+                className="app-btn"
+                onClick={() => updateColor(t._id, tierWheel[t._id] ?? (t.color || DEFAULT_TIER_COLOR))}
+              >
+                이 색으로 적용
+              </button>
             </div>
 
             <div className="app-muted" style={{ marginTop: 'var(--space-2)' }}>

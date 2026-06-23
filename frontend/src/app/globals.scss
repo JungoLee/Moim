@@ -299,22 +299,104 @@ h3 {
   flex: 1;
   min-width: 0;
 }
-/* 날짜+시간 한 줄: 가로 폭을 꽉 채워 다른 행과 오른쪽 끝을 맞춤 */
-.app-when {
+/* 라벨형 세로 폼 (요청 보내기 등) — 모든 입력칸 풀폭 */
+.app-form {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-2);
 }
-.app-when-date {
-  flex: 1 1 150px;
-  min-width: 130px;
-  display: flex;
+.app-form-label {
+  margin-top: var(--space-3);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-muted);
 }
-.app-when-date > div,
-.app-when-date button {
+.app-form .app-input {
   width: 100%;
 }
-.app-when > .app-select {
+.app-form-date > div,
+.app-form-date button {
+  width: 100%;
+}
+.app-when-times {
+  gap: var(--space-2);
+}
+.app-when-times > .app-select {
   flex: 1 1 0;
-  min-width: 68px;
+  min-width: 64px;
+}
+.app-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+}
+
+/* 커스텀 드롭다운 (네이티브 select 대체) */
+.app-dropdown {
+  position: relative;
+  width: 100%;
+}
+.app-dropdown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+.app-dropdown-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-dropdown-caret {
+  flex-shrink: 0;
+  color: var(--color-muted);
+  transition: transform var(--transition);
+}
+.app-dropdown-btn[aria-expanded='true'] .app-dropdown-caret {
+  transform: rotate(180deg);
+}
+.app-dropdown-menu {
+  position: absolute;
+  z-index: 70;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.app-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  font: inherit;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.app-dropdown-item:hover {
+  background: var(--color-surface-3);
+}
+.app-dropdown-item.is-on {
+  background: var(--grad-primary);
+  color: var(--color-primary-text);
+}
+.app-dropdown-empty {
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-muted);
+  font-size: 0.9rem;
 }
 /* 카드 안 폼 행: 첫 입력칸이 남은 너비를 채워 오른쪽 빈칸 제거 */
 .app-card .app-row > .app-input:first-child {
@@ -657,19 +739,6 @@ a.app-card:hover {
   border-color: var(--color-text);
   box-shadow: var(--shadow-glow);
 }
-/* 커스텀 색 선택 (input[type=color]) — 스와치와 같은 크기 */
-.app-swatch-custom {
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 2px dashed var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-3);
-  cursor: pointer;
-}
-.app-swatch-custom::-webkit-color-swatch-wrapper { padding: 2px; }
-.app-swatch-custom::-webkit-color-swatch { border: none; border-radius: 3px; }
-
 /* 우하단 플로팅 퀵 액션 (+ 버튼) */
 .app-fab-wrap {
   position: fixed;
