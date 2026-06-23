@@ -20,15 +20,22 @@ const LINKS: Array<[string, string, boolean?]> = [
   ['/tools/leave', '연차 계산'],
 ];
 
+// 페이지 이동마다 Nav 가 리마운트돼도 아바타를 다시 안 받아오게 모듈 캐시 (깜빡임/요청 방지)
+let cachedPicture: string | null = null;
+
 export default function Nav() {
   const pathname = usePathname() || '';
   const [open, setOpen] = useState(false);
-  const [picture, setPicture] = useState('');
+  const [picture, setPicture] = useState(cachedPicture || '');
   const linksRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (cachedPicture !== null) return;
     api<{ user: User }>('/api/auth/me')
-      .then((r) => setPicture(r.user.picture || ''))
+      .then((r) => {
+        cachedPicture = r.user.picture || '';
+        setPicture(cachedPicture);
+      })
       .catch(() => {});
   }, []);
 
