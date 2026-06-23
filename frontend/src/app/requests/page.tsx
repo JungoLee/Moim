@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
@@ -8,8 +8,9 @@ import DatePicker from '@/components/DatePicker';
 import Select from '@/components/Select';
 import { api, getToken } from '@/lib/api';
 import { formatRange, displayName } from '@/lib/format';
+import { eventColor } from '@/lib/colors';
 import { toast } from '@/lib/toast';
-import type { Friend, TimeRequest } from '@/lib/types';
+import type { Friend, TimeRequest, MoimEvent } from '@/lib/types';
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, m) => String(m * 5).padStart(2, '0'));
@@ -31,6 +32,7 @@ export default function Requests() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [received, setReceived] = useState<TimeRequest[]>([]);
   const [sent, setSent] = useState<TimeRequest[]>([]);
+  const [events, setEvents] = useState<MoimEvent[]>([]);
 
   const [toId, setToId] = useState('');
   const [date, setDate] = useState(todayStr());
@@ -43,6 +45,8 @@ export default function Requests() {
     try {
       const f = await api<{ friends: Friend[] }>('/api/friends');
       setFriends(f.friends);
+      const ev = await api<{ events: MoimEvent[] }>('/api/events');
+      setEvents(ev.events);
       const r = await api<{ requests: TimeRequest[] }>('/api/requests/received');
       setReceived(r.requests);
       const s = await api<{ requests: TimeRequest[] }>('/api/requests/sent');
@@ -59,6 +63,24 @@ export default function Requests() {
     }
     load();
   }, [router, load]);
+
+  // 날짜 → 색 (DatePicker 에 내 일정을 점으로 표시)
+  const markedDates = useMemo(() => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const m: Record<string, string> = {};
+    for (const ev of events) {
+      const color = eventColor(ev);
+      const e = new Date(ev.end);
+      const last = new Date(e.getFullYear(), e.getMonth(), e.getDate());
+      let cur = new Date(ev.start);
+      cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate());
+      while (cur.getTime() <= last.getTime()) {
+        m[`${cur.getFullYear()}-${pad(cur.getMonth() + 1)}-${pad(cur.getDate())}`] = color;
+        cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
+      }
+    }
+    return m;
+  }, [events]);
 
   async function send(e: FormEvent) {
     e.preventDefault();
@@ -121,7 +143,7 @@ export default function Requests() {
 
           <label className="app-form-label">날짜</label>
           <div className="app-form-date">
-            <DatePicker value={date} onChange={setDate} />
+            <DatePicker value={date} onChange={setDate} markedDates={markedDates} />
           </div>
 
           <label className="app-form-label">시간</label>

@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import Calendar from '@/components/Calendar';
 import DatePicker from '@/components/DatePicker';
-import ColorWheel from '@/components/ColorWheel';
+import ColorPalette from '@/components/ColorPalette';
 import { api, getToken } from '@/lib/api';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
-import { PUBLIC_COLOR, PRIVATE_COLOR, DEFAULT_TIER_COLOR, TIER_PALETTE } from '@/lib/colors';
+import { PUBLIC_COLOR, PRIVATE_COLOR, DEFAULT_TIER_COLOR, eventColor } from '@/lib/colors';
 import type { MoimEvent, Tier, User } from '@/lib/types';
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
@@ -31,9 +31,8 @@ export default function Dashboard() {
   const [events, setEvents] = useState<MoimEvent[]>([]);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [error, setError] = useState('');
-  // 범례에서 팔레트가 열린 그룹 id (없으면 null) + 휠 미리보기 색
+  // 범례에서 팔레트가 열린 그룹 id (없으면 null)
   const [paletteFor, setPaletteFor] = useState<string | null>(null);
-  const [wheelColor, setWheelColor] = useState('');
 
   // 일정 생성/수정 공용 모달
   const [open, setOpen] = useState(false);
@@ -83,6 +82,23 @@ export default function Dashboard() {
     () => Object.fromEntries(tiers.map((t) => [t._id, t.color || DEFAULT_TIER_COLOR])),
     [tiers]
   );
+
+  // 날짜 → 색 (DatePicker 에 내 일정을 점으로 표시)
+  const markedDates = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const ev of events) {
+      const color = eventColor(ev, tierColors);
+      const e = new Date(ev.end);
+      const last = new Date(e.getFullYear(), e.getMonth(), e.getDate());
+      let cur = new Date(ev.start);
+      cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate());
+      while (cur.getTime() <= last.getTime()) {
+        m[dateStr(cur)] = color;
+        cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
+      }
+    }
+    return m;
+  }, [events, tierColors]);
 
   // 달력 클릭/드래그 → 생성 모달. allDay=월 뷰(종일 기본), false=주 뷰 시간 선택
   function openCreate(startDay: Date, endDay: Date, allDay = true) {
@@ -215,13 +231,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   className="app-legend-trigger"
-                  onClick={() => {
-                    if (paletteFor === t._id) setPaletteFor(null);
-                    else {
-                      setWheelColor(cur);
-                      setPaletteFor(t._id);
-                    }
-                  }}
+                  onClick={() => setPaletteFor(paletteFor === t._id ? null : t._id)}
                   aria-label={`${t.name} 색상 변경`}
                 >
                   <i style={{ background: cur }} />
@@ -231,34 +241,13 @@ export default function Dashboard() {
                   <>
                     <button type="button" className="app-fab-catcher" aria-label="닫기" onClick={() => setPaletteFor(null)} />
                     <div className="app-palette-pop">
-                      <div className="app-swatches">
-                        {TIER_PALETTE.map((c) => (
-                          <button
-                            type="button"
-                            key={c}
-                            className={c === cur ? 'app-swatch is-on' : 'app-swatch'}
-                            style={{ background: c }}
-                            onClick={() => {
-                              updateTierColor(t._id, c);
-                              setPaletteFor(null);
-                            }}
-                            aria-label={`색상 ${c}`}
-                            aria-pressed={c === cur}
-                          />
-                        ))}
-                      </div>
-                      <ColorWheel value={wheelColor || cur} onChange={setWheelColor} />
-                      <button
-                        type="button"
-                        className="app-btn"
-                        style={{ marginTop: 'var(--space-3)', width: '100%' }}
-                        onClick={() => {
-                          updateTierColor(t._id, wheelColor || cur);
+                      <ColorPalette
+                        value={cur}
+                        onChange={(hex) => {
+                          updateTierColor(t._id, hex);
                           setPaletteFor(null);
                         }}
-                      >
-                        이 색으로 적용
-                      </button>
+                      />
                     </div>
                   </>
                 )}
@@ -280,7 +269,7 @@ export default function Dashboard() {
 
               <label className="app-muted">시작</label>
               <div className="app-row">
-                <DatePicker value={fStartDate} onChange={setFStartDate} />
+                <DatePicker value={fStartDate} onChange={setFStartDate} markedDates={markedDates} />
                 {!fAllDay && (
                   <>
                     <select className="app-select" value={fStartTime.slice(0, 2)} onChange={(e) => setFStartTime(`${e.target.value}:${fStartTime.slice(3)}`)}>
@@ -299,7 +288,7 @@ export default function Dashboard() {
 
               <label className="app-muted">종료</label>
               <div className="app-row">
-                <DatePicker value={fEndDate} onChange={setFEndDate} />
+                <DatePicker value={fEndDate} onChange={setFEndDate} markedDates={markedDates} />
                 {!fAllDay && (
                   <>
                     <select className="app-select" value={fEndTime.slice(0, 2)} onChange={(e) => setFEndTime(`${e.target.value}:${fEndTime.slice(3)}`)}>

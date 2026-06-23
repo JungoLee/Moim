@@ -9,6 +9,10 @@ import type { EventInput, DateSelectArg } from '@fullcalendar/core';
 import type { MoimEvent } from '@/lib/types';
 import { eventColor, readableText } from '@/lib/colors';
 
+// 모든 달력 제목을 "YYYY-MM" 으로 (월 0-based)
+const ymTitle = (arg: { date: { year: number; month: number } }) =>
+  `${arg.date.year}-${String(arg.date.month + 1).padStart(2, '0')}`;
+
 type Props = {
   events: MoimEvent[];
   /** 드래그/클릭으로 기간 선택 (대시보드: 새 일정 프리필). allDay=월 뷰(종일), false=주 뷰(시간 지정). 없으면 읽기 전용. */
@@ -86,6 +90,7 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
         locale="ko"
         height="auto"
         headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' }}
+        titleFormat={ymTitle}
         buttonText={{ today: '오늘', month: '월', week: '주' }}
         events={fcEvents}
         eventDisplay="block"

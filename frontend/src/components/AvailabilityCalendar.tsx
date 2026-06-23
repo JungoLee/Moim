@@ -73,7 +73,7 @@ export default function AvailabilityCalendar({ myMarks, summary, total, mode, on
     return day.getTime() >= lo && day.getTime() <= hi;
   }
 
-  const monthLabel = `${view.getFullYear()}년 ${view.getMonth() + 1}월`;
+  const monthLabel = `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, '0')}`;
 
   return (
     <div>
