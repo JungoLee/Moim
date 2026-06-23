@@ -63,8 +63,17 @@
   border-color: var(--color-border-soft);
 }
 .dayNum {
-  font-size: 0.8rem;
-  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+/* 오늘 강조 */
+.today {
+  border-color: var(--color-primary);
+}
+.today .dayNum {
+  color: var(--color-primary);
+  font-weight: 800;
 }
 .count {
   font-size: 0.7rem;

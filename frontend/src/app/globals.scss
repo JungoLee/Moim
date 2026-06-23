@@ -38,19 +38,20 @@
   --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.32);
   --shadow-glow: 0 0 0 3px rgba(124, 140, 255, 0.25);
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  /* 치수는 rem 으로 — 루트 font-size 클램프에 맞춰 반응형 스케일 (1rem=16px 기준) */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.125rem;
+  --radius-xl: 1.5rem;
   --radius-pill: 999px;
 
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 36px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2.25rem;
 
   --transition: 160ms cubic-bezier(0.2, 0.7, 0.3, 1);
 }
@@ -74,7 +75,9 @@ body {
      메인 타이틀(.brand-mark)만 Black Ops One 유지. */
   font-family: 'EnMono', 'Pretendard', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic',
     'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-  font-size: 16px;
+  /* rem 반응형: 데스크톱 16px → 모바일 ~14px 로 뷰포트에 비례해 연속 축소.
+     모든 rem(폰트·간격 토큰·컨트롤 크기)이 이 한 줄을 기준으로 함께 스케일된다. */
+  font-size: clamp(14px, 12.5px + 0.4vw, 16px);
   line-height: 1.62;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -137,7 +140,7 @@ h3 {
 
 /* 레이아웃 */
 .app-container {
-  max-width: 1040px;
+  max-width: 65rem;
   margin: 0 auto;
   padding: var(--space-8) var(--space-5);
 }
@@ -191,8 +194,8 @@ h3 {
   font-size: 1.6rem;
 }
 .app-nav-acct {
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 50%;
   border: 1px solid var(--color-border);
   background: var(--color-surface-2);
@@ -225,7 +228,7 @@ h3 {
   border: none;
   border-radius: var(--radius-sm);
   padding: 0 var(--space-4);
-  height: 40px;
+  height: 2.5rem;
   font-weight: 600;
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
@@ -299,7 +302,7 @@ h3 {
   border-radius: var(--radius-sm);
   color: var(--color-text);
   padding: 0 var(--space-3);
-  height: 40px;
+  height: 2.5rem;
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 .app-input::placeholder {
@@ -580,8 +583,8 @@ input[type='radio'] {
   gap: var(--space-3);
 }
 .app-avatar-sm {
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -740,8 +743,8 @@ a.app-card:hover {
   gap: var(--space-2);
 }
 .app-swatch {
-  width: 26px;
-  height: 26px;
+  width: 1.625rem;
+  height: 1.625rem;
   border-radius: var(--radius-sm);
   border: 2px solid transparent;
   padding: 0;
@@ -788,8 +791,8 @@ a.app-card:hover {
   gap: var(--space-2);
 }
 .app-swatch-preview {
-  width: 30px;
-  height: 30px;
+  width: 1.875rem;
+  height: 1.875rem;
   flex-shrink: 0;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
@@ -800,8 +803,8 @@ a.app-card:hover {
   color: var(--color-muted);
 }
 .app-swatch-toggle {
-  width: 26px;
-  height: 26px;
+  width: 1.625rem;
+  height: 1.625rem;
   padding: 0;
   border: 2px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -840,8 +843,8 @@ a.app-card:hover {
 .app-fab {
   position: relative;
   z-index: 2;
-  width: 56px;
-  height: 56px;
+  width: 3.5rem;
+  height: 3.5rem;
   border-radius: 50%;
   border: none;
   background: var(--grad-primary);
