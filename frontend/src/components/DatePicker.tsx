@@ -2,24 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import styles from './DatePicker.module.scss';
+import { pad2, dateKey, parseDateKey, addDays } from '@/lib/datetime';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-
-function pad(n: number): string {
-  return String(n).padStart(2, '0');
-}
-function toKey(d: Date): string {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-function parseKey(s: string): Date | null {
-  if (!s) return null;
-  const [y, m, d] = s.split('-').map(Number);
-  if (!y || !m || !d) return null;
-  return new Date(y, m - 1, d);
-}
-function addDays(d: Date, n: number): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-}
 
 type Props = {
   value: string;
@@ -31,7 +16,7 @@ type Props = {
 // 네이티브 date 대신 쓰는 커스텀 달력 입력
 export default function DatePicker({ value, onChange, markedDates }: Props) {
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState<Date>(() => parseKey(value) || new Date());
+  const [view, setView] = useState<Date>(() => parseDateKey(value) || new Date());
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,7 +29,7 @@ export default function DatePicker({ value, onChange, markedDates }: Props) {
   }, [open]);
 
   function toggle() {
-    setView(parseKey(value) || new Date());
+    setView(parseDateKey(value) || new Date());
     setOpen((o) => !o);
   }
 
@@ -71,7 +56,7 @@ export default function DatePicker({ value, onChange, markedDates }: Props) {
               ‹
             </button>
             <strong>
-              {view.getFullYear()}-{pad(view.getMonth() + 1)}
+              {view.getFullYear()}-{pad2(view.getMonth() + 1)}
             </strong>
             <button type="button" className={styles.nav} aria-label="다음 달" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))}>
               ›
@@ -86,7 +71,7 @@ export default function DatePicker({ value, onChange, markedDates }: Props) {
           </div>
           <div className={styles.grid}>
             {days.map((day) => {
-              const key = toKey(day);
+              const key = dateKey(day);
               const inMonth = day.getMonth() === view.getMonth();
               const selected = key === value;
               const mark = markedDates?.[key];

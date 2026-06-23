@@ -7,23 +7,14 @@ import Nav from '@/components/Nav';
 import Calendar from '@/components/Calendar';
 import DatePicker from '@/components/DatePicker';
 import ColorPalette from '@/components/ColorPalette';
+import TimeSelect from '@/components/TimeSelect';
 import { api, getToken } from '@/lib/api';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
-import { PUBLIC_COLOR, PRIVATE_COLOR, DEFAULT_TIER_COLOR, eventColor } from '@/lib/colors';
+import { dateKey, timeKey } from '@/lib/datetime';
+import { buildMarkedDates } from '@/lib/marks';
+import { PUBLIC_COLOR, PRIVATE_COLOR, DEFAULT_TIER_COLOR } from '@/lib/colors';
 import type { MoimEvent, Tier, User, TimeRequest } from '@/lib/types';
-
-const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
-const MINUTES = Array.from({ length: 12 }, (_, m) => String(m * 5).padStart(2, '0')); // 00,05,…,55
-
-function dateStr(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
-function timeStr(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${p(d.getHours())}:${p(Math.floor(d.getMinutes() / 5) * 5)}`;
-}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -87,31 +78,17 @@ export default function Dashboard() {
   );
 
   // 날짜 → 색 (DatePicker 에 내 일정을 점으로 표시)
-  const markedDates = useMemo(() => {
-    const m: Record<string, string> = {};
-    for (const ev of events) {
-      const color = eventColor(ev, tierColors);
-      const e = new Date(ev.end);
-      const last = new Date(e.getFullYear(), e.getMonth(), e.getDate());
-      let cur = new Date(ev.start);
-      cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate());
-      while (cur.getTime() <= last.getTime()) {
-        m[dateStr(cur)] = color;
-        cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
-      }
-    }
-    return m;
-  }, [events, tierColors]);
+  const markedDates = useMemo(() => buildMarkedDates({ events, tierColors }), [events, tierColors]);
 
   // 달력 클릭/드래그 → 생성 모달. allDay=월 뷰(종일 기본), false=주 뷰 시간 선택
   function openCreate(startDay: Date, endDay: Date, allDay = true) {
     setMode('create');
     setEditId('');
     setFTitle('');
-    setFStartDate(dateStr(startDay));
-    setFStartTime(allDay ? '09:00' : timeStr(startDay));
-    setFEndDate(dateStr(endDay));
-    setFEndTime(allDay ? '10:00' : timeStr(endDay));
+    setFStartDate(dateKey(startDay));
+    setFStartTime(allDay ? '09:00' : timeKey(startDay));
+    setFEndDate(dateKey(endDay));
+    setFEndTime(allDay ? '10:00' : timeKey(endDay));
     setFAllDay(allDay);
     setFLocation('');
     setFMemo('');
@@ -134,10 +111,10 @@ export default function Dashboard() {
     setMode('edit');
     setEditId(id);
     setFTitle(ev.title || '');
-    setFStartDate(dateStr(s));
-    setFStartTime(timeStr(s));
-    setFEndDate(dateStr(e));
-    setFEndTime(timeStr(e));
+    setFStartDate(dateKey(s));
+    setFStartTime(timeKey(s));
+    setFEndDate(dateKey(e));
+    setFEndTime(timeKey(e));
     setFAllDay(!!ev.allDay);
     setFLocation(ev.location || '');
     setFMemo(ev.memo || '');
@@ -273,39 +250,13 @@ export default function Dashboard() {
               <label className="app-muted">시작</label>
               <div className="app-row">
                 <DatePicker value={fStartDate} onChange={setFStartDate} markedDates={markedDates} />
-                {!fAllDay && (
-                  <>
-                    <select className="app-select" value={fStartTime.slice(0, 2)} onChange={(e) => setFStartTime(`${e.target.value}:${fStartTime.slice(3)}`)}>
-                      {HOURS.map((h) => (
-                        <option key={h} value={h}>{h}시</option>
-                      ))}
-                    </select>
-                    <select className="app-select" value={fStartTime.slice(3)} onChange={(e) => setFStartTime(`${fStartTime.slice(0, 2)}:${e.target.value}`)}>
-                      {MINUTES.map((m) => (
-                        <option key={m} value={m}>{m}분</option>
-                      ))}
-                    </select>
-                  </>
-                )}
+                {!fAllDay && <TimeSelect value={fStartTime} onChange={setFStartTime} hourLabel="시작 시" minuteLabel="시작 분" />}
               </div>
 
               <label className="app-muted">종료</label>
               <div className="app-row">
                 <DatePicker value={fEndDate} onChange={setFEndDate} markedDates={markedDates} />
-                {!fAllDay && (
-                  <>
-                    <select className="app-select" value={fEndTime.slice(0, 2)} onChange={(e) => setFEndTime(`${e.target.value}:${fEndTime.slice(3)}`)}>
-                      {HOURS.map((h) => (
-                        <option key={h} value={h}>{h}시</option>
-                      ))}
-                    </select>
-                    <select className="app-select" value={fEndTime.slice(3)} onChange={(e) => setFEndTime(`${fEndTime.slice(0, 2)}:${e.target.value}`)}>
-                      {MINUTES.map((m) => (
-                        <option key={m} value={m}>{m}분</option>
-                      ))}
-                    </select>
-                  </>
-                )}
+                {!fAllDay && <TimeSelect value={fEndTime} onChange={setFEndTime} hourLabel="종료 시" minuteLabel="종료 분" />}
               </div>
 
               <input className="app-input" placeholder="위치 (선택)" value={fLocation} onChange={(e) => setFLocation(e.target.value)} />

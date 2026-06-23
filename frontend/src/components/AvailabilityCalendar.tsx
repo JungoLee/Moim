@@ -3,18 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Mark, AvailStatus } from '@/lib/types';
 import styles from './AvailabilityCalendar.module.scss';
+import { pad2, dateKey as toKey, addDays, startOfDay } from '@/lib/datetime';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-
-function startOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
-function addDays(d: Date, n: number): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-}
-function toKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 export type DaySummary = { yes: number; after: number; no: number; afterMax: string };
 
@@ -73,7 +64,7 @@ export default function AvailabilityCalendar({ myMarks, summary, total, mode, on
     return day.getTime() >= lo && day.getTime() <= hi;
   }
 
-  const monthLabel = `${view.getFullYear()}-${String(view.getMonth() + 1).padStart(2, '0')}`;
+  const monthLabel = `${view.getFullYear()}-${pad2(view.getMonth() + 1)}`;
 
   return (
     <div>

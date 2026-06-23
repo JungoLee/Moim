@@ -8,6 +8,7 @@ import CopyButton from '@/components/CopyButton';
 import Avatar from '@/components/Avatar';
 import { api, getToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
+import TimeSelect from '@/components/TimeSelect';
 import UserProfileModal from '@/components/UserProfileModal';
 import type { RoomDetail, User, Mark, AvailStatus } from '@/lib/types';
 
@@ -16,10 +17,6 @@ const MODES: Array<[AvailStatus, string]> = [
   ['no', '안 되는 날'],
   ['after', '시간 이후'],
 ];
-
-// 24시 표기 시/분 (오전·오후 없이)
-const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
-const MINUTES = Array.from({ length: 12 }, (_, m) => String(m * 5).padStart(2, '0'));
 
 export default function RoomPage() {
   const router = useRouter();
@@ -214,24 +211,7 @@ export default function RoomPage() {
           {mode === 'after' && (
             <div className="app-row">
               <label className="app-muted">몇 시 이후부터 가능한가요?</label>
-              <select
-                className="app-select"
-                value={afterTime.slice(0, 2)}
-                onChange={(e) => setAfterTime(`${e.target.value}:${afterTime.slice(3)}`)}
-              >
-                {HOURS.map((h) => (
-                  <option key={h} value={h}>{h}시</option>
-                ))}
-              </select>
-              <select
-                className="app-select"
-                value={afterTime.slice(3)}
-                onChange={(e) => setAfterTime(`${afterTime.slice(0, 2)}:${e.target.value}`)}
-              >
-                {MINUTES.map((m) => (
-                  <option key={m} value={m}>{m}분</option>
-                ))}
-              </select>
+              <TimeSelect value={afterTime} onChange={setAfterTime} />
             </div>
           )}
           <p className="app-muted">

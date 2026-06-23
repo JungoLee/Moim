@@ -6,14 +6,13 @@ import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import DatePicker from '@/components/DatePicker';
 import Select from '@/components/Select';
+import TimeSelect from '@/components/TimeSelect';
 import { api, getToken } from '@/lib/api';
 import { formatRange, displayName } from '@/lib/format';
-import { eventColor } from '@/lib/colors';
+import { todayKey } from '@/lib/datetime';
+import { buildMarkedDates } from '@/lib/marks';
 import { toast } from '@/lib/toast';
 import type { Friend, TimeRequest, MoimEvent } from '@/lib/types';
-
-const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'));
-const MINUTES = Array.from({ length: 12 }, (_, m) => String(m * 5).padStart(2, '0'));
 
 // 내가 보낸(대기 중) 시간 요청 날짜는 일정과 구분되는 색으로 표시
 const REQUEST_COLOR = '#a855f7';
@@ -24,12 +23,6 @@ const STATUS: Record<TimeRequest['status'], string> = {
   declined: '거절됨',
 };
 
-function todayStr(): string {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
-
 export default function Requests() {
   const router = useRouter();
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -38,7 +31,7 @@ export default function Requests() {
   const [events, setEvents] = useState<MoimEvent[]>([]);
 
   const [toId, setToId] = useState('');
-  const [date, setDate] = useState(todayStr());
+  const [date, setDate] = useState(todayKey());
   const [allDay, setAllDay] = useState(false);
   const [startTime, setStartTime] = useState('19:00');
   const [endTime, setEndTime] = useState('20:00');
@@ -71,27 +64,16 @@ export default function Requests() {
     if (to) setToId(to);
   }, [router, load]);
 
-  // 날짜 → 색 (DatePicker 에 내 일정을 점으로 표시)
-  const markedDates = useMemo(() => {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const m: Record<string, string> = {};
-    const mark = (startISO: string, endISO: string, color: string) => {
-      const e = new Date(endISO);
-      const last = new Date(e.getFullYear(), e.getMonth(), e.getDate());
-      let cur = new Date(startISO);
-      cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate());
-      while (cur.getTime() <= last.getTime()) {
-        m[`${cur.getFullYear()}-${pad(cur.getMonth() + 1)}-${pad(cur.getDate())}`] = color;
-        cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
-      }
-    };
-    for (const ev of events) mark(ev.start, ev.end, eventColor(ev));
-    // 내가 보낸(대기 중) 시간 요청은 일정과 다른 색으로 덮어 표시
-    for (const r of sent) {
-      if (r.status === 'pending') mark(r.start, r.end, REQUEST_COLOR);
-    }
-    return m;
-  }, [events, sent]);
+  // 날짜 → 색 (DatePicker: 내 일정 + 내가 보낸 대기 요청을 다른 색으로)
+  const markedDates = useMemo(
+    () =>
+      buildMarkedDates({
+        events,
+        requests: sent.filter((r) => r.status === 'pending'),
+        requestColor: REQUEST_COLOR,
+      }),
+    [events, sent]
+  );
 
   async function send(e: FormEvent) {
     e.preventDefault();
@@ -166,27 +148,9 @@ export default function Requests() {
           </label>
           {!allDay && (
             <div className="app-row app-when-times">
-              <select className="app-select" aria-label="시작 시" value={startTime.slice(0, 2)} onChange={(e) => setStartTime(`${e.target.value}:${startTime.slice(3)}`)}>
-                {HOURS.map((h) => (
-                  <option key={h} value={h}>{h}시</option>
-                ))}
-              </select>
-              <select className="app-select" aria-label="시작 분" value={startTime.slice(3)} onChange={(e) => setStartTime(`${startTime.slice(0, 2)}:${e.target.value}`)}>
-                {MINUTES.map((m) => (
-                  <option key={m} value={m}>{m}분</option>
-                ))}
-              </select>
+              <TimeSelect value={startTime} onChange={setStartTime} hourLabel="시작 시" minuteLabel="시작 분" />
               <span className="app-muted">~</span>
-              <select className="app-select" aria-label="종료 시" value={endTime.slice(0, 2)} onChange={(e) => setEndTime(`${e.target.value}:${endTime.slice(3)}`)}>
-                {HOURS.map((h) => (
-                  <option key={h} value={h}>{h}시</option>
-                ))}
-              </select>
-              <select className="app-select" aria-label="종료 분" value={endTime.slice(3)} onChange={(e) => setEndTime(`${endTime.slice(0, 2)}:${e.target.value}`)}>
-                {MINUTES.map((m) => (
-                  <option key={m} value={m}>{m}분</option>
-                ))}
-              </select>
+              <TimeSelect value={endTime} onChange={setEndTime} hourLabel="종료 시" minuteLabel="종료 분" />
             </div>
           )}
 
