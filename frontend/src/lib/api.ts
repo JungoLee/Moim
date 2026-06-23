@@ -20,6 +20,16 @@ export function googleLoginUrl(): string {
 }
 
 /**
+ * 백엔드(프론트와 별도 Render 서비스)의 콜드스타트를 미리 깨운다. fire-and-forget.
+ * 랜딩 진입 시 호출해 두면, 로그인 클릭으로 백엔드 OAuth 로 넘어갈 때
+ * "서비스 깨우는 중" 화면을 다시 보지 않을 가능성이 높아진다.
+ */
+export function warmApi(): void {
+  if (typeof window === 'undefined') return;
+  fetch(`${API_BASE}/api/health`).catch(() => {});
+}
+
+/**
  * 다른 창(로그인 팝업)에서 토큰이 저장되면 콜백 실행. 정리 함수 반환.
  * localStorage 는 동일 출처 창끼리 공유되고, setItem 시 다른 창에 storage 이벤트가
  * 발생하므로 window.opener / postMessage 없이도(COOP 영향 없이) 안전하게 감지된다.

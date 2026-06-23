@@ -2,13 +2,15 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getToken, googleLoginUrl, onTokenStored } from '@/lib/api';
+import { getToken, googleLoginUrl, onTokenStored, warmApi } from '@/lib/api';
 import { BRAND_NAME } from '@/lib/brand';
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    // 백엔드(별도 서비스)를 미리 깨워 로그인 시 콜드스타트 화면을 줄인다.
+    warmApi();
     if (getToken()) {
       router.replace('/home');
       return;
