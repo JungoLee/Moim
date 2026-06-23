@@ -413,7 +413,7 @@ input[type='radio'] {
 }
 @media (min-width: 900px) {
   .room-grid {
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: 1fr 400px;
   }
 }
 .room-aside {
@@ -421,8 +421,15 @@ input[type='radio'] {
   top: 76px;
 }
 .room-comment {
-  padding: var(--space-2) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
   border-top: 1px solid var(--color-border-soft);
+}
+.room-comment-text {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* 계정 드로어 (우측 슬라이드) */

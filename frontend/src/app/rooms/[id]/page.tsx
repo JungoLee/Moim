@@ -230,31 +230,6 @@ export default function RoomPage() {
           </p>
           <AvailabilityCalendar myMarks={myMarks} summary={summary} total={total} mode={mode} onApply={onApply} />
         </div>
-
-        <div className="app-card">
-          <h3>🎉 모두 되는 날 ({fullDays.length})</h3>
-          {fullDays.length === 0 ? (
-            <p className="app-muted">아직 전원이 종일 가능한 날이 없습니다.</p>
-          ) : (
-            <div className="app-row">
-              {fullDays.map((d) => (
-                <span key={d}>📅 {d}</span>
-              ))}
-            </div>
-          )}
-          {partialDays.length > 0 && (
-            <>
-              <h3 style={{ marginTop: 'var(--space-4)' }}>🕖 시간 조율하면 가능 ({partialDays.length})</h3>
-              <div className="app-row">
-                {partialDays.map((d) => (
-                  <span key={d} className="app-muted">
-                    📅 {d} ({summary[d].afterMax}~)
-                  </span>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
           </div>
 
           <aside className="room-aside">
@@ -286,11 +261,36 @@ export default function RoomPage() {
                       </button>
                     )}
                   </div>
-                  <div>{c.text}</div>
+                  <div className="room-comment-text">{c.text}</div>
                 </div>
               ))}
             </div>
           </aside>
+        </div>
+
+        <div className="app-card">
+          <h3>🎉 모두 되는 날 ({fullDays.length})</h3>
+          {fullDays.length === 0 ? (
+            <p className="app-muted">아직 전원이 종일 가능한 날이 없습니다.</p>
+          ) : (
+            <div className="app-row">
+              {fullDays.map((d) => (
+                <span key={d}>📅 {d}</span>
+              ))}
+            </div>
+          )}
+          {partialDays.length > 0 && (
+            <>
+              <h3 style={{ marginTop: 'var(--space-4)' }}>🕖 시간 조율하면 가능 ({partialDays.length})</h3>
+              <div className="app-row">
+                {partialDays.map((d) => (
+                  <span key={d} className="app-muted">
+                    📅 {d} ({summary[d].afterMax}~)
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </main>
     </>
