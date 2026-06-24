@@ -18,11 +18,6 @@ export const DEFAULT_TIER_COLOR = TIER_PALETTE[0];
 export const PUBLIC_COLOR = '#35c08a'; // 공개(공유)
 export const PRIVATE_COLOR = '#e08a3c'; // 비공개(나만)
 
-const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
-export function isHexColor(s: unknown): s is string {
-  return typeof s === 'string' && HEX_RE.test(s);
-}
-
 // 일정 라인 색: 공개=초록 / 비공개=주황 / 비공개+그룹지정=그룹색
 export function eventColor(ev: MoimEvent, tierColors?: Record<string, string>): string {
   if (ev.visibility === 'private') {

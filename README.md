@@ -93,6 +93,8 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 | GET/POST | `/api/rooms` · `/join` | 모임 방 목록·생성 / 코드 입장 |
 | GET/PUT | `/api/rooms/:id` · `/availability` | 방 상세(멤버·가용성·채팅 메시지) / 내 가능표시 저장 |
 | POST/DELETE | `/api/rooms/:id/comments[/:cid]` | 방 채팅 메시지 작성 / 삭제(본인·방장) |
+| PATCH/POST | `/api/rooms/:id` · `/:id/code` | (방장) 방 설정(이름·URL가입) / 초대코드 재발급 |
+| DELETE/POST | `/api/rooms/:id/members/:uid` · `/:id/join-url` | (방장) 멤버 강퇴 / URL 가입(코드 없이 입장) |
 | PATCH | `/api/auth/me` | 닉네임 설정 |
 | GET/PUT | `/api/auth/leave` | 연차 계산기 설정 조회(갱신일 자동 이월) / 저장 |
 | GET | `/api/requests/received`·`/sent` | 받은 / 보낸 시간요청 |
@@ -116,6 +118,6 @@ Moim/
 └─ frontend/
    └─ src/
       ├─ app/           # home · dashboard · friends · tiers · rooms · requests · tools/leave · admin · u/[userId] · auth/callback
-      ├─ components/    # Nav · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Avatar · Notice · AccountDrawer · LegalModal · CopyButton · AdUnit
-      └─ lib/           # api · types · format · brand · colors · leave · holidays · adsense
+      ├─ components/    # Nav · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Avatar · MemberRow · Notice · AccountDrawer · LegalModal · CopyButton · Tooltip · RoomChat · QuickActions · AdUnit
+      └─ lib/           # api · clipboard · types · format · brand · colors · leave · holidays · adsense
 ```

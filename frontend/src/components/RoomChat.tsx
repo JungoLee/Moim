@@ -6,7 +6,23 @@ import { api } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
 import Avatar from '@/components/Avatar';
 import UserProfileModal from '@/components/UserProfileModal';
+import { pad2 } from '@/lib/datetime';
+import { displayName } from '@/lib/format';
 import type { RoomComment, RoomDetail, User } from '@/lib/types';
+
+/** ISO 문자열 → 'M/D HH:MM' (그룹 첫 메시지 타임스탬프) */
+function fmtTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getMonth() + 1}/${d.getDate()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+/** ISO 문자열 → 'HH:MM' (연속 메시지용 시·분만) */
+function fmtTimeOnly(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
 
 /** 모임 방 채팅 — 우하단 플로팅 패널. 내 메시지=오른쪽, 상대=왼쪽. 6초 폴링으로 near-realtime. */
 export default function RoomChat({ roomId, onClose }: { roomId: string; onClose: () => void }) {
@@ -127,36 +143,48 @@ export default function RoomChat({ roomId, onClose }: { roomId: string; onClose:
       </div>
       <div className="app-chat-body" ref={bodyRef}>
         {comments.length === 0 && <p className="app-muted">첫 메시지를 남겨보세요.</p>}
-        {comments.map((c) => {
+        {comments.map((c, i) => {
           const mine = c.user === meId;
           const author = members[c.user];
+          const authorName = author ? displayName(author) : c.name || '익명';
+          // 직전 메시지와 같은 사람 → 연속(아바타·이름 생략, 시·분만)
+          const cont = i > 0 && comments[i - 1].user === c.user;
           return (
-            <div key={c._id} className={mine ? 'app-msg app-msg--mine' : 'app-msg'}>
-              {!mine && (
-                <button
-                  type="button"
-                  className="app-msg-avatar"
-                  onClick={() => author && setProfileUser(author)}
-                  aria-label={`${c.name} 프로필`}
-                >
-                  <Avatar src={c.picture || author?.picture} alt={c.name} />
-                </button>
-              )}
+            <div
+              key={c._id}
+              className={`app-msg${mine ? ' app-msg--mine' : ''}${cont ? ' app-msg--cont' : ''}`}
+            >
+              {!mine &&
+                (cont ? (
+                  <span className="app-msg-avatar-gap" aria-hidden />
+                ) : (
+                  <button
+                    type="button"
+                    className="app-msg-avatar"
+                    onClick={() => author && setProfileUser(author)}
+                    aria-label={`${authorName} 프로필`}
+                  >
+                    <Avatar src={c.picture || author?.picture} alt={authorName} />
+                  </button>
+                ))}
               <div className="app-msg-col">
-                {!mine && <span className="app-msg-name">{c.name || '익명'}</span>}
-                <div className="app-msg-bubble">{c.text}</div>
+                {!mine && !cont && <span className="app-msg-name">{authorName}</span>}
+                <div className="app-msg-line">
+                  {mine && (
+                    <button
+                      type="button"
+                      className="app-msg-del"
+                      onClick={() => deleteMessage(c._id)}
+                      aria-label="메시지 삭제"
+                      title="삭제"
+                    >
+                      ✕
+                    </button>
+                  )}
+                  <div className="app-msg-bubble">{c.text}</div>
+                  <span className="app-msg-time">{cont ? fmtTimeOnly(c.createdAt) : fmtTime(c.createdAt)}</span>
+                </div>
               </div>
-              {mine && (
-                <button
-                  type="button"
-                  className="app-msg-del"
-                  onClick={() => deleteMessage(c._id)}
-                  aria-label="메시지 삭제"
-                  title="삭제"
-                >
-                  ✕
-                </button>
-              )}
             </div>
           );
         })}

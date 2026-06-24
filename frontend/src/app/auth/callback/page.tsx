@@ -13,10 +13,20 @@ export default function AuthCallback() {
     const token = params.get('token');
     if (token) {
       setToken(token);
-      // 팝업으로 열렸으면 닫는다(부모 창이 storage 이벤트로 /home 이동 처리).
-      // 일반 탭이면 window.close()가 무시되고 아래 replace로 직접 이동.
+      // 팝업으로 열렸으면 닫는다(부모 창이 storage 이벤트로 기억해둔 곳/홈 이동 처리).
+      // 일반 탭(팝업 차단)이면 window.close()가 무시되고 아래 replace로 직접 이동.
       window.close();
-      router.replace('/home');
+      let dest = '/home';
+      try {
+        const n = sessionStorage.getItem('postLoginRedirect');
+        if (n) {
+          sessionStorage.removeItem('postLoginRedirect');
+          dest = n;
+        }
+      } catch {
+        /* 무시 */
+      }
+      router.replace(dest);
     } else {
       setError('로그인에 실패했습니다. 다시 시도해 주세요.');
     }

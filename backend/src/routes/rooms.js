@@ -88,7 +88,7 @@ router.get('/:id', async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
   }
-  const room = await Room.findById(req.params.id).populate('members', 'name email picture');
+  const room = await Room.findById(req.params.id).populate('members', 'name nickname email picture');
   if (!room) return res.status(404).json({ ok: false, message: '방을 찾을 수 없습니다.' });
   if (!isMember(room, req.userId)) return res.status(403).json({ ok: false, message: '이 방의 멤버가 아닙니다.' });
 
@@ -107,8 +107,9 @@ router.get('/:id', async (req, res) => {
       _id: room._id,
       name: room.name,
       code: room.code,
+      joinByUrl: room.joinByUrl,
       owner: room.owner,
-      members: room.members.map((m) => ({ _id: m._id, name: m.name, email: m.email, picture: m.picture })),
+      members: room.members.map((m) => ({ _id: m._id, name: m.name, nickname: m.nickname, email: m.email, picture: m.picture })),
     },
     availabilities,
     comments: (room.comments || []).map((c) => ({
@@ -172,6 +173,71 @@ router.delete('/:id/comments/:commentId', async (req, res) => {
   c.deleteOne();
   await room.save();
   res.json({ ok: true });
+});
+
+// 방 설정 변경 (방장만): 이름 / URL 가입 허용
+router.patch('/:id', async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
+  }
+  const update = {};
+  if (req.body.name !== undefined) {
+    const name = String(req.body.name).trim();
+    if (!name) return res.status(400).json({ ok: false, message: '이름이 비어 있습니다.' });
+    update.name = name;
+  }
+  if (req.body.joinByUrl !== undefined) update.joinByUrl = !!req.body.joinByUrl;
+  if (Object.keys(update).length === 0) {
+    return res.status(400).json({ ok: false, message: '변경할 내용이 없습니다.' });
+  }
+  const room = await Room.findOneAndUpdate({ _id: req.params.id, owner: req.userId }, update, { new: true });
+  if (!room) return res.status(404).json({ ok: false, message: '방을 찾을 수 없거나 권한이 없습니다.' });
+  res.json({ ok: true });
+});
+
+// 초대 코드 재발급 (방장만) — 기존 코드/링크 무효화
+router.post('/:id/code', async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
+  }
+  const room = await Room.findOne({ _id: req.params.id, owner: req.userId });
+  if (!room) return res.status(404).json({ ok: false, message: '방을 찾을 수 없거나 권한이 없습니다.' });
+  room.code = await genCode();
+  await room.save();
+  res.json({ ok: true, code: room.code });
+});
+
+// 멤버 강퇴 (방장만, 방장 본인은 불가)
+router.delete('/:id/members/:userId', async (req, res) => {
+  const { id, userId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
+  }
+  const room = await Room.findOne({ _id: id, owner: req.userId });
+  if (!room) return res.status(404).json({ ok: false, message: '방을 찾을 수 없거나 권한이 없습니다.' });
+  if (userId === room.owner.toString()) {
+    return res.status(400).json({ ok: false, message: '방장은 강퇴할 수 없습니다.' });
+  }
+  room.members = room.members.filter((m) => m.toString() !== userId);
+  room.availabilities = room.availabilities.filter((a) => a.user.toString() !== userId);
+  await room.save();
+  res.json({ ok: true });
+});
+
+// URL 가입 — 코드 없이 입장. 방장이 허용(joinByUrl)했을 때만 자동 가입, 아니면 코드 필요.
+router.post('/:id/join-url', async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ ok: false, message: '잘못된 id 입니다.' });
+  }
+  const room = await Room.findById(req.params.id);
+  if (!room) return res.status(404).json({ ok: false, message: '방을 찾을 수 없습니다.' });
+  if (isMember(room, req.userId)) return res.json({ ok: true, roomId: room._id, name: room.name });
+  if (!room.joinByUrl) {
+    return res.status(403).json({ ok: false, needCode: true, message: '초대 코드로 입장하세요.' });
+  }
+  room.members.push(req.userId);
+  await room.save();
+  res.json({ ok: true, roomId: room._id, name: room.name });
 });
 
 // 방 삭제 (owner 만)

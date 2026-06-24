@@ -177,12 +177,12 @@ export default function Requests() {
               <label className="app-form-label">메시지 (선택)</label>
               <input className="app-input" placeholder="짧은 메시지를 남겨보세요" value={message} onChange={(e) => setMessage(e.target.value)} />
 
-              <div className="app-form-actions">
-                <button className="app-btn" type="submit">
-                  보내기
-                </button>
+              <div className="app-actions">
                 <button type="button" className="app-btn app-btn--ghost" onClick={() => setCreateOpen(false)}>
                   닫기
+                </button>
+                <button className="app-btn" type="submit">
+                  보내기
                 </button>
               </div>
             </form>

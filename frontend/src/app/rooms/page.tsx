@@ -97,12 +97,12 @@ export default function Rooms() {
                 autoFocus
               />
               {createErr && <Notice>{createErr}</Notice>}
-              <div className="app-row">
-                <button className="app-btn" type="submit">
-                  방 만들기
-                </button>
+              <div className="app-actions">
                 <button type="button" className="app-btn app-btn--ghost" onClick={() => setCreateOpen(false)}>
                   닫기
+                </button>
+                <button className="app-btn" type="submit">
+                  방 만들기
                 </button>
               </div>
             </form>
@@ -121,12 +121,12 @@ export default function Rooms() {
                 autoFocus
               />
               {joinErr && <Notice>{joinErr}</Notice>}
-              <div className="app-row">
-                <button className="app-btn" type="submit">
-                  입장
-                </button>
+              <div className="app-actions">
                 <button type="button" className="app-btn app-btn--ghost" onClick={() => setJoinOpen(false)}>
                   닫기
+                </button>
+                <button className="app-btn" type="submit">
+                  입장
                 </button>
               </div>
             </form>

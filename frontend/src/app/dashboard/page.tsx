@@ -279,21 +279,21 @@ export default function Dashboard() {
                 )}
               </select>
 
-              <div className="app-row">
-                <button className="app-btn" type="submit">
-                  {mode === 'edit' ? '저장' : '추가'}
-                </button>
-                <button type="button" className="app-btn app-btn--ghost" onClick={() => setOpen(false)}>
-                  취소
-                </button>
+              <div className="app-actions">
                 {mode === 'edit' && (
                   <>
-                    <span className="app-spacer" />
                     <button type="button" className="app-btn app-btn--ghost" onClick={deleteEvent}>
                       삭제
                     </button>
+                    <span className="app-spacer" />
                   </>
                 )}
+                <button type="button" className="app-btn app-btn--ghost" onClick={() => setOpen(false)}>
+                  취소
+                </button>
+                <button className="app-btn" type="submit">
+                  {mode === 'edit' ? '저장' : '추가'}
+                </button>
               </div>
             </form>
           </Modal>

@@ -1,47 +1,4 @@
-/* 멤버 리스트 — 그룹 카드 안 아코디언 내부의 깔끔한 리스트 */
-.list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-md);
-  transition: background 0.16s ease;
-}
-.item:not(:last-child) {
-  border-bottom: 1px solid var(--color-border-soft);
-}
-.item:hover {
-  background: var(--color-surface-2);
-}
-
-/* 이름(굵게) + 이메일(작은 muted) 세로 스택 */
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  flex: 1;
-  min-width: 0;
-}
-.name {
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.email {
-  font-size: 0.82rem;
-  color: var(--color-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
+/* 멤버 행은 전역 .app-member* (components/MemberRow) 사용 */
 .empty {
   color: var(--color-muted);
   padding: var(--space-2);

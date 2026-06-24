@@ -1,35 +1,38 @@
 'use client';
 
 import { useState } from 'react';
+import { copyToClipboard } from '@/lib/clipboard';
 
 type Props = {
   text: string;
   label?: string;
+  /** 아이콘 버튼으로 표시 (🔗). 텍스트 대신 아이콘 + title */
+  icon?: boolean;
+  /** 아이콘 모드의 접근성 라벨/툴팁 */
+  title?: string;
 };
 
-export default function CopyButton({ text, label = '복사' }: Props) {
+export default function CopyButton({ text, label = '복사', icon = false, title }: Props) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      // 클립보드 API 불가(비보안 컨텍스트 등) → 폴백
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand('copy');
-      } catch {
-        /* 무시 */
-      }
-      document.body.removeChild(ta);
-    }
+    await copyToClipboard(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  }
+
+  if (icon) {
+    return (
+      <button
+        type="button"
+        className="app-btn app-btn--ghost app-icon-btn"
+        onClick={copy}
+        title={title || label}
+        aria-label={title || label}
+      >
+        {copied ? '✓' : '🔗'}
+      </button>
+    );
   }
 
   return (

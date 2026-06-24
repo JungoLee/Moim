@@ -87,8 +87,8 @@ frontend/  Next.js App Router
   src/components/ 공용:
                   Nav(현재탭 강조+우하단 FAB=QuickActions, FAB는 페이지가 lib/quickActions 로 액션 등록) · PageHero(탭 상단 비주얼 헤더) · Calendar=FullCalendar(월 뷰) · AvailabilityCalendar · DatePicker(block 풀폭·일정 점 표시)
                   RoomChat(모임 플로팅 채팅·말풍선·폴링) · UserProfileModal(타인 프로필 액션) · Modal(공용 모달 래퍼) · ConfirmHost(커스텀 확인창) · Toaster · Accordion(접기)
-                  Select(커스텀 드롭다운) · TimeSelect(24시 시/분) · ColorPalette+ColorWheel(그룹 색) · Avatar · Notice · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · AdUnit(광고)
-  src/lib/        api.ts(fetch+토큰) · types.ts · format.ts · brand.ts · colors.ts(그룹/일정 색) · datetime.ts(날짜·시간 유틸·HOURS/MINUTES) · marks.ts(달력 점 계산) · confirm.ts(커스텀 확인창) · quickActions.ts(FAB 액션 레지스트리) · toast.ts(토스트) · leave.ts(연차) · holidays.ts · adsense.ts
+                  Select(커스텀 드롭다운) · TimeSelect(24시 시/분) · ColorPalette+ColorWheel(그룹 색) · Avatar · MemberRow(그룹·모임 멤버 행 공용) · Notice · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · AdUnit(광고)
+  src/lib/        api.ts(fetch+토큰) · clipboard.ts(복사 공용) · types.ts · format.ts · brand.ts · colors.ts(그룹/일정 색) · datetime.ts(날짜·시간 유틸·HOURS/MINUTES) · marks.ts(달력 점 계산) · confirm.ts(커스텀 확인창) · quickActions.ts(FAB 액션 레지스트리) · toast.ts(토스트) · leave.ts(연차) · holidays.ts · adsense.ts
   public/         ads.txt(애드센스 게시자 확인 → /ads.txt 로 서빙)
 backend/   Express(ESM)
   src/routes/     auth · events · friends · tiers(그룹) · rooms(모임) · calendar · admin · requests(시간요청)

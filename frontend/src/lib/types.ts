@@ -56,6 +56,7 @@ export type RoomDetail = {
   _id: string;
   name: string;
   code: string;
+  joinByUrl?: boolean;
   owner: string;
   members: User[];
 };

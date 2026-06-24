@@ -32,7 +32,7 @@
 - **User**: `googleId`, `email`, `name`, `nickname`(표시명, 있으면 우선), `picture`, `isAdmin`, `leave`(연차 계산기 설정: remaining·start·renewal·maxConsec·style — 갱신일 지나면 서버가 자동 이월)
 - **Friendship**: `requester`, `recipient`, `status`(pending|accepted) — 친구 그래프 = 캘린더 열람 권한. 가시성 제어는 그룹/일정으로 분리
 - **Tier(그룹)**: `owner`, `name`, `code`(고유), `color`(캘린더 라인 색), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가. 생성 시 색상 지정
-- **Room(모임 방)**: `owner`, `name`, `code`(초대), `members[]`, `availabilities[{user, marks[{date,status(yes|no|after),time}]}]`, `comments[]` — 멤버별 가능/불가/시간 → 모두 되는 날 집계 + 채팅(메시지=comments, 작성자 picture 동봉)
+- **Room(모임 방)**: `owner`, `name`, `code`(초대), `joinByUrl`(true면 비멤버도 URL 진입 시 자동 가입), `members[]`, `availabilities[{user, marks[{date,status(yes|no|after),time}]}]`, `comments[]` — 멤버별 가능/불가/시간 → 모두 되는 날 집계 + 채팅(메시지=comments, 작성자 picture 동봉)
 - **Event**: `owner`, `title`, `start`, `end`, `allDay`, `location`, `memo`, `visibility`(public|private), `audienceTiers[]`(비공개 시 상세 열람 그룹)
 - **TimeRequest**: `from`, `to`, `title`, `start`, `end`, `allDay`, `message`, `status`(pending|accepted|declined) — 친구에게 시간 요청, 수락 시 양쪽 일정 생성(allDay 반영)
 
@@ -79,8 +79,20 @@
 - [x] **연차 설정 저장** — `User.leave` + `GET/PUT /api/auth/leave`(갱신일 자동 이월), 홈 '추천 연차' 카드, 연차 폼 세그먼트 칩·풀폭 정렬, `Accordion` 컴포넌트
 - [x] **DatePicker `block`(풀폭) + 일정 점 표시**, 2차 리팩토링(leave.ts 날짜헬퍼 datetime 재사용, 미사용 plugin/CSS 정리)
 
+#### 2026-06-24~25 묶음 (모임/그룹 설정 + 채팅 고도화 + 리팩토링)
+- [x] **모임 설정 팝업(방장)** — 룸 헤더 ⚙ 설정 모달: 초대코드(+코드/링크 복사)·**방 이름 변경**·**URL 가입 허용 토글**·**초대 코드 재발급**·**멤버 강퇴**·모임 삭제. 백엔드 `PATCH /api/rooms/:id`·`POST /:id/code`·`DELETE /:id/members/:userId`·`POST /:id/join-url` + `Room.joinByUrl`
+- [x] **URL로 가입** — 토글 ON 시 비멤버가 방 URL 진입만으로 자동 가입, OFF면 "코드로 입장" 안내. **비로그인 진입은 로그인 후 원래 방으로 자동 복귀**(`sessionStorage.postLoginRedirect` → 랜딩/콜백이 소비)
+- [x] **그룹 설정 팝업** — `/tiers` 카드의 코드·복사·색상·삭제를 ⚙ 설정 모달로 이동, 카드 본문은 이름 + 멤버 아코디언만
+- [x] **멤버 목록 컴포넌트화** — 그룹·모임 공용 `MemberRow`(아바타+닉네임/이메일+우측 액션) + 전역 `.app-member*`, 멤버 영역 compact **아코디언**
+- [x] **모임 채팅 고도화** — 안읽은 **카운트 배지**(FAB +·채팅 메뉴, 6초 폴링·클라 lastRead 기준), 카톡식 **연속 메시지 그룹핑**(아바타/이름 생략·시각 옆), **닉네임 우선 표시**(rooms·tiers populate에 nickname 추가)
+- [x] **모임 공유** — FAB '공유' → URL/코드 아이콘 2택 복사 모달. 클립보드 로직 `lib/clipboard` 공용화(CopyButton·QuickActions 중복 제거)
+- [x] **가용성 UX** — '시간 이후' 선택 시 시/분 **드롭다운 팝오버**, **리셋** 버튼(내 표시 전체 해제), 캘린더 상단 여백
+- [x] **모달 버튼 정렬 통일** — 전 모달 `.app-actions` 로 취소/닫기(좌)·확인/서브밋(우) 우측 정렬
+- [x] **폰트 스코프 수정** — `EnMono`(시스템 모노 별칭) `unicode-range` 를 **영문·숫자(0-9·A-Z·a-z)** 로만 제한 → 한글·기호는 Pretendard. (실제 EnMono 폰트 파일은 아직 미적용 — 파일 받으면 `src: url()` 연결)
+- [x] **데드코드 정리** — 미사용 `isHexColor`(lib/colors)·`.app-form-actions`(globals) 제거
+
 ### 다음 작업 (남은 것)
-- [ ] **안 읽음 표시 본격화** — 홈에 받은 친구요청 배지는 됨. 새 채팅/모임 변경 등 알림은 추후(lastSeen 기반)
+- [ ] **안 읽음 표시 본격화** — 받은 친구요청 배지 + **모임 채팅 안읽음 카운트**(클라 `lastRead`) 됨. **서버 `lastSeen` 영속**·다른 알림(모임 변경 등)은 추후
 - [ ] **Nav 공통 레이아웃화** — 현재 각 페이지가 `<Nav/>` 렌더 → 이동마다 리마운트(짧은 깜빡임). route group 레이아웃으로 올려 네비/FAB 고정·본문만 교체하면 SPA 체감 향상
 - [ ] **실시간 채팅(Socket.io)** — 현재 6초 폴링. 진짜 푸시는 Phase 4
 
@@ -156,6 +168,7 @@
 - 프론트 `next build` 시 **ESLint 건너뜀**(`next.config.mjs`) — eslint-config-next 추가 후 되돌릴 것.
 - 일정 기본 가시성은 `public`(공유). 비공개는 그룹을 만들어 지정해야 상세 노출.
 - 일정 입력은 커스텀 날짜 picker + 24시 시간 select + 종일 토글(타임존/반복 일정 미지원).
-- 연차 계산기 공휴일은 양력 고정만 내장(음력·대체공휴일 미반영 — data.go.kr 키 연동 시 해소).
+- 연차 계산기 공휴일은 `lib/holidays.ts` 에 2026–2031 양력+음력+대체공휴일 내장(음력 당일은 LUNAR 테이블, 임시공휴일·선거일은 수동 추가).
+- `EnMono` 는 실제 폰트 파일 없이 시스템 모노스페이스 별칭(`local()`) — 환경별 글리프 차이 있음. 실제 폰트 확보 시 `@font-face src: url()` 연결.
 - 테스트 코드 없음.
 - Render free 플랜은 15분 무트래픽 시 슬립 → 첫 요청 콜드스타트 지연(~50s). 프론트/백 **2개 서비스**라 로그인 시 백엔드 콜드스타트가 한 번 더 노출됨. **완화 적용**: 랜딩 진입 시 `warmApi()`가 백엔드 `/api/health` 를 미리 깨워 2차 화면 감소. 완전 제거는 **Starter 승격**(`render.yaml` `plan: free`→`starter`, 코드 변경 불필요). ※ 무료는 계정당 750 인스턴스-시간/월(2개 상시 keep-alive는 초과).

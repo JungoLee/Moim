@@ -21,7 +21,7 @@ async function generateUniqueCode() {
 // 내 그룹 목록 (멤버 정보 포함)
 router.get('/', async (req, res) => {
   const tiers = await Tier.find({ owner: req.userId })
-    .populate('members', 'name email picture')
+    .populate('members', 'name nickname email picture')
     .sort({ createdAt: 1 });
   res.json({ ok: true, tiers });
 });

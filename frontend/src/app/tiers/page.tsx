@@ -9,7 +9,7 @@ import ColorPalette from '@/components/ColorPalette';
 import Modal from '@/components/Modal';
 import PageHero from '@/components/PageHero';
 import Accordion from '@/components/Accordion';
-import Avatar from '@/components/Avatar';
+import MemberRow from '@/components/MemberRow';
 import { api, getToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
 import { setQuickActions } from '@/lib/quickActions';
@@ -33,6 +33,8 @@ export default function Tiers() {
   // 추가/가입 모달 (FAB 퀵액션으로 열림)
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
+  // 그룹 설정 모달 (열려있는 그룹 id)
+  const [settingsId, setSettingsId] = useState('');
 
   // FAB 컨텍스트 퀵액션 등록
   useEffect(
@@ -125,6 +127,8 @@ export default function Tiers() {
     }
   }
 
+  const settingsTier = tiers.find((t) => t._id === settingsId) || null;
+
   return (
     <>
       <Nav />
@@ -152,12 +156,12 @@ export default function Tiers() {
                 <ColorPalette value={color} onChange={setColor} immediate />
               </div>
               {createErr && <Notice>{createErr}</Notice>}
-              <div className="app-row">
-                <button className="app-btn" type="submit">
-                  그룹 만들기
-                </button>
+              <div className="app-actions">
                 <button type="button" className="app-btn app-btn--ghost" onClick={() => setCreateOpen(false)}>
                   닫기
+                </button>
+                <button className="app-btn" type="submit">
+                  그룹 만들기
                 </button>
               </div>
             </form>
@@ -176,15 +180,55 @@ export default function Tiers() {
                 autoFocus
               />
               {joinMsg && <Notice ok={joinMsg.ok}>{joinMsg.text}</Notice>}
-              <div className="app-row">
-                <button className="app-btn" type="submit">
-                  가입
-                </button>
+              <div className="app-actions">
                 <button type="button" className="app-btn app-btn--ghost" onClick={() => setJoinOpen(false)}>
                   닫기
                 </button>
+                <button className="app-btn" type="submit">
+                  가입
+                </button>
               </div>
             </form>
+          </Modal>
+        )}
+
+        {settingsTier && (
+          <Modal onClose={() => setSettingsId('')}>
+            <div className="app-contents">
+              <h3>
+                <i className="app-dot" style={{ background: settingsTier.color || DEFAULT_TIER_COLOR }} />{' '}
+                {settingsTier.name} 설정
+              </h3>
+
+              <div className="app-row">
+                <span className="app-muted">초대 코드</span>
+                <code className="room-code-val">{settingsTier.code}</code>
+                <CopyButton text={settingsTier.code} label="복사" />
+              </div>
+
+              <div>
+                <span className="app-muted">색상</span>
+                <ColorPalette
+                  value={settingsTier.color || DEFAULT_TIER_COLOR}
+                  onChange={(hex) => updateColor(settingsTier._id, hex)}
+                />
+              </div>
+
+              {memberErr[settingsTier._id] && <Notice>{memberErr[settingsTier._id]}</Notice>}
+
+              <div className="app-actions">
+                <button type="button" className="app-btn app-btn--ghost" onClick={() => setSettingsId('')}>
+                  닫기
+                </button>
+                <button
+                  type="button"
+                  className="app-btn app-btn--danger"
+                  onClick={() => deleteTier(settingsTier._id)}
+                >
+                  그룹 삭제
+                </button>
+              </div>
+            </div>
           </Modal>
         )}
 
@@ -195,17 +239,14 @@ export default function Tiers() {
             <div className="app-row">
               <i className="app-dot" style={{ background: t.color || DEFAULT_TIER_COLOR }} />
               <strong>{t.name}</strong>
-              <span className="app-muted">코드: {t.code}</span>
-              <CopyButton text={t.code} label="복사" />
               <span className="app-spacer" />
-              <button className="app-btn app-btn--ghost" onClick={() => deleteTier(t._id)}>
-                삭제
+              <button
+                className="app-btn app-btn--ghost"
+                onClick={() => setSettingsId(t._id)}
+                aria-label={`${t.name} 설정`}
+              >
+                ⚙ 설정
               </button>
-            </div>
-
-            <div style={{ marginTop: 'var(--space-2)' }}>
-              <span className="app-muted">색상</span>
-              <ColorPalette value={t.color || DEFAULT_TIER_COLOR} onChange={(hex) => updateColor(t._id, hex)} />
             </div>
 
             <div style={{ marginTop: 'var(--space-2)' }}>
@@ -213,37 +254,36 @@ export default function Tiers() {
                 {t.members.length === 0 ? (
                   <p className={s.empty}>아직 멤버가 없습니다.</p>
                 ) : (
-                  <ul className={s.list}>
+                  <div className="app-member-list">
                     {t.members.map((m) => (
-                      <li className={s.item} key={m._id}>
-                        <Avatar src={m.picture} alt={m.name} />
-                        <span className={s.info}>
-                          <span className={s.name}>{m.name}</span>
-                          <span className={s.email}>{m.email}</span>
-                        </span>
-                        <button className="app-btn app-btn--ghost" onClick={() => removeMember(t._id, m._id)}>
-                          제거
-                        </button>
-                      </li>
+                      <MemberRow
+                        key={m._id}
+                        user={m}
+                        action={
+                          <button className="app-btn app-btn--ghost" onClick={() => removeMember(t._id, m._id)}>
+                            제거
+                          </button>
+                        }
+                      />
                     ))}
-                  </ul>
+                  </div>
                 )}
-
-                <div className={`app-row ${s.add}`}>
-                  <input
-                    className="app-input"
-                    type="email"
-                    placeholder="멤버 이메일 추가"
-                    value={memberEmail[t._id] || ''}
-                    onChange={(e) => setMemberEmail((mm) => ({ ...mm, [t._id]: e.target.value }))}
-                  />
-                  <button className="app-btn" onClick={() => addMember(t._id)}>
-                    추가
-                  </button>
-                </div>
-                {memberErr[t._id] && <Notice>{memberErr[t._id]}</Notice>}
               </Accordion>
             </div>
+
+            <div className={`app-row ${s.add}`}>
+              <input
+                className="app-input"
+                type="email"
+                placeholder="멤버 이메일 추가"
+                value={memberEmail[t._id] || ''}
+                onChange={(e) => setMemberEmail((mm) => ({ ...mm, [t._id]: e.target.value }))}
+              />
+              <button className="app-btn" onClick={() => addMember(t._id)}>
+                추가
+              </button>
+            </div>
+            {memberErr[t._id] && <Notice>{memberErr[t._id]}</Notice>}
           </div>
         ))}
       </main>

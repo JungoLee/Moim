@@ -11,12 +11,25 @@ export default function Home() {
   useEffect(() => {
     // 백엔드(별도 서비스)를 미리 깨워 로그인 시 콜드스타트 화면을 줄인다.
     warmApi();
+    // 로그인 후 돌아갈 곳: 기억해둔 경로(예: 공유받은 모임 URL) 우선, 없으면 /home
+    const dest = () => {
+      try {
+        const n = sessionStorage.getItem('postLoginRedirect');
+        if (n) {
+          sessionStorage.removeItem('postLoginRedirect');
+          return n;
+        }
+      } catch {
+        /* 무시 */
+      }
+      return '/home';
+    };
     if (getToken()) {
-      router.replace('/home');
+      router.replace(dest());
       return;
     }
-    // 로그인 팝업이 토큰을 저장하면(동일 출처 localStorage 공유) 메인으로 이동
-    return onTokenStored(() => router.replace('/home'));
+    // 로그인 팝업이 토큰을 저장하면(동일 출처 localStorage 공유) 기억해둔 곳/홈으로 이동
+    return onTokenStored(() => router.replace(dest()));
   }, [router]);
 
   function handleLogin() {
