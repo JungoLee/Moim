@@ -7,10 +7,18 @@ import interactionPlugin from '@fullcalendar/interaction';
 import type { EventInput, DateSelectArg } from '@fullcalendar/core';
 import type { MoimEvent } from '@/lib/types';
 import { eventColor, readableText } from '@/lib/colors';
+import { addDays, dateKey } from '@/lib/datetime';
 
 // 모든 달력 제목을 "YYYY-MM" 으로 (월 0-based)
 const ymTitle = (arg: { date: { year: number; month: number } }) =>
   `${arg.date.year}-${String(arg.date.month + 1).padStart(2, '0')}`;
+
+// FullCalendar 의 종일(allDay) end 는 '배타적'(다음 날)이라, 우리 데이터의 포함 끝(마지막 날 23:59)을
+// +1일 날짜로 바꿔야 마지막 날까지 칠해진다. 종일은 날짜 문자열로 넘겨 타임존 영향도 제거.
+function fcRange(start: string, end: string, allDay?: boolean): { start: string; end: string } {
+  if (!allDay) return { start, end };
+  return { start: dateKey(new Date(start)), end: dateKey(addDays(new Date(end), 1)) };
+}
 
 type Props = {
   events: MoimEvent[];
@@ -42,8 +50,7 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
         return {
           id: ev._id,
           title: '비공개 일정',
-          start: ev.start,
-          end: ev.end,
+          ...fcRange(ev.start, ev.end, true),
           allDay: true,
           classNames: ['evt-busy'],
         };
@@ -53,8 +60,7 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
       return {
         id: ev._id,
         title: ev.title || '(제목 없음)',
-        start: ev.start,
-        end: ev.end,
+        ...fcRange(ev.start, ev.end, ev.allDay),
         allDay: ev.allDay,
         backgroundColor: color,
         borderColor: color,
@@ -65,8 +71,7 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
     const reqs: EventInput[] = (requests || []).map((r) => ({
       id: `req-${r._id}`,
       title: `🕖 ${r.title}`,
-      start: r.start,
-      end: r.end,
+      ...fcRange(r.start, r.end, r.allDay),
       allDay: r.allDay,
       display: 'block',
       classNames: ['evt-request'],
