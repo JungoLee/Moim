@@ -8,12 +8,15 @@ import CopyButton from '@/components/CopyButton';
 import ColorPalette from '@/components/ColorPalette';
 import Modal from '@/components/Modal';
 import PageHero from '@/components/PageHero';
+import Accordion from '@/components/Accordion';
+import Avatar from '@/components/Avatar';
 import { api, getToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
 import { setQuickActions } from '@/lib/quickActions';
 import { DEFAULT_TIER_COLOR } from '@/lib/colors';
 import type { Tier } from '@/lib/types';
 import Notice from '@/components/Notice';
+import s from './page.module.scss';
 
 export default function Tiers() {
   const router = useRouter();
@@ -205,34 +208,42 @@ export default function Tiers() {
               <ColorPalette value={t.color || DEFAULT_TIER_COLOR} onChange={(hex) => updateColor(t._id, hex)} />
             </div>
 
-            <div className="app-muted" style={{ marginTop: 'var(--space-2)' }}>
-              멤버 {t.members.length}명
-            </div>
-            {t.members.map((m) => (
-              <div className="app-row" key={m._id}>
-                <span>
-                  {m.name} <span className="app-muted">{m.email}</span>
-                </span>
-                <span className="app-spacer" />
-                <button className="app-btn app-btn--ghost" onClick={() => removeMember(t._id, m._id)}>
-                  제거
-                </button>
-              </div>
-            ))}
+            <div style={{ marginTop: 'var(--space-2)' }}>
+              <Accordion compact title="멤버" aside={`${t.members.length}명`}>
+                {t.members.length === 0 ? (
+                  <p className={s.empty}>아직 멤버가 없습니다.</p>
+                ) : (
+                  <ul className={s.list}>
+                    {t.members.map((m) => (
+                      <li className={s.item} key={m._id}>
+                        <Avatar src={m.picture} alt={m.name} />
+                        <span className={s.info}>
+                          <span className={s.name}>{m.name}</span>
+                          <span className={s.email}>{m.email}</span>
+                        </span>
+                        <button className="app-btn app-btn--ghost" onClick={() => removeMember(t._id, m._id)}>
+                          제거
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
-            <div className="app-row" style={{ marginTop: 'var(--space-2)' }}>
-              <input
-                className="app-input"
-                type="email"
-                placeholder="멤버 이메일 추가"
-                value={memberEmail[t._id] || ''}
-                onChange={(e) => setMemberEmail((mm) => ({ ...mm, [t._id]: e.target.value }))}
-              />
-              <button className="app-btn" onClick={() => addMember(t._id)}>
-                추가
-              </button>
+                <div className={`app-row ${s.add}`}>
+                  <input
+                    className="app-input"
+                    type="email"
+                    placeholder="멤버 이메일 추가"
+                    value={memberEmail[t._id] || ''}
+                    onChange={(e) => setMemberEmail((mm) => ({ ...mm, [t._id]: e.target.value }))}
+                  />
+                  <button className="app-btn" onClick={() => addMember(t._id)}>
+                    추가
+                  </button>
+                </div>
+                {memberErr[t._id] && <Notice>{memberErr[t._id]}</Notice>}
+              </Accordion>
             </div>
-            {memberErr[t._id] && <Notice>{memberErr[t._id]}</Notice>}
           </div>
         ))}
       </main>

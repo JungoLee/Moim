@@ -24,6 +24,21 @@
   background: var(--color-surface-2);
 }
 
+/* compact = 카드 안 서브섹션용 가벼운 헤더 */
+.head[data-compact='true'] {
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.95rem;
+}
+.head[data-compact='true'] .chevron {
+  width: 28px;
+  height: 28px;
+}
+.head[data-compact='true'] .chevron svg {
+  width: 16px;
+  height: 16px;
+}
+
 /* 큰 원형 화살표 배지 — 닫힘=오목한 표면/인디고 화살, 열림=그라데이션 채움 + 90° 회전(살짝 튕기는 이징) */
 .chevron {
   display: inline-flex;
