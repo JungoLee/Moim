@@ -134,9 +134,10 @@ export default function Dashboard() {
   async function saveForm(e: FormEvent) {
     e.preventDefault();
     if (!fStartDate || !fEndDate) return;
-    // 종일이면 시간 입력을 무시하고 하루 전체로 저장 (로컬 시간 파싱 일관성 유지)
-    const start = fAllDay ? `${fStartDate}T00:00` : `${fStartDate}T${fStartTime}`;
-    const end = fAllDay ? `${fEndDate}T23:59` : `${fEndDate}T${fEndTime}`;
+    // 로컬 wall-clock 을 UTC instant(ISO)로 보낸다 — 서버(UTC)·클라(KST) 왕복에서
+    // 무-타임존 문자열이 하루 밀리는(종료일 +1, 시간 9h 밀림) 버그 방지. 종일은 00:00~23:59.
+    const start = new Date(`${fStartDate}T${fAllDay ? '00:00' : fStartTime}`).toISOString();
+    const end = new Date(`${fEndDate}T${fAllDay ? '23:59' : fEndTime}`).toISOString();
     let visibility: 'public' | 'private' = 'public';
     let audienceTiers: string[] = [];
     if (fShare === 'private') visibility = 'private';
