@@ -65,10 +65,10 @@
 }
 /* 주말 셀 파스텔 배경 (일=핑크 / 토=하늘). 아래 .all·.selecting 보다 위에 둬 상태색이 우선됨 */
 .sunCell {
-  background: rgba(255, 155, 155, 0.12);
+  background: rgba(255, 155, 155, 0.24);
 }
 .satCell {
-  background: rgba(155, 182, 255, 0.12);
+  background: rgba(155, 182, 255, 0.24);
 }
 .dayNum {
   font-size: 0.82rem;
