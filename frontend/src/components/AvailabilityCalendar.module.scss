@@ -54,11 +54,12 @@
   border-color: var(--color-primary);
 }
 .outside {
-  opacity: 0.4;
+  opacity: 0.3;
 }
 .past {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: not-allowed;
+  background: var(--color-bg);
 }
 .past:hover {
   border-color: var(--color-border-soft);
