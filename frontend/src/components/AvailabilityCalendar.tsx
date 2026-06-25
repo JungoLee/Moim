@@ -96,11 +96,13 @@ export default function AvailabilityCalendar({ myMarks, summary, total, mode, on
           const inMonth = day.getMonth() === view.getMonth();
           const past = day.getTime() < today.getTime();
           const isToday = day.getTime() === today.getTime();
+          const dow = day.getDay();
           const mark = myMarks[key];
           const s = summary[key];
           const allYes = total > 0 && s && s.yes === total;
           const cls = [
             styles.cell,
+            dow === 0 ? styles.sunCell : dow === 6 ? styles.satCell : '',
             inMonth ? '' : styles.outside,
             past ? styles.past : '',
             isToday ? styles.today : '',
