@@ -9,7 +9,7 @@ import CopyButton from '@/components/CopyButton';
 import Avatar from '@/components/Avatar';
 import { api, getToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
-import { dayLabelKey } from '@/lib/datetime';
+import { parseDateKey, startOfDay } from '@/lib/datetime';
 import { displayName } from '@/lib/format';
 import TimeSelect from '@/components/TimeSelect';
 import Modal from '@/components/Modal';
@@ -22,6 +22,27 @@ const MODES: Array<[AvailStatus, string]> = [
   ['no', '안 되는 날'],
   ['after', '시간 이후'],
 ];
+
+const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+
+// 결과 날짜 타일 — 월/일/요일 + D-day(전원 가능) 또는 가능 시각(시간 조율)
+function dayTile(key: string, kind: 'full' | 'partial', time?: string) {
+  const d = parseDateKey(key);
+  if (!d) return null;
+  const diff = Math.round((d.getTime() - startOfDay(new Date()).getTime()) / 86_400_000);
+  const dday = diff === 0 ? 'D-DAY' : diff > 0 ? `D-${diff}` : `D+${-diff}`;
+  const dow = d.getDay();
+  return (
+    <div key={key} className={kind === 'full' ? 'room-day room-day--full' : 'room-day room-day--partial'}>
+      <span className="room-day-month">{d.getMonth() + 1}월</span>
+      <strong className="room-day-num">{d.getDate()}</strong>
+      <span className={`room-day-dow${dow === 0 ? ' room-day-dow--sun' : dow === 6 ? ' room-day-dow--sat' : ''}`}>
+        {DAY_NAMES[dow]}요일
+      </span>
+      <span className="room-day-meta">{kind === 'partial' && time ? `${time}~` : dday}</span>
+    </div>
+  );
+}
 
 export default function RoomPage() {
   const router = useRouter();
@@ -318,26 +339,20 @@ export default function RoomPage() {
         </div>
 
         <div className="app-card" data-guide="room-result">
-          <h3>🎉 모두 되는 날 ({fullDays.length})</h3>
+          <h3>
+            🎉 모두 되는 날 <span className="app-pill">{fullDays.length}</span>
+          </h3>
           {fullDays.length === 0 ? (
-            <p className="app-muted">아직 전원이 종일 가능한 날이 없습니다.</p>
+            <p className="app-muted">아직 전원이 종일 가능한 날이 없어요 — 위 달력에 가능한 날을 표시해보세요.</p>
           ) : (
-            <div className="app-row">
-              {fullDays.map((d) => (
-                <span key={d}>📅 {dayLabelKey(d)}</span>
-              ))}
-            </div>
+            <div className="room-days">{fullDays.map((d) => dayTile(d, 'full'))}</div>
           )}
           {partialDays.length > 0 && (
             <>
-              <h3 style={{ marginTop: 'var(--space-4)' }}>🕖 시간 조율하면 가능 ({partialDays.length})</h3>
-              <div className="app-row">
-                {partialDays.map((d) => (
-                  <span key={d} className="app-muted">
-                    📅 {dayLabelKey(d)} ({summary[d].afterMax}~)
-                  </span>
-                ))}
-              </div>
+              <h3 className="room-days-sub">
+                🕖 시간 조율하면 가능 <span className="app-pill">{partialDays.length}</span>
+              </h3>
+              <div className="room-days">{partialDays.map((d) => dayTile(d, 'partial', summary[d].afterMax))}</div>
             </>
           )}
         </div>

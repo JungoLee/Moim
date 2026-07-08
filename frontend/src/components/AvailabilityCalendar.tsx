@@ -128,10 +128,17 @@ export default function AvailabilityCalendar({ myMarks, summary, total, onApply 
                 </span>
               )}
               {s && (s.yes > 0 || s.after > 0) && (
-                <span className={styles.count}>
-                  가능 {s.yes + s.after}/{total}
-                  {s.after > 0 && <span className={styles.afterNote}> ({s.afterMax}~)</span>}
-                </span>
+                <>
+                  <span className={styles.count}>
+                    {allYes && '✓ '}
+                    {s.yes + s.after}/{total}
+                    {s.after > 0 && <span className={styles.afterNote}> ({s.afterMax}~)</span>}
+                  </span>
+                  {/* 가능 인원 비율 바 — 숫자보다 한눈에 */}
+                  <span className={styles.bar} aria-hidden>
+                    <i style={{ width: `${Math.round(((s.yes + s.after) / Math.max(total, 1)) * 100)}%` }} />
+                  </span>
+                </>
               )}
             </button>
           );

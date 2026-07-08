@@ -756,6 +756,72 @@ input[type='radio'] {
   border-color: var(--color-primary);
 }
 
+/* 모임 결과 — 날짜 타일 (모두 되는 날 / 시간 조율하면 가능) */
+.room-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.room-days-sub {
+  margin: var(--space-5) 0 0;
+}
+.room-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 4.6rem;
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-surface-2);
+  box-shadow: var(--edge-highlight);
+}
+.room-day--full {
+  border-color: rgba(74, 210, 149, 0.5);
+  background: linear-gradient(180deg, rgba(74, 210, 149, 0.16), rgba(74, 210, 149, 0.05));
+}
+.room-day--partial {
+  border-color: rgba(240, 168, 90, 0.45);
+  background: linear-gradient(180deg, rgba(240, 168, 90, 0.14), rgba(240, 168, 90, 0.04));
+}
+.room-day-month {
+  font-size: 0.72rem;
+  color: var(--color-muted);
+  letter-spacing: 0.04em;
+}
+.room-day-num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+.room-day-dow {
+  font-size: 0.76rem;
+  color: var(--color-muted);
+}
+.room-day-dow--sun {
+  color: #ff9b9b;
+}
+.room-day-dow--sat {
+  color: #9bb6ff;
+}
+.room-day-meta {
+  margin-top: var(--space-1);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+}
+.room-day--full .room-day-meta {
+  background: rgba(74, 210, 149, 0.18);
+  color: var(--color-success);
+}
+.room-day--partial .room-day-meta {
+  background: rgba(240, 168, 90, 0.18);
+  color: #f0a85a;
+}
+
 /* 계정 드로어 (우측 슬라이드) */
 .app-drawer-backdrop {
   position: fixed;

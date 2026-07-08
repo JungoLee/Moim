@@ -79,6 +79,7 @@
 /* 오늘 강조 */
 .today {
   border-color: var(--color-primary);
+  background: rgba(124, 140, 255, 0.1);
 }
 .today .dayNum {
   color: var(--color-primary);
@@ -89,6 +90,22 @@
   align-self: flex-end;
   margin-top: auto;
   color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* 가능 인원 비율 바 — 셀 하단 얇은 진행 바 */
+.bar {
+  width: 100%;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-success);
+  transition: width var(--transition);
 }
 .mine {
   border-color: var(--color-primary);
@@ -99,11 +116,15 @@
   font-weight: 700;
 }
 .all {
-  background: rgba(74, 210, 149, 0.28);
+  background: linear-gradient(180deg, rgba(74, 210, 149, 0.3), rgba(74, 210, 149, 0.16));
+  border-color: rgba(74, 210, 149, 0.55);
 }
 .all .count {
   color: var(--color-success);
   font-weight: 700;
+}
+.all .bar {
+  background: rgba(74, 210, 149, 0.25);
 }
 
 /* 내 표시(가능/불가/시간 이후) — 색 배지로 가독성 ↑ */
