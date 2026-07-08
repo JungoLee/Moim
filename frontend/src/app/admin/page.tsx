@@ -2,21 +2,22 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Nav from '@/components/Nav';
+import Link from 'next/link';
 import { api, getToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
 import { displayName } from '@/lib/format';
 import { dayLabel, timeKey } from '@/lib/datetime';
 import { toast } from '@/lib/toast';
 import CopyButton from '@/components/CopyButton';
+import { BRAND_NAME } from '@/lib/brand';
 import type { User } from '@/lib/types';
 import styles from './admin.module.scss';
 
 type Stats = { users: number; admins: number; events: number; tiers: number; rooms: number; friendships: number };
 type Entity = { _id: string; name: string; code: string; memberCount: number; owner: string; createdAt?: string };
+type Tab = 'overview' | 'users' | 'rooms' | 'tiers';
 // TEMP(email-approval): 이메일 로그인 코드 수동 전달용 — 발송 수단(Brevo/SMTP) 설정 후 제거 가능
 type PendingCode = { _id: string; email: string; code: string; expiresAt: string };
-type Tab = 'overview' | 'users' | 'rooms' | 'tiers';
 
 const STAT_LABELS: Array<[keyof Stats, string]> = [
   ['users', '가입자'],
@@ -27,11 +28,11 @@ const STAT_LABELS: Array<[keyof Stats, string]> = [
   ['friendships', '친구 관계'],
 ];
 
-const TABS: Array<[Tab, string]> = [
-  ['overview', '개요'],
-  ['users', '가입자'],
-  ['rooms', '모임'],
-  ['tiers', '그룹'],
+const TABS: Array<[Tab, string, string]> = [
+  ['overview', '📊', '대시보드'],
+  ['users', '👤', '가입자'],
+  ['rooms', '📅', '모임'],
+  ['tiers', '🏷️', '그룹'],
 ];
 
 function fmtDate(s?: string): string {
@@ -121,33 +122,56 @@ export default function Admin() {
     }
   }
 
-  return (
-    <>
-      <Nav />
+  if (error) {
+    return (
       <main className="app-container">
-        <div className={styles.head}>
-          <span className={styles.badge}>ADMIN</span>
-          <h2 style={{ margin: 0 }}>관리자</h2>
+        <div className="app-empty">
+          <div className="app-empty-icon">🔒</div>
+          <h2>{error}</h2>
+          <Link className="app-btn" href="/home">
+            메인으로
+          </Link>
         </div>
+      </main>
+    );
+  }
 
-        {error ? (
-          <p className="app-error">{error}</p>
-        ) : (
+  return (
+    <div className={styles.layout}>
+      <aside className={styles.sidebar}>
+        <div className={styles.brand}>
+          ADMIN <span className="brand-mark">{BRAND_NAME}</span>
+        </div>
+        <nav className={styles.nav}>
+          {TABS.map(([v, ico, label]) => (
+            <button
+              key={v}
+              className={tab === v ? `${styles.navItem} ${styles.active}` : styles.navItem}
+              onClick={() => setTab(v)}
+            >
+              <span className={styles.ico}>{ico}</span>
+              {label}
+            </button>
+          ))}
+        </nav>
+        <div className={styles.spacer} />
+        <div className={styles.footLink}>
+          <Link href="/home" className={styles.navItem}>
+            <span className={styles.ico}>🏠</span> 메인으로
+          </Link>
+        </div>
+      </aside>
+
+      <main className={styles.main}>
+        {tab === 'overview' && (
           <>
-            <div className={styles.tabs}>
-              {TABS.map(([v, label]) => (
-                <button key={v} className={tab === v ? 'app-btn' : 'app-btn app-btn--ghost'} onClick={() => setTab(v)}>
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {tab === 'overview' && stats && (
-              <div className={styles.statGrid}>
+            <h2 className={styles.pageTitle}>대시보드</h2>
+            {stats && (
+              <div className={styles.cards}>
                 {STAT_LABELS.map(([key, label]) => (
-                  <div className="app-card" style={{ margin: 0 }} key={key}>
-                    <div className="app-muted">{label}</div>
-                    <div className={styles.statNum}>{stats[key]}</div>
+                  <div className={styles.card} key={key}>
+                    <div className={styles.num}>{stats[key]}</div>
+                    <div className={styles.lab}>{label}</div>
                   </div>
                 ))}
               </div>
@@ -155,106 +179,186 @@ export default function Admin() {
 
             {/* TEMP(email-approval): 발송 수단(Brevo/SMTP) 미설정 동안 관리자가 코드를 직접 전달(승인).
                 발송 수단 설정 후엔 목록이 항상 비어 렌더되지 않음 → 그때 이 섹션 제거 가능 */}
-            {tab === 'overview' && pendingCodes.length > 0 && (
-              <div className="app-card" style={{ marginTop: 'var(--space-4)' }}>
-                <h3>📨 이메일 로그인 코드 대기 ({pendingCodes.length})</h3>
-                <p className="app-muted">
-                  메일 발송이 아직 꺼져 있어요 — 아래 코드를 요청한 본인에게 직접 전달(카톡 등)하면 승인됩니다.
+            {pendingCodes.length > 0 && (
+              <>
+                <h3 className={styles.sectionTitle}>📨 이메일 로그인 코드 대기 ({pendingCodes.length})</h3>
+                <p className={styles.hint}>
+                  메일 발송이 아직 꺼져 있어요 — 코드를 요청한 본인에게 직접 전달(카톡 등)하면 승인됩니다.
                 </p>
-                {pendingCodes.map((c) => (
-                  <div className="app-row" key={c._id}>
-                    <strong>{c.email}</strong>
-                    <code className="room-code-val">{c.code}</code>
-                    <CopyButton text={c.code} label="복사" />
-                    <span className="app-spacer" />
-                    <span className="app-muted">{timeKey(new Date(c.expiresAt))} 까지</span>
-                  </div>
-                ))}
-                <div className="app-actions">
-                  <button className="app-btn app-btn--ghost" onClick={load}>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>이메일</th>
+                        <th>코드</th>
+                        <th>만료</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingCodes.map((c) => (
+                        <tr key={c._id}>
+                          <td>{c.email}</td>
+                          <td className={styles.codeCell}>{c.code}</td>
+                          <td className={styles.metaCell}>{timeKey(new Date(c.expiresAt))} 까지</td>
+                          <td className={styles.actionsCell}>
+                            <CopyButton text={c.code} label="복사" />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className={styles.sectionGap}>
+                  <button className={styles.btnSm} onClick={load}>
                     새로고침
                   </button>
                 </div>
-              </div>
-            )}
-
-            {tab === 'users' && (
-              <div className="app-card">
-                <h3>가입자 {users.length}명</h3>
-                {users.map((u) => (
-                  <div key={u._id} className={styles.row}>
-                    {u.picture ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={u.picture} alt="" className="app-avatar-sm" style={{ width: 32, height: 32 }} />
-                    ) : (
-                      <span className={styles.avatarFallback}>👤</span>
-                    )}
-                    <div className={styles.info}>
-                      <div>
-                        <strong>{displayName(u)}</strong>
-                        {u.isAdmin && <span className={styles.adminTag}>관리자</span>}
-                      </div>
-                      <div className="app-muted" style={{ fontSize: '0.8rem' }}>
-                        {u.email}
-                        {u.createdAt && ` · 가입 ${fmtDate(u.createdAt)}`}
-                      </div>
-                    </div>
-                    <span className="app-spacer" />
-                    <button className="app-btn app-btn--ghost" onClick={() => toggleAdmin(u)}>
-                      {u.isAdmin ? '관리자 해제' : '관리자 지정'}
-                    </button>
-                    <button className={`app-btn app-btn--ghost ${styles.danger}`} onClick={() => deleteUser(u)}>
-                      삭제
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {tab === 'rooms' && (
-              <div className="app-card">
-                <h3>모임 {rooms.length}개</h3>
-                {rooms.length === 0 && <p className="app-muted">모임이 없습니다.</p>}
-                {rooms.map((r) => (
-                  <div key={r._id} className={styles.row}>
-                    <div className={styles.info}>
-                      <strong>{r.name}</strong>
-                      <div className="app-muted" style={{ fontSize: '0.8rem' }}>
-                        방장 {r.owner} · 멤버 {r.memberCount}명 · 코드 {r.code} · {fmtDate(r.createdAt)}
-                      </div>
-                    </div>
-                    <span className="app-spacer" />
-                    <button className={`app-btn app-btn--ghost ${styles.danger}`} onClick={() => deleteEntity('rooms', r)}>
-                      삭제
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {tab === 'tiers' && (
-              <div className="app-card">
-                <h3>그룹 {tiers.length}개</h3>
-                {tiers.length === 0 && <p className="app-muted">그룹이 없습니다.</p>}
-                {tiers.map((t) => (
-                  <div key={t._id} className={styles.row}>
-                    <div className={styles.info}>
-                      <strong>{t.name}</strong>
-                      <div className="app-muted" style={{ fontSize: '0.8rem' }}>
-                        소유 {t.owner} · 멤버 {t.memberCount}명 · 코드 {t.code} · {fmtDate(t.createdAt)}
-                      </div>
-                    </div>
-                    <span className="app-spacer" />
-                    <button className={`app-btn app-btn--ghost ${styles.danger}`} onClick={() => deleteEntity('tiers', t)}>
-                      삭제
-                    </button>
-                  </div>
-                ))}
-              </div>
+              </>
             )}
           </>
         )}
+
+        {tab === 'users' && (
+          <>
+            <h2 className={styles.pageTitle}>가입자 ({users.length})</h2>
+            <div className={styles.tableWrap}>
+              {users.length === 0 ? (
+                <div className={styles.empty}>가입자가 없습니다.</div>
+              ) : (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>사용자</th>
+                      <th>이메일</th>
+                      <th>가입일</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((u) => (
+                      <tr key={u._id}>
+                        <td>
+                          <span className={styles.userCell}>
+                            {u.picture ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={u.picture} alt="" className="app-avatar-sm" style={{ width: 28, height: 28 }} />
+                            ) : (
+                              <span className={styles.avatarFallback}>👤</span>
+                            )}
+                            <strong>{displayName(u)}</strong>
+                            {u.isAdmin && <span className={`${styles.badge} ${styles.badgeAdmin}`}>관리자</span>}
+                          </span>
+                        </td>
+                        <td className={styles.metaCell}>{u.email}</td>
+                        <td className={styles.metaCell}>{fmtDate(u.createdAt)}</td>
+                        <td className={styles.actionsCell}>
+                          <button className={styles.btnSm} onClick={() => toggleAdmin(u)}>
+                            {u.isAdmin ? '관리자 해제' : '관리자 지정'}
+                          </button>
+                          <button className={`${styles.btnSm} ${styles.btnDanger}`} onClick={() => deleteUser(u)}>
+                            삭제
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
+        )}
+
+        {tab === 'rooms' && (
+          <>
+            <h2 className={styles.pageTitle}>모임 ({rooms.length})</h2>
+            <div className={styles.tableWrap}>
+              {rooms.length === 0 ? (
+                <div className={styles.empty}>모임이 없습니다.</div>
+              ) : (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>이름</th>
+                      <th>방장</th>
+                      <th>멤버</th>
+                      <th>코드</th>
+                      <th>생성</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rooms.map((r) => (
+                      <tr key={r._id}>
+                        <td>
+                          <strong>{r.name}</strong>
+                        </td>
+                        <td className={styles.metaCell}>{r.owner}</td>
+                        <td className={styles.metaCell}>{r.memberCount}명</td>
+                        <td className={styles.codeCell}>{r.code}</td>
+                        <td className={styles.metaCell}>{fmtDate(r.createdAt)}</td>
+                        <td className={styles.actionsCell}>
+                          <button
+                            className={`${styles.btnSm} ${styles.btnDanger}`}
+                            onClick={() => deleteEntity('rooms', r)}
+                          >
+                            삭제
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
+        )}
+
+        {tab === 'tiers' && (
+          <>
+            <h2 className={styles.pageTitle}>그룹 ({tiers.length})</h2>
+            <div className={styles.tableWrap}>
+              {tiers.length === 0 ? (
+                <div className={styles.empty}>그룹이 없습니다.</div>
+              ) : (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>이름</th>
+                      <th>소유</th>
+                      <th>멤버</th>
+                      <th>코드</th>
+                      <th>생성</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tiers.map((t) => (
+                      <tr key={t._id}>
+                        <td>
+                          <strong>{t.name}</strong>
+                        </td>
+                        <td className={styles.metaCell}>{t.owner}</td>
+                        <td className={styles.metaCell}>{t.memberCount}명</td>
+                        <td className={styles.codeCell}>{t.code}</td>
+                        <td className={styles.metaCell}>{fmtDate(t.createdAt)}</td>
+                        <td className={styles.actionsCell}>
+                          <button
+                            className={`${styles.btnSm} ${styles.btnDanger}`}
+                            onClick={() => deleteEntity('tiers', t)}
+                          >
+                            삭제
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
+        )}
       </main>
-    </>
+    </div>
   );
 }
