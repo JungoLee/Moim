@@ -1,38 +1,84 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { getToken, googleLoginUrl, onTokenStored, warmApi } from '@/lib/api';
+import { api, getToken, setToken, googleLoginUrl, onTokenStored, warmApi } from '@/lib/api';
 import { isInAppBrowser, escapeInAppBrowser } from '@/lib/inapp';
 import { toast } from '@/lib/toast';
 import { BRAND_NAME } from '@/lib/brand';
+import Notice from '@/components/Notice';
+
+// 로그인 후 돌아갈 곳: 기억해둔 경로(예: 공유받은 모임 URL) 우선, 없으면 /home
+function consumePostLoginDest(): string {
+  try {
+    const n = sessionStorage.getItem('postLoginRedirect');
+    if (n) {
+      sessionStorage.removeItem('postLoginRedirect');
+      return n;
+    }
+  } catch {
+    /* 무시 */
+  }
+  return '/home';
+}
 
 export default function Home() {
   const router = useRouter();
+  // 이메일 코드 로그인 (구글 계정이 없어도 로그인)
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
     // 백엔드(별도 서비스)를 미리 깨워 로그인 시 콜드스타트 화면을 줄인다.
     warmApi();
-    // 로그인 후 돌아갈 곳: 기억해둔 경로(예: 공유받은 모임 URL) 우선, 없으면 /home
-    const dest = () => {
-      try {
-        const n = sessionStorage.getItem('postLoginRedirect');
-        if (n) {
-          sessionStorage.removeItem('postLoginRedirect');
-          return n;
-        }
-      } catch {
-        /* 무시 */
-      }
-      return '/home';
-    };
     if (getToken()) {
-      router.replace(dest());
+      router.replace(consumePostLoginDest());
       return;
     }
     // 로그인 팝업이 토큰을 저장하면(동일 출처 localStorage 공유) 기억해둔 곳/홈으로 이동
-    return onTokenStored(() => router.replace(dest()));
+    return onTokenStored(() => router.replace(consumePostLoginDest()));
   }, [router]);
+
+  // 입력한 이메일로 12자리 인증 코드 발송 (재전송에도 재사용)
+  async function requestCode(e?: FormEvent) {
+    e?.preventDefault();
+    if (!email.trim() || busy) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      await api('/api/auth/email/request', { method: 'POST', body: { email: email.trim() } });
+      setStep('code');
+      setCode('');
+      setNotice({ ok: true, text: `${email.trim()} 로 12자리 코드를 보냈어요. (10분 유효)` });
+    } catch (err) {
+      setNotice({ ok: false, text: err instanceof Error ? err.message : '코드 발송 실패' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function verifyCode(e: FormEvent) {
+    e.preventDefault();
+    if (!code.trim() || busy) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const res = await api<{ token: string }>('/api/auth/email/verify', {
+        method: 'POST',
+        body: { email: email.trim(), code: code.trim() },
+      });
+      setToken(res.token);
+      router.replace(consumePostLoginDest());
+    } catch (err) {
+      setNotice({ ok: false, text: err instanceof Error ? err.message : '인증 실패' });
+      setBusy(false);
+    }
+  }
 
   function handleLogin() {
     // 카카오톡 등 인앱 브라우저는 구글 OAuth 가 차단됨(disallowed_useragent)
@@ -95,6 +141,67 @@ export default function Home() {
           </svg>
           Google 계정으로 계속하기
         </button>
+
+        <div className="app-hero-or">
+          <span>또는</span>
+        </div>
+
+        {!emailOpen ? (
+          <button
+            type="button"
+            className="app-btn app-btn--ghost"
+            onClick={() => {
+              setEmailOpen(true);
+              setNotice(null);
+            }}
+          >
+            ✉️ 이메일로 계속하기
+          </button>
+        ) : step === 'email' ? (
+          <form className="app-hero-email" onSubmit={requestCode}>
+            <input
+              className="app-input"
+              type="email"
+              placeholder="이메일 주소"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoFocus
+            />
+            <button className="app-btn app-btn--ghost" type="submit" disabled={busy || !email.trim()}>
+              {busy ? '보내는 중…' : '인증 코드 받기'}
+            </button>
+          </form>
+        ) : (
+          <form className="app-hero-email" onSubmit={verifyCode}>
+            <input
+              className="app-input app-hero-code"
+              placeholder="12자리 코드 입력"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              maxLength={16}
+              autoComplete="one-time-code"
+              autoFocus
+            />
+            <button className="app-btn app-btn--ghost" type="submit" disabled={busy || !code.trim()}>
+              {busy ? '확인 중…' : '코드로 로그인'}
+            </button>
+            <div className="app-hero-links">
+              <button type="button" onClick={() => requestCode()} disabled={busy}>
+                코드 재전송
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('email');
+                  setNotice(null);
+                }}
+              >
+                다른 이메일로
+              </button>
+            </div>
+          </form>
+        )}
+        {notice && <Notice ok={notice.ok}>{notice.text}</Notice>}
       </section>
     </main>
   );

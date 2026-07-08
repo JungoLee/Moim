@@ -1643,6 +1643,62 @@ a.app-card:hover {
 .app-hero .app-btn:active {
   transform: none;
 }
+/* 랜딩 — 이메일 코드 로그인 */
+.app-hero-or {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+.app-hero-or::before,
+.app-hero-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-soft);
+}
+.app-hero-email {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.app-hero-email .app-input {
+  width: 100%;
+  height: 3rem;
+  text-align: center;
+  font-size: 1rem;
+  border-radius: var(--radius-pill);
+}
+/* 인증 코드 입력 — 코드답게 자간 넓게 + 대문자 */
+.app-hero-code {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.app-hero-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-5);
+}
+.app-hero-links button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.app-hero-links button:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+.app-hero-links button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .app-orb {
     animation: none;

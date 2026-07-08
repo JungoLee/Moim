@@ -1,12 +1,7 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { isAdminEmail } from '../utils/admins.js';
 import User from '../models/User.js';
-
-// 기본 관리자 이메일(콤마로 여러 개, env 로 오버라이드 가능)
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'tough123181@gmail.com')
-  .split(',')
-  .map((s) => s.trim().toLowerCase())
-  .filter(Boolean);
 
 // 세션 없이(stateless) Google OAuth 만 사용 — 콜백에서 JWT 를 발급한다.
 export function configurePassport() {
@@ -21,22 +16,27 @@ export function configurePassport() {
         try {
           const email = profile.emails?.[0]?.value || '';
           const picture = profile.photos?.[0]?.value || '';
-          const isAdminEmail = ADMIN_EMAILS.includes(email.toLowerCase());
+          const admin = isAdminEmail(email);
           let user = await User.findOne({ googleId: profile.id });
+          // 이메일 코드로 먼저 가입한 계정이 있으면 구글 계정과 통합 (자리표시자 googleId 교체)
+          if (!user && email) {
+            user = await User.findOne({ email: email.toLowerCase(), googleId: `email:${email.toLowerCase()}` });
+            if (user) user.googleId = profile.id;
+          }
           if (!user) {
             user = await User.create({
               googleId: profile.id,
               email,
               name: profile.displayName || '',
               picture,
-              isAdmin: isAdminEmail,
+              isAdmin: admin,
             });
           } else {
             // 프로필 최신화
             user.email = email || user.email;
             user.name = profile.displayName || user.name;
             user.picture = picture || user.picture;
-            if (isAdminEmail) user.isAdmin = true; // 기본 관리자 보장(강등하지 않음)
+            if (admin) user.isAdmin = true; // 기본 관리자 보장(강등하지 않음)
             await user.save();
           }
           done(null, user);

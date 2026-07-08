@@ -81,6 +81,8 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 | GET | `/api/health` | 헬스 체크 |
 | GET | `/api/auth/google` | 구글 로그인 시작 |
 | GET | `/api/auth/google/callback` | 콜백 → JWT 발급 후 프론트로 리디렉션 |
+| POST | `/api/auth/email/request` | 이메일로 12자리 로그인 코드 발송 (1분 쿨다운) |
+| POST | `/api/auth/email/verify` | 코드 검증 → JWT 발급 (계정 없으면 생성, 같은 이메일 구글 계정과 통합) |
 | GET/PATCH/DELETE | `/api/auth/me` | 내 정보 / 닉네임 설정 / 회원 탈퇴(데이터 cascade) |
 | GET/PUT | `/api/auth/leave` | 연차 계산기 설정 조회(갱신일 자동 이월) / 저장 |
 | GET/POST | `/api/events` | 내 일정 목록 / 생성 |

@@ -1,8 +1,12 @@
 import { Router } from 'express';
+import crypto from 'node:crypto';
 import passport from 'passport';
 import { signToken } from '../utils/jwt.js';
 import { requireAuth } from '../middleware/auth.js';
+import { isAdminEmail } from '../utils/admins.js';
+import { sendLoginCode } from '../utils/mailer.js';
 import User from '../models/User.js';
+import LoginCode from '../models/LoginCode.js';
 import Event from '../models/Event.js';
 import Tier from '../models/Tier.js';
 import Room from '../models/Room.js';
@@ -26,6 +30,85 @@ router.get(
     res.redirect(`${front}/auth/callback?token=${token}`);
   }
 );
+
+// ── 이메일 코드 로그인 (구글 계정 없이 아무 이메일로) ──────────────────────────
+// 흐름: 이메일 입력 → 12자리 코드 발송 → 코드 입력 → JWT 발급.
+// 같은 이메일의 기존 계정(구글 가입 포함)이 있으면 그 계정으로 로그인(메일함 소유 = 본인 증명).
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 헷갈리는 글자(I·L·O·0·1) 제외
+const CODE_LEN = 12;
+const CODE_TTL_MS = 10 * 60 * 1000; // 10분
+const RESEND_COOLDOWN_MS = 60 * 1000; // 재전송 60초
+const MAX_ATTEMPTS = 5;
+
+const hashCode = (code) => crypto.createHash('sha256').update(code).digest('hex');
+
+function generateCode() {
+  let code = '';
+  for (let i = 0; i < CODE_LEN; i++) code += CODE_CHARS[crypto.randomInt(CODE_CHARS.length)];
+  return code;
+}
+
+// 이메일로 인증 코드 발송
+router.post('/email/request', async (req, res) => {
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  if (!EMAIL_RE.test(email)) {
+    return res.status(400).json({ ok: false, message: '올바른 이메일을 입력해주세요.' });
+  }
+  const existing = await LoginCode.findOne({ email });
+  if (existing && Date.now() - existing.sentAt.getTime() < RESEND_COOLDOWN_MS) {
+    return res.status(429).json({ ok: false, message: '잠시 후 다시 요청해주세요. (1분에 1회)' });
+  }
+  const code = generateCode();
+  await LoginCode.findOneAndUpdate(
+    { email },
+    { codeHash: hashCode(code), expiresAt: new Date(Date.now() + CODE_TTL_MS), attempts: 0, sentAt: new Date() },
+    { upsert: true }
+  );
+  try {
+    await sendLoginCode(email, code);
+  } catch (err) {
+    console.error('[mail] 발송 실패:', err.message);
+    return res.status(500).json({ ok: false, message: '메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.' });
+  }
+  res.json({ ok: true });
+});
+
+// 코드 검증 → 로그인(JWT 발급). 계정이 없으면 새로 만든다.
+router.post('/email/verify', async (req, res) => {
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const code = typeof req.body.code === 'string' ? req.body.code.toUpperCase().replace(/[\s-]/g, '') : '';
+  if (!EMAIL_RE.test(email) || !code) {
+    return res.status(400).json({ ok: false, message: '이메일과 코드를 입력해주세요.' });
+  }
+  const entry = await LoginCode.findOne({ email });
+  if (!entry || entry.expiresAt.getTime() < Date.now()) {
+    return res.status(400).json({ ok: false, message: '코드가 만료됐어요. 다시 요청해주세요.' });
+  }
+  if (entry.attempts >= MAX_ATTEMPTS) {
+    await LoginCode.deleteOne({ _id: entry._id });
+    return res.status(400).json({ ok: false, message: '시도 횟수를 초과했어요. 코드를 다시 요청해주세요.' });
+  }
+  if (entry.codeHash !== hashCode(code)) {
+    entry.attempts += 1;
+    await entry.save();
+    return res.status(400).json({ ok: false, message: `코드가 일치하지 않아요. (${MAX_ATTEMPTS - entry.attempts}회 남음)` });
+  }
+  await LoginCode.deleteOne({ _id: entry._id }); // 일회용
+
+  let user = await User.findOne({ email });
+  if (!user) {
+    user = await User.create({
+      // googleId 는 스키마상 필수·유니크 — 이메일 가입자는 자리표시자로 채운다.
+      // 이후 같은 이메일로 구글 로그인하면 passport 가 실제 googleId 로 교체(계정 통합).
+      googleId: `email:${email}`,
+      email,
+      name: email.split('@')[0],
+      isAdmin: isAdminEmail(email),
+    });
+  }
+  res.json({ ok: true, token: signToken({ sub: user._id.toString() }) });
+});
 
 // 3) 내 정보
 router.get('/me', requireAuth, async (req, res) => {
