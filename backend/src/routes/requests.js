@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import TimeRequest from '../models/TimeRequest.js';
 import Friendship from '../models/Friendship.js';
 import Event from '../models/Event.js';
+import User from '../models/User.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
@@ -62,9 +63,14 @@ router.post('/:id/accept', async (req, res) => {
   if (!tr) return res.status(404).json({ ok: false, message: '요청을 찾을 수 없습니다.' });
   tr.status = 'accepted';
   await tr.save();
+  // 일정 클릭 시 "누가 언제 요청했는지" 보이도록 출처를 스냅샷으로 남긴다
+  const [fromUser, toUser] = await Promise.all([User.findById(tr.from), User.findById(tr.to)]);
+  const label = (u) => (u && (u.nickname || u.name || u.email)) || '알 수 없음';
+  const origin = { kind: 'timeRequest', fromName: label(fromUser), toName: label(toUser), requestedAt: tr.createdAt };
+  const base = { title: tr.title, start: tr.start, end: tr.end, allDay: tr.allDay, visibility: 'public', origin };
   await Event.create([
-    { owner: tr.to, title: tr.title, start: tr.start, end: tr.end, allDay: tr.allDay, visibility: 'public' },
-    { owner: tr.from, title: tr.title, start: tr.start, end: tr.end, allDay: tr.allDay, visibility: 'public' },
+    { ...base, owner: tr.to },
+    { ...base, owner: tr.from },
   ]);
   res.json({ ok: true });
 });

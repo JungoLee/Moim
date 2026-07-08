@@ -28,6 +28,10 @@ const LINKS: Array<[string, string, boolean?]> = [
 let cachedPicture: string | null = null;
 let cachedToken: string | null = null;
 
+// 받은 시간 요청(대기) 수 — '시간 요청' 탭 빨간 점. 이동마다 새로 부르지 않게 짧은 TTL 캐시.
+let cachedPending: { count: number; token: string; at: number } | null = null;
+const PENDING_TTL_MS = 10_000;
+
 export default function Nav() {
   const pathname = usePathname() || '';
   const [open, setOpen] = useState(false);
@@ -53,6 +57,29 @@ export default function Nav() {
       .catch(() => {});
   }, []);
 
+  // 받은 시간 요청(대기) 수 → '시간 요청' 탭 빨간 점 (페이지 이동마다 TTL 지난 경우만 재조회)
+  const [pendingReq, setPendingReq] = useState(() =>
+    typeof window !== 'undefined' && cachedPending && cachedPending.token === getToken() ? cachedPending.count : 0
+  );
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      setPendingReq(0);
+      return;
+    }
+    if (cachedPending && cachedPending.token === token && Date.now() - cachedPending.at < PENDING_TTL_MS) {
+      setPendingReq(cachedPending.count);
+      return;
+    }
+    api<{ requests: Array<{ status: string }> }>('/api/requests/received')
+      .then((r) => {
+        const count = r.requests.filter((x) => x.status === 'pending').length;
+        cachedPending = { count, token, at: Date.now() };
+        setPendingReq(count);
+      })
+      .catch(() => {});
+  }, [pathname]);
+
   // 현재 페이지 메뉴를 가로 스크롤 네비 중앙으로 — paint 전에 즉시(애니메이션 X)라 '왼쪽→이동' 덜컥임 없음
   useIsoLayoutEffect(() => {
     const el = linksRef.current?.querySelector('[aria-current="page"]') as HTMLElement | null;
@@ -76,6 +103,7 @@ export default function Nav() {
                 aria-current={active ? 'page' : undefined}
               >
                 {label}
+                {href === '/requests' && pendingReq > 0 && <span className="app-nav-dot" aria-label="받은 시간 요청 있음" />}
               </Link>
             );
           })}

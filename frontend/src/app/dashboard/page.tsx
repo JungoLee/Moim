@@ -13,7 +13,7 @@ import PageHero from '@/components/PageHero';
 import { api, getToken } from '@/lib/api';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
-import { dateKey, timeKey } from '@/lib/datetime';
+import { dateKey, timeKey, dayLabel } from '@/lib/datetime';
 import { buildMarkedDates } from '@/lib/marks';
 import { PUBLIC_COLOR, PRIVATE_COLOR, DEFAULT_TIER_COLOR } from '@/lib/colors';
 import type { MoimEvent, Tier, User, TimeRequest } from '@/lib/types';
@@ -247,6 +247,18 @@ export default function Dashboard() {
           <Modal onClose={() => setOpen(false)}>
             <form className="app-contents" onSubmit={saveForm}>
               <h3>{mode === 'edit' ? '일정 수정' : '새 일정'}</h3>
+              {(() => {
+                // 시간 요청 수락으로 생긴 일정이면 출처(누가·언제 요청) 표시
+                const og = mode === 'edit' ? events.find((e) => e._id === editId)?.origin : undefined;
+                if (og?.kind !== 'timeRequest') return null;
+                const req = og.requestedAt ? new Date(og.requestedAt) : null;
+                return (
+                  <p className="app-event-origin">
+                    ⏰ <strong>{og.fromName}</strong> → <strong>{og.toName}</strong> 시간 요청을 수락해 만들어진
+                    일정이에요{req && ` · ${dayLabel(req)} ${timeKey(req)} 요청`}
+                  </p>
+                );
+              })()}
               <input className="app-input" placeholder="일정 제목" value={fTitle} onChange={(e) => setFTitle(e.target.value)} />
 
               <label className="app-row">

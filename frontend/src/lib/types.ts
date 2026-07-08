@@ -19,6 +19,8 @@ export type MoimEvent = {
   visibility?: 'public' | 'private' | 'default';
   audienceTiers?: string[]; // 비공개 시 상세 열람 가능한 그룹 id 목록
   busy?: boolean; // 친구 캘린더 조회 시 "바쁨" 블록 여부
+  // 시간 요청 수락으로 자동 생성된 일정의 출처 (누가·언제 요청했는지)
+  origin?: { kind: string; fromName: string; toName: string; requestedAt?: string };
 };
 
 // 사용자가 만드는 공개 그룹
