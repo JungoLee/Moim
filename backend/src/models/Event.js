@@ -18,6 +18,7 @@ const eventSchema = new mongoose.Schema(
     // 출처 기록 — 시간 요청 수락으로 자동 생성된 일정이면 누가·언제 요청했는지 (수락 시점 스냅샷)
     origin: {
       kind: { type: String, default: '' }, // 'timeRequest'
+      requestId: { type: mongoose.Schema.Types.ObjectId }, // 원본 TimeRequest — 양쪽 사본을 잇는 키
       fromName: { type: String, default: '' }, // 요청 보낸 사람 표시명
       toName: { type: String, default: '' }, // 요청 받은 사람 표시명
       requestedAt: { type: Date },

@@ -13,6 +13,7 @@ import PageHero from '@/components/PageHero';
 import { api, getToken } from '@/lib/api';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
+import { confirmDialog } from '@/lib/confirm';
 import { dateKey, timeKey, dayLabel } from '@/lib/datetime';
 import { buildMarkedDates } from '@/lib/marks';
 import { PUBLIC_COLOR, PRIVATE_COLOR, REQUEST_COLOR, DEFAULT_TIER_COLOR } from '@/lib/colors';
@@ -104,10 +105,29 @@ export default function Dashboard() {
     openCreate(t, t);
   }
 
-  // 일정 클릭 → 수정 모달
-  function openEdit(id: string) {
+  // 일정 클릭 → 수정 모달 (시간 요청 일정은 상대방 삭제 여부 먼저 안내)
+  async function openEdit(id: string) {
     const ev = events.find((e) => e._id === id);
     if (!ev) return;
+    if (ev.origin?.kind === 'timeRequest' && ev.originPartnerGone) {
+      const myName = user ? displayName(user) : '';
+      const other = (ev.origin.fromName === myName ? ev.origin.toName : ev.origin.fromName) || '상대방';
+      const del = await confirmDialog({
+        message: `${other}님이 이 일정을 자신의 캘린더에서 삭제했어요.\n내 캘린더에서도 삭제할까요? (취소하면 그대로 두고 수정 창을 엽니다)`,
+        confirmText: '나도 삭제',
+        danger: true,
+      });
+      if (del) {
+        try {
+          await api(`/api/events/${id}`, { method: 'DELETE' });
+          load();
+          toast('일정을 삭제했습니다');
+        } catch (err) {
+          toast(err instanceof Error ? err.message : '삭제 실패', 'error');
+        }
+        return;
+      }
+    }
     const s = new Date(ev.start);
     const e = new Date(ev.end);
     setMode('edit');

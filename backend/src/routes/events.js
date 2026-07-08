@@ -16,7 +16,29 @@ router.get('/', async (req, res) => {
     if (to) q.start.$lte = new Date(to);
   }
   const events = await Event.find(q).sort({ start: 1 });
-  res.json({ ok: true, events });
+  // 시간 요청 일정: 상대방 사본이 아직 살아있는지 표시 (삭제됐으면 클릭 시 안내용)
+  const reqIds = [
+    ...new Set(
+      events
+        .filter((e) => e.origin?.kind === 'timeRequest' && e.origin.requestId)
+        .map((e) => e.origin.requestId.toString())
+    ),
+  ];
+  let alive = new Set();
+  if (reqIds.length) {
+    const partners = await Event.find({ 'origin.requestId': { $in: reqIds }, owner: { $ne: req.userId } }).select(
+      'origin.requestId'
+    );
+    alive = new Set(partners.map((p) => p.origin.requestId.toString()));
+  }
+  const out = events.map((e) => {
+    const o = e.toObject();
+    if (o.origin?.kind === 'timeRequest' && o.origin.requestId) {
+      o.originPartnerGone = !alive.has(o.origin.requestId.toString());
+    }
+    return o;
+  });
+  res.json({ ok: true, events: out });
 });
 
 // 비공개 일정의 audienceTiers 입력 정규화 (유효한 ObjectId 배열만)

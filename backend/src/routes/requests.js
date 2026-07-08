@@ -66,7 +66,7 @@ router.post('/:id/accept', async (req, res) => {
   // 일정 클릭 시 "누가 언제 요청했는지" 보이도록 출처를 스냅샷으로 남긴다
   const [fromUser, toUser] = await Promise.all([User.findById(tr.from), User.findById(tr.to)]);
   const label = (u) => (u && (u.nickname || u.name || u.email)) || '알 수 없음';
-  const origin = { kind: 'timeRequest', fromName: label(fromUser), toName: label(toUser), requestedAt: tr.createdAt };
+  const origin = { kind: 'timeRequest', requestId: tr._id, fromName: label(fromUser), toName: label(toUser), requestedAt: tr.createdAt };
   // 둘 사이의 약속이므로 다른 친구에겐 상세 대신 "바쁨"만 보이게 비공개로 생성
   const base = { title: tr.title, start: tr.start, end: tr.end, allDay: tr.allDay, visibility: 'private', origin };
   await Event.create([
