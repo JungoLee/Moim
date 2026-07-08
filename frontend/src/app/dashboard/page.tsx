@@ -197,16 +197,18 @@ export default function Dashboard() {
           title={user ? `${displayName(user)} 님의 캘린더` : '내 캘린더'}
           desc="날짜를 클릭·드래그하면 일정을 추가하고, 일정을 클릭하면 수정·삭제할 수 있어요."
           action={
-            <button className="app-btn" onClick={openToday}>
+            <button className="app-btn" onClick={openToday} data-guide="cal-new">
               + 새 일정
             </button>
           }
         />
         {error && <p className="app-error">{error}</p>}
 
-        <Calendar events={events} onSelectRange={openCreate} onSelectEvent={openEdit} tierColors={tierColors} requests={sentRequests} />
+        <div data-guide="cal">
+          <Calendar events={events} onSelectRange={openCreate} onSelectEvent={openEdit} tierColors={tierColors} requests={sentRequests} />
+        </div>
 
-        <div className="app-legend">
+        <div className="app-legend" data-guide="cal-legend">
           <span><i style={{ background: PUBLIC_COLOR }} />공개</span>
           <span><i style={{ background: PRIVATE_COLOR }} />비공개</span>
           {tiers.map((t) => {

@@ -133,6 +133,7 @@ export default function Rooms() {
           </Modal>
         )}
 
+        <div data-guide="rooms-list">
         <h3>내 모임</h3>
         {rooms.length === 0 && <p className="app-muted">아직 모임이 없습니다.</p>}
         {rooms.map((r) => (
@@ -147,6 +148,7 @@ export default function Rooms() {
             </div>
           </Link>
         ))}
+        </div>
       </main>
     </>
   );

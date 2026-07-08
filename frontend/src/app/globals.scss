@@ -1437,6 +1437,65 @@ a.app-card:hover {
   flex-shrink: 0;
 }
 
+/* ── 사용 가이드 (스포트라이트 투어) ── */
+.app-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 150; /* nav(50)·FAB(95)·모달(100)·드로어(110) 위, confirm(200) 아래 */
+}
+/* 대상 요소 위에 덮이는 '구멍' — 거대한 box-shadow 가 주변 전체를 어둡게 */
+.app-guide-spot {
+  position: fixed;
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 2px rgba(124, 140, 255, 0.9), 0 0 0 10000px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  transition: top 0.35s cubic-bezier(0.2, 0.7, 0.3, 1), left 0.35s cubic-bezier(0.2, 0.7, 0.3, 1),
+    width 0.35s cubic-bezier(0.2, 0.7, 0.3, 1), height 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+/* 스포트라이트 아래(공간 없으면 위)에 뜨는 스텝 설명 카드 */
+.app-guide-tip {
+  position: fixed;
+  width: min(340px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--edge-highlight), var(--shadow-md);
+  transition: top 0.35s cubic-bezier(0.2, 0.7, 0.3, 1), left 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
+  animation: app-pop-in 200ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.app-guide-count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.04em;
+}
+.app-guide-tip h3 {
+  margin: 0;
+}
+.app-guide-tip p {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.app-guide-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-guide-spot,
+  .app-guide-tip {
+    transition: none;
+    animation: none;
+  }
+}
+
 /* 범례에서 그룹 색 클릭 → 팔레트 팝오버 (그룹만) */
 .app-legend-group {
   position: relative;

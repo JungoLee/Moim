@@ -45,7 +45,7 @@ export default function Friends() {
         <PageHero icon="users" title="친구" desc="친구를 추가하고 받은 요청을 수락하세요." />
 
         {requests.length > 0 && (
-          <div className="app-card">
+          <div className="app-card" data-guide="friends-requests">
             <h3>받은 요청</h3>
             {requests.map((r) => (
               <div className="app-row" key={r._id}>
@@ -64,23 +64,25 @@ export default function Friends() {
           </div>
         )}
 
-        <h3>내 친구</h3>
-        {friends.length === 0 && <p className="app-muted">아직 친구가 없습니다.</p>}
-        {friends.map((f) => (
-          <div className="app-card" key={f.friendshipId}>
-            <div className="app-row">
-              <strong>{f.user.name}</strong>
-              <span className="app-muted">{f.user.email}</span>
-              <span className="app-spacer" />
-              <Link className="app-btn app-btn--ghost" href="/tiers">
-                그룹에 추가
-              </Link>
-              <Link className="app-btn app-btn--ghost" href={`/u/${f.user._id}`}>
-                캘린더 보기
-              </Link>
+        <div data-guide="friends-list">
+          <h3>내 친구</h3>
+          {friends.length === 0 && <p className="app-muted">아직 친구가 없습니다.</p>}
+          {friends.map((f) => (
+            <div className="app-card" key={f.friendshipId}>
+              <div className="app-row">
+                <strong>{f.user.name}</strong>
+                <span className="app-muted">{f.user.email}</span>
+                <span className="app-spacer" />
+                <Link className="app-btn app-btn--ghost" href="/tiers">
+                  그룹에 추가
+                </Link>
+                <Link className="app-btn app-btn--ghost" href={`/u/${f.user._id}`}>
+                  캘린더 보기
+                </Link>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </main>
     </>
   );

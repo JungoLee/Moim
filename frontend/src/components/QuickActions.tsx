@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { api, getToken } from '@/lib/api';
 import { copyToClipboard } from '@/lib/clipboard';
 import { subscribeQuickActions, type QuickAction } from '@/lib/quickActions';
+import { guideForPath, startGuide } from '@/lib/guide';
 import Notice from '@/components/Notice';
 import Modal from '@/components/Modal';
 import RoomChat from '@/components/RoomChat';
@@ -15,6 +16,8 @@ import type { RoomComment } from '@/lib/types';
 export default function QuickActions() {
   const pathname = usePathname();
   const roomId = (pathname?.match(/^\/rooms\/([a-zA-Z0-9]+)$/) || [])[1] || '';
+  // 현재 페이지에 사용 가이드(스포트라이트 투어)가 정의돼 있으면 FAB 메뉴에 노출
+  const guideSteps = guideForPath(pathname || '');
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -173,6 +176,18 @@ export default function QuickActions() {
           <button type="button" className="app-fab-item" onClick={openAddFriend}>
             👤 친구 추가
           </button>
+          {guideSteps && (
+            <button
+              type="button"
+              className="app-fab-item"
+              onClick={() => {
+                setMenuOpen(false);
+                startGuide(guideSteps);
+              }}
+            >
+              📖 사용 가이드
+            </button>
+          )}
         </div>
         <button
           type="button"

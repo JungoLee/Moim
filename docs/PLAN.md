@@ -52,6 +52,7 @@
 - **홈**(`/home`): 친구요청 알림 · 다가오는 일정(D-day) · 내 모임 요약 · 추천 연차 (로그인 후 랜딩)
 - **관리자**(`/admin`): 통계 개요 · 회원 권한/탈퇴(cascade) · 모임/그룹 모더레이션. 기본 관리자는 env `ADMIN_EMAILS`
 - **공통 UI**: 디자인 토큰(globals.scss) + rem 반응형(clamp), PageHero(전 탭), Nav(활성 강조·중앙 스크롤) + 우하단 FAB(`lib/quickActions`), 공용 컴포넌트(Modal·Select·TimeSelect·DatePicker·ColorPalette+휠·Avatar·MemberRow·Notice·Accordion·Tooltip), 커스텀 confirm(`lib/confirm`)·토스트, 랜딩 글래스 리디자인
+- **사용 가이드(스포트라이트 투어)**: FAB '📖 사용 가이드' → 대상 요소를 `box-shadow` 컷아웃으로 강조 + 스텝 설명 카드(`lib/guide` 라우트별 정의 + `GuideHost`, 대상은 각 페이지 `data-guide` 속성). 홈·캘린더·친구·시간요청·그룹·모임·연차 7개 탭 지원, 조건부 섹션은 자동 스킵
 - **배포·수익화**: Render Blueprint 배포 + Atlas(2026-06-22), 랜딩 진입 시 `warmApi()` 콜드스타트 완화, **AdSense 코드 연동**(Auto ads 스크립트 + `AdUnit` 수동 슬롯 + `ads.txt` — 승인 절차만 남음, Phase 8 참조)
 - **리팩토링**: `lib/`(api·datetime·marks·clipboard·confirm·quickActions) 공용화, 데드코드 정리 3차까지(2026-07-08: `AvailabilityCalendar` 미사용 `mode` prop, `leave.ts` 내부 전용 함수 unexport, 미사용 `@fullcalendar/timegrid` 의존성 제거)
 

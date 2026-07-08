@@ -113,7 +113,7 @@ export default function Home() {
           <p>오늘의 일정과 모임을 한눈에.</p>
         </div>
 
-        <div className={styles.tiles}>
+        <div className={styles.tiles} data-guide="home-tiles">
           {TILES.map(([href, icon, label, desc, featured]) => (
             <Tooltip key={href} label={desc}>
               <Link href={href} className={featured ? `${styles.tile} ${styles.featured}` : styles.tile}>
@@ -138,7 +138,7 @@ export default function Home() {
           </Link>
         )}
 
-        <div className="app-card">
+        <div className="app-card" data-guide="home-upcoming">
           <div className={styles.sectionHead}>
             <Icon name="calendar" size={18} />
             <h3>다가오는 일정</h3>
@@ -162,7 +162,7 @@ export default function Home() {
         </div>
 
         {leavePlan && leavePlan.combo.length > 0 && (
-          <div className="app-card">
+          <div className="app-card" data-guide="home-leave">
             <div className={styles.sectionHead}>
               <Icon name="sun" size={18} />
               <h3>추천 연차</h3>
@@ -190,7 +190,7 @@ export default function Home() {
           </div>
         )}
 
-        <div className="app-card">
+        <div className="app-card" data-guide="home-rooms">
           <div className={styles.sectionHead}>
             <Icon name="calendar-check" size={18} />
             <h3>내 모임</h3>

@@ -232,6 +232,7 @@ export default function Tiers() {
           </Modal>
         )}
 
+        <div data-guide="tiers-list">
         <h3>내 그룹</h3>
         {tiers.length === 0 && <p className="app-muted">아직 만든 그룹이 없습니다.</p>}
         {tiers.map((t) => (
@@ -286,6 +287,7 @@ export default function Tiers() {
             {memberErr[t._id] && <Notice>{memberErr[t._id]}</Notice>}
           </div>
         ))}
+        </div>
       </main>
     </>
   );

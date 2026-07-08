@@ -189,6 +189,7 @@ export default function Requests() {
           </Modal>
         )}
 
+        <div data-guide="req-received">
         <Accordion title={`받은 요청 (${received.filter((r) => r.status === 'pending').length})`} defaultOpen>
           {received.length === 0 && <p className="app-muted">받은 요청이 없습니다.</p>}
           {received.map((r) => (
@@ -215,7 +216,9 @@ export default function Requests() {
             </div>
           ))}
         </Accordion>
+        </div>
 
+        <div data-guide="req-sent">
         <Accordion title={`보낸 요청 (${sent.length})`} defaultOpen>
           {sent.length === 0 && <p className="app-muted">보낸 요청이 없습니다.</p>}
           {sent.map((r) => (
@@ -235,6 +238,7 @@ export default function Requests() {
             </div>
           ))}
         </Accordion>
+        </div>
       </main>
     </>
   );

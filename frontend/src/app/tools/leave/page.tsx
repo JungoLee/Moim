@@ -151,7 +151,7 @@ export default function LeavePlanner() {
         />
         {error && <p className="app-error">{error}</p>}
 
-        <div className="app-card">
+        <div className="app-card" data-guide="leave-form">
           <div className="app-row">
             <label className={styles.field}>
               잔여 연차(일)
@@ -178,7 +178,7 @@ export default function LeavePlanner() {
               </label>
             ))}
             <span className="app-spacer" />
-            <button className="app-btn" onClick={calculate}>
+            <button className="app-btn" onClick={calculate} data-guide="leave-calc">
               최적 연차 계획 만들기
             </button>
           </div>
@@ -187,7 +187,7 @@ export default function LeavePlanner() {
         {result && (
           <>
             {/* 메인: 요약 + 달력 (한눈에 보기) */}
-            <div className="app-card">
+            <div className="app-card" data-guide="leave-result">
               <h3>내 잔여 연차로 추천 조합</h3>
               {result.combo.length === 0 ? (
                 <p className="app-muted">추천할 조합이 없습니다. 잔여 연차나 기간/조건을 조정해보세요.</p>
