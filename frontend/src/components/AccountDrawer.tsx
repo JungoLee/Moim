@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api, clearToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
@@ -12,7 +11,6 @@ import LegalModal from '@/components/LegalModal';
 import type { User } from '@/lib/types';
 
 export default function AccountDrawer({ onClose }: { onClose: () => void }) {
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [nick, setNick] = useState('');
   const [saved, setSaved] = useState(false);
@@ -38,8 +36,8 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
 
   function logout() {
     clearToken();
-    onClose();
-    router.push('/');
+    // SPA 이동(router.push) 대신 전체 로드 — 메모리에 남은 계정 상태·모듈 캐시(아바타 등)까지 초기화
+    window.location.href = '/';
   }
 
   async function deleteAccount() {
@@ -54,8 +52,8 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
     try {
       await api('/api/auth/me', { method: 'DELETE' });
       clearToken();
-      onClose();
-      router.push('/');
+      // 전체 로드로 랜딩 복귀 — 탈퇴한 계정의 화면·캐시가 남아 보이지 않게
+      window.location.href = '/';
     } catch {
       toast('탈퇴 처리에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
     }

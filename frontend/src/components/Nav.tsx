@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, getToken } from '@/lib/api';
 import { BRAND_NAME } from '@/lib/brand';
 import AccountDrawer from '@/components/AccountDrawer';
 import QuickActions from '@/components/QuickActions';
@@ -23,17 +23,28 @@ const LINKS: Array<[string, string, boolean?]> = [
   ['/tools/leave', '연차 계산'],
 ];
 
-// 페이지 이동마다 Nav 가 리마운트돼도 아바타를 다시 안 받아오게 모듈 캐시 (깜빡임/요청 방지)
+// 페이지 이동마다 Nav 가 리마운트돼도 아바타를 다시 안 받아오게 모듈 캐시 (깜빡임/요청 방지).
+// 어떤 토큰(계정)의 아바타인지 함께 기억 — 로그아웃 후 다른 계정으로 로그인하면 무효화.
 let cachedPicture: string | null = null;
+let cachedToken: string | null = null;
 
 export default function Nav() {
   const pathname = usePathname() || '';
   const [open, setOpen] = useState(false);
-  const [picture, setPicture] = useState(cachedPicture || '');
+  const [picture, setPicture] = useState(() =>
+    typeof window !== 'undefined' && cachedToken === getToken() && cachedPicture !== null ? cachedPicture : ''
+  );
   const linksRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (cachedPicture !== null) return;
+    const token = getToken();
+    if (cachedPicture !== null && cachedToken === token) return; // 같은 계정 → 캐시 사용
+    cachedPicture = null;
+    cachedToken = token;
+    if (!token) {
+      setPicture('');
+      return;
+    }
     api<{ user: User }>('/api/auth/me')
       .then((r) => {
         cachedPicture = r.user.picture || '';
