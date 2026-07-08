@@ -4,7 +4,7 @@ import passport from 'passport';
 import { signToken } from '../utils/jwt.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isAdminEmail } from '../utils/admins.js';
-import { sendLoginCode } from '../utils/mailer.js';
+import { sendLoginCode, hasMailTransport } from '../utils/mailer.js';
 import User from '../models/User.js';
 import LoginCode from '../models/LoginCode.js';
 import Event from '../models/Event.js';
@@ -37,7 +37,8 @@ router.get(
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 헷갈리는 글자(I·L·O·0·1) 제외
 const CODE_LEN = 12;
-const CODE_TTL_MS = 10 * 60 * 1000; // 10분
+const CODE_TTL_MS = 10 * 60 * 1000; // 10분 (메일 발송 시)
+const MANUAL_TTL_MS = 30 * 60 * 1000; // 30분 — TEMP(email-approval): 관리자 수동 전달 시 여유
 const RESEND_COOLDOWN_MS = 60 * 1000; // 재전송 60초
 const MAX_ATTEMPTS = 5;
 
@@ -60,18 +61,28 @@ router.post('/email/request', async (req, res) => {
     return res.status(429).json({ ok: false, message: '잠시 후 다시 요청해주세요. (1분에 1회)' });
   }
   const code = generateCode();
+  // TEMP(email-approval): 발송 수단이 없으면 '관리자 수동 전달' 모드 —
+  // 평문 코드를 보관해 관리자 페이지에 노출(관리자가 카톡 등으로 전달=승인), 유효시간은 30분으로 여유.
+  const deliverable = hasMailTransport();
+  const ttl = deliverable ? CODE_TTL_MS : MANUAL_TTL_MS;
   await LoginCode.findOneAndUpdate(
     { email },
-    { codeHash: hashCode(code), expiresAt: new Date(Date.now() + CODE_TTL_MS), attempts: 0, sentAt: new Date() },
+    {
+      codeHash: hashCode(code),
+      expiresAt: new Date(Date.now() + ttl),
+      attempts: 0,
+      sentAt: new Date(),
+      code: deliverable ? '' : code,
+    },
     { upsert: true }
   );
   try {
-    await sendLoginCode(email, code);
+    await sendLoginCode(email, code); // 발송 수단 없으면 내부에서 콘솔 출력
   } catch (err) {
     console.error('[mail] 발송 실패:', err.message);
     return res.status(500).json({ ok: false, message: '메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.' });
   }
-  res.json({ ok: true });
+  res.json({ ok: true, manual: !deliverable });
 });
 
 // 코드 검증 → 로그인(JWT 발급). 계정이 없으면 새로 만든다.

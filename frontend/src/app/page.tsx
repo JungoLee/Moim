@@ -51,10 +51,15 @@ export default function Home() {
     setBusy(true);
     setNotice(null);
     try {
-      await api('/api/auth/email/request', { method: 'POST', body: { email: email.trim() } });
+      const r = await api<{ manual?: boolean }>('/api/auth/email/request', { method: 'POST', body: { email: email.trim() } });
       setStep('code');
       setCode('');
-      setNotice({ ok: true, text: `${email.trim()} 로 12자리 코드를 보냈어요. (10분 유효)` });
+      setNotice({
+        ok: true,
+        text: r.manual
+          ? '지금은 관리자 승인 방식이에요 — 관리자가 확인 후 코드를 전달해드립니다(카톡 등). 받은 12자리 코드를 입력하세요. (30분 유효)'
+          : `${email.trim()} 로 12자리 코드를 보냈어요. (10분 유효)`,
+      });
     } catch (err) {
       setNotice({ ok: false, text: err instanceof Error ? err.message : '코드 발송 실패' });
     } finally {

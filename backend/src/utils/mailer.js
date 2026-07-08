@@ -57,6 +57,11 @@ async function sendViaBrevo(email, code) {
   if (!res.ok) throw new Error(`Brevo 발송 실패 (${res.status}): ${await res.text()}`);
 }
 
+/** 발송 수단(Brevo API 키 또는 SMTP)이 하나라도 설정돼 있는가 */
+export function hasMailTransport() {
+  return !!process.env.BREVO_API_KEY || !!(process.env.SMTP_HOST && process.env.SMTP_USER);
+}
+
 /** 로그인 인증 코드 메일 발송. 발송 수단이 없으면 콘솔 출력(개발용). */
 export async function sendLoginCode(email, code) {
   if (process.env.BREVO_API_KEY) return sendViaBrevo(email, code);
