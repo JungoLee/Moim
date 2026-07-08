@@ -235,7 +235,7 @@ export default function RoomPage() {
     <>
       <Nav />
       <main className="app-container">
-        <div className="app-card room-head">
+        <div className="app-card room-head" data-guide="room-head">
           <div className="room-head-top">
             <h2>{room.name}</h2>
             <span className="app-pill">멤버 {total}명</span>
@@ -268,7 +268,7 @@ export default function RoomPage() {
         </div>
 
         <div className="app-card">
-          <div className="app-row">
+          <div className="app-row" data-guide="room-modes">
             {MODES.map(([v, label]) =>
               v === 'after' ? (
                 <div className="app-after" key={v}>
@@ -306,7 +306,9 @@ export default function RoomPage() {
               새로고침
             </button>
           </div>
-          <AvailabilityCalendar myMarks={myMarks} summary={summary} total={total} onApply={onApply} />
+          <div data-guide="room-cal">
+            <AvailabilityCalendar myMarks={myMarks} summary={summary} total={total} onApply={onApply} />
+          </div>
           <div className="app-legend">
             <span><i style={{ background: '#4ad295' }} />가능</span>
             <span><i style={{ background: '#ff9b9b' }} />안 됨</span>
@@ -315,7 +317,7 @@ export default function RoomPage() {
           </div>
         </div>
 
-        <div className="app-card">
+        <div className="app-card" data-guide="room-result">
           <h3>🎉 모두 되는 날 ({fullDays.length})</h3>
           {fullDays.length === 0 ? (
             <p className="app-muted">아직 전원이 종일 가능한 날이 없습니다.</p>
