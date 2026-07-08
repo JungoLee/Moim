@@ -58,7 +58,7 @@ function getHolidayNames(start: Date, end: Date, holidays: Holidays): string[] {
 }
 
 // from~to 범위에서 모든 "브릿지" 후보를 찾는다.
-export function findBridges(from: Date, to: Date, maxConsecutive: number, holidays: Holidays): Bridge[] {
+function findBridges(from: Date, to: Date, maxConsecutive: number, holidays: Holidays): Bridge[] {
   const bridges: Bridge[] = [];
   let i = new Date(from);
 
@@ -148,7 +148,7 @@ export function findBridges(from: Date, to: Date, maxConsecutive: number, holida
 //    1일짜리 구간을 우선한다.
 const DAY_MS = 86_400_000;
 
-export function selectPeriods(
+function selectPeriods(
   bridges: Bridge[],
   remaining: number,
   style: LeaveStyle,

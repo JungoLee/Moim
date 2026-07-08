@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { Mark, AvailStatus } from '@/lib/types';
+import type { Mark } from '@/lib/types';
 import styles from './AvailabilityCalendar.module.scss';
 import { pad2, dateKey as toKey, addDays, startOfDay } from '@/lib/datetime';
 
@@ -13,11 +13,10 @@ type Props = {
   myMarks: Record<string, Mark>;
   summary: Record<string, DaySummary>;
   total: number;
-  mode: AvailStatus;
   onApply: (dates: string[], isDrag: boolean) => void;
 };
 
-export default function AvailabilityCalendar({ myMarks, summary, total, mode, onApply }: Props) {
+export default function AvailabilityCalendar({ myMarks, summary, total, onApply }: Props) {
   const today = useMemo(() => startOfDay(new Date()), []);
   const [view, setView] = useState<Date>(() => startOfDay(new Date()));
   const [anchor, setAnchor] = useState<Date | null>(null);

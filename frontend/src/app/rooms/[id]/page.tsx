@@ -306,7 +306,7 @@ export default function RoomPage() {
               새로고침
             </button>
           </div>
-          <AvailabilityCalendar myMarks={myMarks} summary={summary} total={total} mode={mode} onApply={onApply} />
+          <AvailabilityCalendar myMarks={myMarks} summary={summary} total={total} onApply={onApply} />
           <div className="app-legend">
             <span><i style={{ background: '#4ad295' }} />가능</span>
             <span><i style={{ background: '#ff9b9b' }} />안 됨</span>
