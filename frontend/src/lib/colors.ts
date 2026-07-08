@@ -17,9 +17,11 @@ export const DEFAULT_TIER_COLOR = TIER_PALETTE[0];
 // 가시성 기반 기본 색
 export const PUBLIC_COLOR = '#35c08a'; // 공개(공유)
 export const PRIVATE_COLOR = '#e08a3c'; // 비공개(나만)
+export const REQUEST_COLOR = '#a855f7'; // 시간 요청으로 만들어진 일정 (보낸 요청 점선 블록과 같은 보라 계열)
 
-// 일정 라인 색: 공개=초록 / 비공개=주황 / 비공개+그룹지정=그룹색
+// 일정 라인 색: 시간요청 출신=보라(고정) / 공개=초록 / 비공개=주황 / 비공개+그룹지정=그룹색
 export function eventColor(ev: MoimEvent, tierColors?: Record<string, string>): string {
+  if (ev.origin?.kind === 'timeRequest') return REQUEST_COLOR;
   if (ev.visibility === 'private') {
     const tid = ev.audienceTiers?.[0];
     return (tid && tierColors?.[tid]) || PRIVATE_COLOR;

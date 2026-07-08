@@ -67,7 +67,8 @@ router.post('/:id/accept', async (req, res) => {
   const [fromUser, toUser] = await Promise.all([User.findById(tr.from), User.findById(tr.to)]);
   const label = (u) => (u && (u.nickname || u.name || u.email)) || '알 수 없음';
   const origin = { kind: 'timeRequest', fromName: label(fromUser), toName: label(toUser), requestedAt: tr.createdAt };
-  const base = { title: tr.title, start: tr.start, end: tr.end, allDay: tr.allDay, visibility: 'public', origin };
+  // 둘 사이의 약속이므로 다른 친구에겐 상세 대신 "바쁨"만 보이게 비공개로 생성
+  const base = { title: tr.title, start: tr.start, end: tr.end, allDay: tr.allDay, visibility: 'private', origin };
   await Event.create([
     { ...base, owner: tr.to },
     { ...base, owner: tr.from },

@@ -15,7 +15,7 @@ import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import { dateKey, timeKey, dayLabel } from '@/lib/datetime';
 import { buildMarkedDates } from '@/lib/marks';
-import { PUBLIC_COLOR, PRIVATE_COLOR, DEFAULT_TIER_COLOR } from '@/lib/colors';
+import { PUBLIC_COLOR, PRIVATE_COLOR, REQUEST_COLOR, DEFAULT_TIER_COLOR } from '@/lib/colors';
 import type { MoimEvent, Tier, User, TimeRequest } from '@/lib/types';
 
 export default function Dashboard() {
@@ -211,6 +211,7 @@ export default function Dashboard() {
         <div className="app-legend" data-guide="cal-legend">
           <span><i style={{ background: PUBLIC_COLOR }} />공개</span>
           <span><i style={{ background: PRIVATE_COLOR }} />비공개</span>
+          <span><i style={{ background: REQUEST_COLOR }} />시간 요청</span>
           {tiers.map((t) => {
             const cur = t.color || DEFAULT_TIER_COLOR;
             return (
