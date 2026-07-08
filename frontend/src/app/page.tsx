@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getToken, googleLoginUrl, onTokenStored, warmApi } from '@/lib/api';
+import { isInAppBrowser, escapeInAppBrowser } from '@/lib/inapp';
+import { toast } from '@/lib/toast';
 import { BRAND_NAME } from '@/lib/brand';
 
 export default function Home() {
@@ -33,6 +35,21 @@ export default function Home() {
   }, [router]);
 
   function handleLogin() {
+    // 카카오톡 등 인앱 브라우저는 구글 OAuth 가 차단됨(disallowed_useragent)
+    // → 기본 브라우저로 탈출. 공유받은 방 URL(postLoginRedirect)이 있으면 그리로 열어준다.
+    if (isInAppBrowser()) {
+      let target = window.location.href;
+      try {
+        const n = sessionStorage.getItem('postLoginRedirect');
+        if (n) target = window.location.origin + n;
+      } catch {
+        /* 무시 */
+      }
+      if (!escapeInAppBrowser(target)) {
+        toast('인앱 브라우저에서는 구글 로그인이 막혀요. 메뉴(⋯ 또는 공유)에서 “다른 브라우저로 열기”를 눌러주세요.', 'error');
+      }
+      return;
+    }
     const url = googleLoginUrl();
     const w = 480;
     const h = 640;
