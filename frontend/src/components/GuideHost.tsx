@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { subscribeGuide, stopGuide, type GuideStep } from '@/lib/guide';
 
 const PAD = 8; // 스포트라이트가 대상보다 살짝 크게 (px)
 const TIP_W = 340; // 설명 카드 폭 (px, CSS 와 동일)
 const TIP_GAP = 14; // 스포트라이트 ↔ 설명 카드 간격 (px)
-const TIP_EST_H = 200; // 아래 공간 판정용 카드 높이 추정치 (px)
+const EDGE = 12; // 화면 가장자리 최소 여백 (px)
 
 type Rect = { top: number; left: number; width: number; height: number };
 
@@ -17,6 +17,9 @@ export default function GuideHost() {
   const [steps, setSteps] = useState<GuideStep[] | null>(null);
   const [idx, setIdx] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
+  // 설명 카드 위치 — 렌더 후 실제 높이를 재서 화면 안으로 클램프 (긴 카드가 하단 밖으로 나가 버튼을 못 누르는 문제 방지)
+  const tipRef = useRef<HTMLDivElement>(null);
+  const [tipPos, setTipPos] = useState<{ top: number; left: number } | null>(null);
 
   // 시작 시 화면에 실제로 존재하는 타겟만 남긴다 (빈 목록·조건부 섹션 자동 스킵)
   useEffect(
@@ -79,17 +82,25 @@ export default function GuideHost() {
     return () => window.removeEventListener('keydown', onKey);
   }, [steps]);
 
+  // 카드 위치 계산 — paint 전(useLayoutEffect)에 실제 높이 측정: 아래 → 위 → 그래도 안 되면 화면 안 클램프
+  useLayoutEffect(() => {
+    if (!rect) {
+      setTipPos(null);
+      return;
+    }
+    const h = tipRef.current?.offsetHeight ?? 0;
+    const vh = window.innerHeight;
+    let top = rect.top + rect.height + TIP_GAP; // 1순위: 스포트라이트 아래
+    if (top + h + EDGE > vh) top = rect.top - TIP_GAP - h; // 2순위: 위
+    top = Math.min(Math.max(EDGE, top), Math.max(EDGE, vh - h - EDGE)); // 최종: 항상 화면 안
+    const left = Math.min(Math.max(rect.left, EDGE), Math.max(EDGE, window.innerWidth - TIP_W - EDGE));
+    setTipPos({ top, left });
+  }, [rect, idx]);
+
   if (!steps || !step || !rect) return null;
 
   const last = idx === steps.length - 1;
   const next = () => (last ? stopGuide() : setIdx((i) => i + 1));
-
-  // 설명 카드: 기본은 스포트라이트 아래, 아래 공간이 부족하면 위
-  const below = rect.top + rect.height + TIP_GAP + TIP_EST_H < window.innerHeight;
-  const tipLeft = Math.min(Math.max(rect.left, 12), Math.max(12, window.innerWidth - TIP_W - 12));
-  const tipStyle = below
-    ? { top: rect.top + rect.height + TIP_GAP, left: tipLeft }
-    : { top: rect.top - TIP_GAP, left: tipLeft, transform: 'translateY(-100%)' };
 
   return (
     // 배경(어두운 영역) 클릭 = 다음 스텝. 카드 안 클릭은 전파 차단.
@@ -98,7 +109,13 @@ export default function GuideHost() {
         className="app-guide-spot"
         style={{ top: rect.top, left: rect.left, width: rect.width, height: rect.height }}
       />
-      <div className="app-guide-tip" style={tipStyle} onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={tipRef}
+        // 첫 렌더(위치 미계산)엔 숨긴 채 높이만 재고, 이후 스텝 이동은 transition 으로 미끄러짐
+        className={tipPos ? 'app-guide-tip' : 'app-guide-tip app-guide-tip--measuring'}
+        style={tipPos ?? { top: 0, left: EDGE }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <span className="app-guide-count">
           {idx + 1} / {steps.length}
         </span>
