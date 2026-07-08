@@ -95,7 +95,7 @@ backend/   Express(ESM)
   src/models/     User · Friendship · Tier(그룹) · Room(모임) · Event · TimeRequest(시간요청)
   src/middleware/ auth.js(requireAuth) · admin.js(requireAdmin)
   src/config/     db.js · passport.js(Google)
-docs/      PLAN.md(로드맵·할 일) · refactoring-guide.md · ONBOARDING.md(이 문서)
+docs/      PLAN.md(로드맵·할 일) · refactoring-guide.md · ONBOARDING.md(이 문서) · PLAN_others.md(⚠️ Moim 무관 별도 프로젝트 계획, 새 레포 분리 전 임시 보관)
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 루트        package.json(`npm run dev`=두 서버 동시 실행, concurrently) · render.yaml(Render 배포 Blueprint)
 ```

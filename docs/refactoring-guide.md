@@ -34,7 +34,7 @@
 | **useEffect cleanup** | 타이머·이벤트 리스너·AbortController 가 모든 종료 경로에서 정리되는지 |
 | 빈/비JSON 응답 방어 | `res.json().catch(() => ({}))` (api.ts 패턴) — 백엔드 재시작 중 JSON 파싱 오류 방지 |
 | ObjectId 검증 | `:id` 라우트에서 `mongoose.Types.ObjectId.isValid()` 선행 (잘못된 ID → 400) |
-| 소유권/권한 체크 | 일정·친구 변경 시 `owner === req.userId`, 캘린더 조회 시 친구 등급 판정 누락 없는지 |
+| 소유권/권한 체크 | 일정·친구 변경 시 `owner === req.userId`, 캘린더 조회 시 친구 여부·그룹(Tier) 판정 누락 없는지 |
 
 ---
 
@@ -73,7 +73,7 @@
 | 입력 검증 | POST body 타입·필수값 검증, 미들웨어 순서(`express.json` 먼저) |
 | 에러 응답 일관화 | `{ ok:false, message }` + 적절한 status |
 | 인증 게이트 | 보호 라우트에 `requireAuth` 적용 |
-| 가시성 로직 단일화 | 친구 등급(close/normal)·일정 `visibility` 판정은 `routes/calendar.js` 패턴 재사용 (분산 금지) |
+| 가시성 로직 단일화 | 친구 여부 × 일정 `visibility`(공유/비공개·`audienceTiers`) 판정은 `routes/calendar.js` 패턴 재사용 (분산 금지) |
 
 ---
 
@@ -89,7 +89,8 @@
 ---
 
 ## 8. 빌드 · 검증
-- [ ] 프론트: `npm run build`(= `next build`, tsc 타입체크 포함) — VPN 시 `NODE_OPTIONS=--use-system-ca`
+- [ ] 프론트: `npm run build`(= `next build`, tsc 타입체크 포함) — VPN 시 `NODE_OPTIONS=--use-system-ca`. ⚠️ **`next dev` 실행 중엔 build 금지**(같은 `.next/` 공유로 dev 깨짐) — 그때는 `npx tsc --noEmit` 으로 타입만 검증
+- [ ] 미사용 로컬/import 일괄 탐지: `npx tsc --noEmit --noUnusedLocals --noUnusedParameters`
 - [ ] 백엔드: 변경 파일 `node --check`, 가능하면 부팅하여 라우터 로드 확인
 - [ ] 커밋 전 `git fetch` + diverge 확인 (협업/동시 세션 충돌 방지)
 

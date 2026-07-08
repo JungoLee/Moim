@@ -2,6 +2,7 @@
 
 > 이 문서는 **단일 출처**다. 새 세션(사람·Claude Code)은 여기 "현재 상태"와 "다음 작업"부터 읽고 시작한다.
 > 작업이 끝나면 해당 항목을 정리하고(완료 표시 또는 삭제), 새 요청은 백로그에 추가한다.
+> 완료 작업의 상세 이력은 **git log** 가 출처 — 여기엔 요약만 남긴다.
 
 ---
 
@@ -31,106 +32,42 @@
 ### 데이터 모델 (현재)
 - **User**: `googleId`, `email`, `name`, `nickname`(표시명, 있으면 우선), `picture`, `isAdmin`, `leave`(연차 계산기 설정: remaining·start·renewal·maxConsec·style — 갱신일 지나면 서버가 자동 이월)
 - **Friendship**: `requester`, `recipient`, `status`(pending|accepted) — 친구 그래프 = 캘린더 열람 권한. 가시성 제어는 그룹/일정으로 분리
-- **Tier(그룹)**: `owner`, `name`, `code`(고유), `color`(캘린더 라인 색), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가. 생성 시 색상 지정
+- **Tier(그룹)**: `owner`, `name`, `code`(고유), `color`(캘린더 라인 색), `members[]` — 사용자가 만들고 이메일/코드로 멤버 추가. 생성 시 색상 지정, 사후 변경 가능
 - **Room(모임 방)**: `owner`, `name`, `code`(초대), `joinByUrl`(true면 비멤버도 URL 진입 시 자동 가입), `members[]`, `availabilities[{user, marks[{date,status(yes|no|after),time}]}]`, `comments[]` — 멤버별 가능/불가/시간 → 모두 되는 날 집계 + 채팅(메시지=comments, 작성자 picture 동봉)
 - **Event**: `owner`, `title`, `start`, `end`, `allDay`, `location`, `memo`, `visibility`(public|private), `audienceTiers[]`(비공개 시 상세 열람 그룹)
 - **TimeRequest**: `from`, `to`, `title`, `start`, `end`, `allDay`, `message`, `status`(pending|accepted|declined) — 친구에게 시간 요청, 수락 시 양쪽 일정 생성(allDay 반영)
 
 ---
 
-## 현재 상태 — Phase 1 + 1.5 동작 ✅
-**구글 로그인 + 내 스케줄 작성 + 공유/비공개(그룹별) 노출** 까지 실제 동작(로그인·일정 생성 검증 완료).
+## 현재 상태 — Phase 1·1.5·2(모임)·3(시간요청) 동작 + Render 배포 ✅
 
-구현됨:
-- [x] 백엔드: Express, MongoDB(Atlas) 연결, Google OAuth+JWT, requireAuth, 시작 시 env 가드
-- [x] 모델: User / Friendship / Tier(그룹) / Room(모임) / Event / TimeRequest(시간요청)
-- [x] 라우트: auth · events(CRUD) · friends · tiers(그룹) · rooms(방·가용성) · calendar · admin(가입자/권한) · requests(시간요청)
-- [x] 프론트: 랜딩 · 대시보드(**FullCalendar** 월/주 + 클릭·드래그 → 일정 모달[**커스텀 날짜 picker** + 24시 시간 + 메모] + 공유/비공개·그룹, 일정 클릭=수정/삭제) · 친구 · 그룹(`/tiers`) · 친구 캘린더 · 모임(`/rooms`, 3모드+댓글) · 연차(`/tools/leave`) · 관리자(`/admin`)
-- [x] 계정 메뉴(드로어): 구글 아바타 · **닉네임 설정**(없으면 구글 이름) · 고유 번호 복사 · 관리자 링크(권한 시) · 로그아웃 · 이용약관/개인정보 · ESC 닫기. 기본 관리자 `tough123181@gmail.com`(env `ADMIN_EMAILS`). **관리자 페이지**(`/admin`): 통계 개요 · 회원 권한/탈퇴(데이터 cascade) · 모임/그룹 모더레이션(삭제), 탭 UI
-- [x] 메인(홈) `/home`: 받은 친구요청 알림 · 다가오는 일정 · 내 모임 요약 (로그인 후 랜딩)
-- [x] 인터랙션: 전역 토스트, 모달/드로어 애니메이션, 클릭 카드 hover, **401 시 자동 로그아웃**
-- [x] 디자인 시스템 고도화(globals.scss 토큰·버튼·카드·네비·캘린더)
-- [x] 루트 통합 실행(`concurrently`, `npm run dev`) · 문서(README/CLAUDE/PLAN/ONBOARDING)
-- [x] 환경: `backend/.env`(Atlas 연결·구글 OAuth 입력 완료) + `frontend/.env.local` (gitignore)
-- [x] 엔드투엔드 검증: Atlas 연결 + 구글 로그인 리다이렉트 + 로그인 후 일정 생성 동작 확인 (2026-06-22)
-- [x] **배포(Render)** — `render.yaml` Blueprint로 `moim-api`(백)·`moim-web`(프론트) + Atlas. Render outbound IP를 Atlas Network Access에 등록 + 구글 콘솔 운영 콜백 URI 등록 (2026-06-22)
-- [x] **구글 로그인 팝업화** — 전체 이동 → `window.open` 팝업 + 동일 출처 localStorage `storage` 이벤트로 부모창 복귀(COOP 안전), 콜백 페이지는 팝업이면 자동 닫힘
-- [x] **랜딩 리디자인** — 글래스 카드 + 부유 광원, MOIM 워드마크(Black Ops One) 확대, Pretendard 전역 로드, 구글 공식 화이트 로그인 버튼
-- [x] **AdSense 코드 연동** — `NEXT_PUBLIC_ADSENSE_CLIENT` 설정 시 layout이 Auto ads 스크립트 로드 + 수동 배치용 `AdUnit` 컴포넌트 + `public/ads.txt`. (ID 미설정 시 광고 비활성 / 게시자 승인·도메인은 대기)
-- [x] **그룹 색상 + 공용 컴포넌트** — 그룹(Tier)별 `color`(`lib/colors.ts` 팔레트)로 캘린더 라인 구분(공개=초록·비공개=주황 기본), 공용 `Avatar`(프로필+실루엣 폴백)·`Notice`(폼 인라인 알림) 도입
-- [x] **모임 입장 버그 수정** — `GET /rooms/:id` populate 시 `isMember`가 비-방장 멤버를 막던 버그 수정 + 접근 불가/로딩 빈 상태 카드(`.app-empty`)
-- [x] **일정 입력 확장** — 종일(`allDay`) 토글(체크 시 시간 select 숨김·하루 전체 저장)·위치(`location`) 입력 추가. 목록/캘린더/포맷(`formatRange` allDay 인지)·수정 흐름 반영
-- [x] **그룹 색 사후 변경** — `PATCH /api/tiers/:id`(본인 소유·`#rrggbb` 검증) + `/tiers` 각 그룹 카드 색상 스와치로 기존 색 변경
+구현된 것 (도메인별 요약 — 상세 이력은 git log):
 
-#### 2026-06-23 묶음 (UX 고도화 + 모임 채팅 + 리팩토링)
-- [x] **달력 표시 통일** — 모든 달력 제목 `YYYY-MM`, 하루 일정도 막대(블록), 시간 24시 표기·제목 말줄임·시간영역 고정, 주 뷰 시간 드래그는 종일 아님(드래그 시각 프리필)
-- [x] **rem 반응형** — 루트 `font-size: clamp(14~16px)` + `--space-*`/`--radius-*` 토큰 rem화 → 전 화면 연속 스케일. 모바일 네비 **가로 스크롤**(글자 깨짐 해결)·여백 컴팩트
-- [x] **그룹 색 팔레트 고도화** — 공용 `ColorPalette`(프리셋 + 🎨 토글 **원형 컬러휠**`@uiw/react-color`), 대시보드 범례에서도 색 변경
-- [x] **커스텀 드롭다운(Select)** — 요청 폼 친구 선택 등 네이티브 select 대체. 요청 폼 라벨형 재구성
-- [x] **네이티브 alert/confirm 제거** — 전역 커스텀 확인창(`lib/confirm`+`ConfirmHost`, Promise 기반, danger 변형)
-- [x] **모임 채팅** — 댓글 사이드 → 우하단 FAB **플로팅 채팅**(말풍선·6초 폴링·좌상단 리사이즈·본인 삭제). 진짜 푸시는 Socket.io(Phase 4)
-- [x] **시간 요청 종일** — `TimeRequest.allDay`, 수락 시 종일 일정 생성
-- [x] **타인 프로필 모달** — 멤버 칩/채팅 아바타 클릭 → 캘린더 보기·친구/시간 요청·그룹 추가·이메일 복사. 홈 다가오는 일정 **D-day** 배지
-- [x] **공용화 리팩토링** — `lib/datetime`(HOURS/MINUTES·날짜 헬퍼)·`lib/marks`·`components/TimeSelect`·`components/Modal` 로 중복 제거, 호버 떠오름 효과 일괄 제거
-- [x] **전 탭 PageHero(visual-top)** — 아이콘 배지+그라데이션 제목+설명 공용 헤더(대시보드/친구/모임/그룹/요청/친구 캘린더/연차). 연차 hero 도 PageHero 로 통합
-- [x] **네비 현재 메뉴 강조** — `aria-current` 브랜드 그라데이션 + 로고 확대 + 가로 스크롤 시 활성 탭 중앙 정렬(paint 전 즉시), 아바타 모듈 캐시(이동 깜빡임 제거)
-- [x] **우하단 FAB 컨텍스트 액션** — `lib/quickActions` 레지스트리(페이지가 '만들기' 등 등록) + 세션 1회 자동 펼침 + 스태거 X 슬라이드 모션, 바깥 클릭 통과
-- [x] **달력 월/주 토글 제거** — 월 뷰 고정(timeGridPlugin 제거)
-- [x] **연차 설정 저장** — `User.leave` + `GET/PUT /api/auth/leave`(갱신일 자동 이월), 홈 '추천 연차' 카드, 연차 폼 세그먼트 칩·풀폭 정렬, `Accordion` 컴포넌트
-- [x] **DatePicker `block`(풀폭) + 일정 점 표시**, 2차 리팩토링(leave.ts 날짜헬퍼 datetime 재사용, 미사용 plugin/CSS 정리)
-
-#### 2026-06-24~25 묶음 (모임/그룹 설정 + 채팅 고도화 + 리팩토링)
-- [x] **모임 설정 팝업(방장)** — 룸 헤더 ⚙ 설정 모달: 초대코드(+코드/링크 복사)·**방 이름 변경**·**URL 가입 허용 토글**·**초대 코드 재발급**·**멤버 강퇴**·모임 삭제. 백엔드 `PATCH /api/rooms/:id`·`POST /:id/code`·`DELETE /:id/members/:userId`·`POST /:id/join-url` + `Room.joinByUrl`
-- [x] **URL로 가입** — 토글 ON 시 비멤버가 방 URL 진입만으로 자동 가입, OFF면 "코드로 입장" 안내. **비로그인 진입은 로그인 후 원래 방으로 자동 복귀**(`sessionStorage.postLoginRedirect` → 랜딩/콜백이 소비)
-- [x] **그룹 설정 팝업** — `/tiers` 카드의 코드·복사·색상·삭제를 ⚙ 설정 모달로 이동, 카드 본문은 이름 + 멤버 아코디언만
-- [x] **멤버 목록 컴포넌트화** — 그룹·모임 공용 `MemberRow`(아바타+닉네임/이메일+우측 액션) + 전역 `.app-member*`, 멤버 영역 compact **아코디언**
-- [x] **모임 채팅 고도화** — 안읽은 **카운트 배지**(FAB +·채팅 메뉴, 6초 폴링·클라 lastRead 기준), 카톡식 **연속 메시지 그룹핑**(아바타/이름 생략·시각 옆), **닉네임 우선 표시**(rooms·tiers populate에 nickname 추가)
-- [x] **모임 공유** — FAB '공유' → URL/코드 아이콘 2택 복사 모달. 클립보드 로직 `lib/clipboard` 공용화(CopyButton·QuickActions 중복 제거)
-- [x] **가용성 UX** — '시간 이후' 선택 시 시/분 **드롭다운 팝오버**, **리셋** 버튼(내 표시 전체 해제), 캘린더 상단 여백
-- [x] **모달 버튼 정렬 통일** — 전 모달 `.app-actions` 로 취소/닫기(좌)·확인/서브밋(우) 우측 정렬
-- [x] **폰트 스코프 수정** — `EnMono`(시스템 모노 별칭) `unicode-range` 를 **영문·숫자(0-9·A-Z·a-z)** 로만 제한 → 한글·기호는 Pretendard. (실제 EnMono 폰트 파일은 아직 미적용 — 파일 받으면 `src: url()` 연결)
-- [x] **데드코드 정리** — 미사용 `isHexColor`(lib/colors)·`.app-form-actions`(globals) 제거
+- **인증·계정**: 구글 OAuth **팝업 로그인**(localStorage `storage` 이벤트로 부모창 복귀) + JWT, 닉네임 설정, 계정 드로어(아바타·고유번호 복사·이용약관/개인정보·로그아웃), **회원 탈퇴**(cascade), **401 자동 로그아웃**, 비로그인으로 방 URL 진입 시 로그인 후 원래 방 복귀
+- **일정·캘린더**: FullCalendar **월 뷰**(주 토글 제거), 클릭·드래그 → 통합 모달(커스텀 DatePicker + 24시 TimeSelect + 종일 토글 + 위치 + 메모), 일정 클릭=수정/삭제, **공유/비공개 × 그룹** 가시성, 그룹별 라인 색(공개=초록·비공개=주황 기본). **타임존 왕복 버그 수정**(종일 종료일 +1·타임드 시간 밀림, 2026-06-24) + 종일 다중일 일정 마지막 날 채움 수정
+- **친구·그룹**: 친구 요청/수락/거절, 그룹(Tier) 생성·이메일/코드로 멤버 추가, 그룹 설정 모달(코드 복사·색 변경 `PATCH /api/tiers/:id`·삭제), 멤버 아코디언(공용 `MemberRow`), 친구 캘린더(공유=상세/비공개=바쁨)
+- **모임(rooms)**: 코드 초대 + 3모드 가용성(되는날/안되는날 드래그/시간 이후) → **모두 되는 날 집계**, 가용성 캘린더 주말 파스텔 배경(일=핑크·토=하늘)·비활성 셀 어둡게(2026-06-25), **플로팅 채팅**(말풍선·6초 폴링·안읽은 배지·연속 메시지 그룹핑·본인 삭제·리사이즈), 방장 설정 모달(이름 변경·코드 재발급·멤버 강퇴·**URL 가입 토글**·삭제), 공유 모달(URL/코드 복사), 타인 프로필 모달(캘린더 보기·친구/시간 요청·그룹 추가)
+- **시간 요청**: `TimeRequest` + `/requests` 페이지(보내기/받은/보낸), **수락 시 양쪽 캘린더에 일정 자동 생성**(종일 지원), 홈 받은 요청 배너
+- **연차 계산기**(`/tools/leave`): 브릿지 알고리즘(공휴일 낀 구간 우선 + 연중 고른 분산), 공휴일 **2026–2031** 내장(음력·대체공휴일 자동, `lib/holidays.ts`), 설정 DB 저장(`User.leave`, 갱신일 자동 이월), 홈 **추천 연차 카드**(`computeLeavePlan` 공용)
+- **홈**(`/home`): 친구요청 알림 · 다가오는 일정(D-day) · 내 모임 요약 · 추천 연차 (로그인 후 랜딩)
+- **관리자**(`/admin`): 통계 개요 · 회원 권한/탈퇴(cascade) · 모임/그룹 모더레이션. 기본 관리자는 env `ADMIN_EMAILS`
+- **공통 UI**: 디자인 토큰(globals.scss) + rem 반응형(clamp), PageHero(전 탭), Nav(활성 강조·중앙 스크롤) + 우하단 FAB(`lib/quickActions`), 공용 컴포넌트(Modal·Select·TimeSelect·DatePicker·ColorPalette+휠·Avatar·MemberRow·Notice·Accordion·Tooltip), 커스텀 confirm(`lib/confirm`)·토스트, 랜딩 글래스 리디자인
+- **배포·수익화**: Render Blueprint 배포 + Atlas(2026-06-22), 랜딩 진입 시 `warmApi()` 콜드스타트 완화, **AdSense 코드 연동**(Auto ads 스크립트 + `AdUnit` 수동 슬롯 + `ads.txt` — 승인 절차만 남음, Phase 8 참조)
+- **리팩토링**: `lib/`(api·datetime·marks·clipboard·confirm·quickActions) 공용화, 데드코드 정리 3차까지(2026-07-08: `AvailabilityCalendar` 미사용 `mode` prop, `leave.ts` 내부 전용 함수 unexport, 미사용 `@fullcalendar/timegrid` 의존성 제거)
 
 ### 다음 작업 (남은 것)
-- [ ] **안 읽음 표시 본격화** — 받은 친구요청 배지 + **모임 채팅 안읽음 카운트**(클라 `lastRead`) 됨. **서버 `lastSeen` 영속**·다른 알림(모임 변경 등)은 추후
+- [ ] **안 읽음 표시 본격화** — 받은 친구요청 배지 + 모임 채팅 안읽음 카운트(클라 `lastRead`)는 됨. **서버 `lastSeen` 영속**·다른 알림(모임 변경 등)은 추후
 - [ ] **Nav 공통 레이아웃화** — 현재 각 페이지가 `<Nav/>` 렌더 → 이동마다 리마운트(짧은 깜빡임). route group 레이아웃으로 올려 네비/FAB 고정·본문만 교체하면 SPA 체감 향상
 - [ ] **실시간 채팅(Socket.io)** — 현재 6초 폴링. 진짜 푸시는 Phase 4
 
 ---
 
-## Phase 1.5 — 공유/그룹 모델 재설계 ✅ (2026-06-22)
-- [x] `Tier`(그룹) 모델: owner·name·고유 `code`·members[]. 라우트 `/api/tiers` (생성/삭제/멤버추가(이메일)/멤버제거/코드가입 `join`)
-- [x] Event 가시성 재정의: `public`(공유=친구 모두 상세) / `private`(비공개=선택 `audienceTiers` 멤버만 상세, 그 외 "바쁨"). 구 `default`→public 호환
-- [x] 캘린더 라우트: 친구면 열람, 일정별 public→상세 / private→내가 그 그룹 멤버일 때만 상세
-- [x] 프론트: `/tiers` 그룹 관리 페이지, 대시보드 공개 드롭다운(공유/비공개/🔒그룹), 친구·친구캘린더 정리, Nav '그룹'
-- [x] 레거시 정리: 구 `Friendship.close/normal` 필드 + `/api/friends/:id/tier` 라우트 제거. UI 표기 '등급'→'그룹' 통일
-
-## 부가 도구 — 연차 계산기 ✅ (2026-06-22, MyBudget 이식)
-- [x] 브릿지 알고리즘 TS 이식(`frontend/src/lib/leave.ts`) + 고정 공휴일 내장(`lib/holidays.ts`)
-- [x] `/tools/leave` 페이지: 잔여연차·시작일·갱신일·최대연속·스타일 입력 → 잔여 연차 내 최적 조합 + 전체 추천(효율·휴무일·공휴일명)
-- [x] Nav '연차' 링크
-- [x] 버그 수정(2026-06-23): 겹침 검사를 연차일→**휴무 기간(span) 전체** 기준으로 변경(같은 주말을 끼는 금/월 구간 중복선택·휴무일 부풀림 해소) · 달력 이벤트를 **문자열 날짜+allDay**로 수정(Date 객체가 시간 이벤트로 오인돼 월 뷰에 안 그려지던 문제) · 달력 블록에 **효율(N x) 표기**, 달력을 상단 메인으로
-- [x] 추천 품질(2026-06-23): **공휴일 낀 구간 우선 선택**(어린이날 등 연휴를 일반 주말보다 먼저) + 남는 연차를 **1년에 고르게 분산**(farthest-point, 2주 버킷) → 여름 쏠림/8월 공백 해소. 추천 계산은 `computeLeavePlan()` 으로 공용화(연차 페이지·홈 카드 공유)
-- [x] 공휴일 전면 개편(2026-06-23, `lib/holidays.ts`): **2026–2031** + 음력(설날·추석·부처님오신날) + **대체공휴일 자동 계산**(관공서 규정 제3조: 설·추석=일요일/중복, 어린이날·국경일·부처님·성탄절=토/일, 신정·현충일 제외) + **제헌절 2026 부활** 반영. 음력 당일만 매년 갱신(LUNAR 테이블). 2026·2027 권위자료 교차검증 완료
-- [x] 설정 영속화(2026-06-23): 시작일/갱신일 등 **DB 저장**(User.leave + `/api/auth/leave` GET/PUT), **갱신일 경과 시 KST 기준 자동 이월**(다음 해로). 로그인 시에만 저장·복원(익명은 클라이언트 기본값)
-- [x] 홈에 **추천 연차 카드**(다가오는 추천 구간 3개 + 총 휴무 요약) · 접기 영역은 공용 **Accordion**(애니메이션) 컴포넌트로
-- 추후: 임시공휴일·선거일은 미반영(LUNAR 테이블 옆에 수동 추가 가능)
-
----
-
 ## 백로그 (Phase 2+ — 우선순위 순)
 
-### Phase 2 — 공통 빈 시간 찾기 (핵심 가치)
-- [x] **모임 방(약속 잡기)** ✅ — `Room`(코드 초대) + `/rooms`. 3모드(되는날 / 안되는날 드래그 / 시간만 가능) → **모두 되는 날** + 시간 조율 가능일, 우하단 **플로팅 채팅**(말풍선·6초 폴링·본인 메시지 삭제·방 입장 시 자동 오픈). Nav '모임'
-- [x] **부분 가용** ✅ — "시간만 가능" 모드로 "HH:MM 이후" 표시·집계
+### Phase 2 — 공통 빈 시간 찾기 (남은 것)
+- [x] 모임 방(3모드 가용성 + 모두 되는 날 집계 + 부분 가용 "HH:MM 이후") ✅ — 위 "현재 상태" 참조
 - [ ] 기존 등록 일정(Event)에서 자동 취합 (수동 표시 없이 겹치는 빈 시간 계산)
 - [ ] 빈 시간 결과 시각화(히트맵/추천 날짜)
-
-### Phase 3 — 시간 요청 ✅ (2026-06-22)
-- [x] `TimeRequest` 모델 + `/api/requests`(받은/보낸/생성/수락/거절/취소)
-- [x] 친구에게 요청 → **수락 시 양쪽 캘린더에 일정 자동 생성**, 거절/취소
-- [x] `/requests` 페이지(보내기 폼 + 받은/보낸 목록) + Nav '요청' + 홈 받은 요청 배너(인앱 알림)
-- 비고: 현재 모든 친구에게 요청 가능(특정 그룹 한정은 추후 옵션)
 
 ### Phase 4 — 실시간 채팅
 - [ ] 백엔드 Socket.io 도입(JWT 핸드셰이크 인증)
@@ -149,9 +86,7 @@
 - [ ] `InviteToken{ token, calendar/group, scope, expiresAt }`
 - [ ] 토큰 링크로 특정 캘린더/근무표 입장 + 제한된 편집
 
-### Phase 8 — 수익화 & 배포
-- [x] 배포 ✅ — **Render**(백 `moim-api` + 프론트 `moim-web`) + Mongo Atlas, `render.yaml` Blueprint (2026-06-22)
-- [x] **AdSense 코드 연동** ✅ — layout Auto ads 스크립트 + 수동 슬롯 `AdUnit` + `public/ads.txt` + `NEXT_PUBLIC_ADSENSE_CLIENT` (2026-06-22)
+### Phase 8 — 수익화 & 운영
 - [ ] **AdSense 활성화** (코드는 준비 완료 — 남은 건 구글 쪽 신청·승인 절차)
   - [ ] [adsense.google.com](https://adsense.google.com) 가입 — 사이트 URL = 운영 도메인(현 `moim-web.onrender.com`, 또는 커스텀 도메인)
   - [ ] 발급된 게시자 ID(`ca-pub-…`)를 프론트 env `NEXT_PUBLIC_ADSENSE_CLIENT` 에 설정(Render 환경변수) + `public/ads.txt` 의 `pub-…` 숫자 교체 → 재배포
@@ -170,5 +105,6 @@
 - 일정 입력은 커스텀 날짜 picker + 24시 시간 select + 종일 토글(타임존/반복 일정 미지원).
 - 연차 계산기 공휴일은 `lib/holidays.ts` 에 2026–2031 양력+음력+대체공휴일 내장(음력 당일은 LUNAR 테이블, 임시공휴일·선거일은 수동 추가).
 - `EnMono` 는 실제 폰트 파일 없이 시스템 모노스페이스 별칭(`local()`) — 환경별 글리프 차이 있음. 실제 폰트 확보 시 `@font-face src: url()` 연결.
+- `AdUnit` 컴포넌트는 현재 어디서도 렌더하지 않음(수동 광고 배치용 대기 — AdSense 승인 후 사용, 삭제 금지).
 - 테스트 코드 없음.
 - Render free 플랜은 15분 무트래픽 시 슬립 → 첫 요청 콜드스타트 지연(~50s). 프론트/백 **2개 서비스**라 로그인 시 백엔드 콜드스타트가 한 번 더 노출됨. **완화 적용**: 랜딩 진입 시 `warmApi()`가 백엔드 `/api/health` 를 미리 깨워 2차 화면 감소. 완전 제거는 **Starter 승격**(`render.yaml` `plan: free`→`starter`, 코드 변경 불필요). ※ 무료는 계정당 750 인스턴스-시간/월(2개 상시 keep-alive는 초과).

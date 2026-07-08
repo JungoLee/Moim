@@ -10,10 +10,12 @@
 ---
 
 ## 주요 기능 (현재)
-- **구글 로그인** → 내 일정 작성 — 월·주 **FullCalendar**, 드래그/클릭으로 기간 선택해 추가
-- **친구 + 그룹** — 그룹을 만들어 **이메일 또는 고유 코드**로 멤버 추가
+- **구글 로그인**(팝업) → 내 일정 작성 — **FullCalendar** 월 뷰, 드래그/클릭으로 기간 선택해 추가(종일·위치·메모)
+- **친구 + 그룹** — 그룹을 만들어 **이메일 또는 고유 코드**로 멤버 추가, 그룹별 캘린더 라인 색
 - **공유/비공개** — 일정별로 `공유(누구나)` / `비공개(특정 그룹에만)` 제어. 비대상에게는 "바쁨"만 노출
-- **연차 계산기**(`/tools/leave`) — 주말·공휴일을 활용해 최소 연차로 최대 연휴를 추천(브릿지 알고리즘)
+- **모임 방**(`/rooms`) — 코드/URL 초대 + 3모드 가용성(되는날·안되는날·시간 이후) → **모두 되는 날** 집계 + 플로팅 채팅
+- **시간 요청**(`/requests`) — 친구에게 시간 요청 → 수락 시 양쪽 캘린더에 일정 자동 생성
+- **연차 계산기**(`/tools/leave`) — 주말·공휴일(2026–2031 내장)을 활용해 최소 연차로 최대 연휴를 추천(브릿지 알고리즘)
 
 ---
 
@@ -79,29 +81,30 @@ cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localho
 | GET | `/api/health` | 헬스 체크 |
 | GET | `/api/auth/google` | 구글 로그인 시작 |
 | GET | `/api/auth/google/callback` | 콜백 → JWT 발급 후 프론트로 리디렉션 |
-| GET | `/api/auth/me` | 내 정보 |
+| GET/PATCH/DELETE | `/api/auth/me` | 내 정보 / 닉네임 설정 / 회원 탈퇴(데이터 cascade) |
+| GET/PUT | `/api/auth/leave` | 연차 계산기 설정 조회(갱신일 자동 이월) / 저장 |
 | GET/POST | `/api/events` | 내 일정 목록 / 생성 |
 | PATCH/DELETE | `/api/events/:id` | 일정 수정 / 삭제 |
 | GET | `/api/friends` | 친구 목록 |
 | GET/POST | `/api/friends/requests` | 받은 요청 / 요청 보내기(email) |
 | POST | `/api/friends/requests/:id/accept`·`/decline` | 수락 / 거절 |
 | GET/POST | `/api/tiers` | 내 그룹 목록 / 생성 |
-| DELETE | `/api/tiers/:id` | 그룹 삭제 |
+| PATCH/DELETE | `/api/tiers/:id` | 그룹 색 변경 / 삭제 |
 | POST/DELETE | `/api/tiers/:id/members[/:userId]` | 멤버 추가(email) / 제거 |
 | POST | `/api/tiers/join` | 코드로 그룹 가입 |
 | GET | `/api/calendar/:userId` | 공유/비공개·그룹 반영한 친구 캘린더 조회 |
 | GET/POST | `/api/rooms` · `/join` | 모임 방 목록·생성 / 코드 입장 |
 | GET/PUT | `/api/rooms/:id` · `/availability` | 방 상세(멤버·가용성·채팅 메시지) / 내 가능표시 저장 |
 | POST/DELETE | `/api/rooms/:id/comments[/:cid]` | 방 채팅 메시지 작성 / 삭제(본인·방장) |
-| PATCH/POST | `/api/rooms/:id` · `/:id/code` | (방장) 방 설정(이름·URL가입) / 초대코드 재발급 |
+| PATCH/DELETE/POST | `/api/rooms/:id` · `/:id/code` | (방장) 방 설정(이름·URL가입)·삭제 / 초대코드 재발급 |
 | DELETE/POST | `/api/rooms/:id/members/:uid` · `/:id/join-url` | (방장) 멤버 강퇴 / URL 가입(코드 없이 입장) |
-| PATCH | `/api/auth/me` | 닉네임 설정 |
-| GET/PUT | `/api/auth/leave` | 연차 계산기 설정 조회(갱신일 자동 이월) / 저장 |
 | GET | `/api/requests/received`·`/sent` | 받은 / 보낸 시간요청 |
 | POST | `/api/requests` | 시간요청 생성(친구에게) |
 | POST | `/api/requests/:id/accept`·`/decline` | 수락(양쪽 일정 생성) / 거절 |
 | DELETE | `/api/requests/:id` | 보낸 요청 취소 |
-| GET/PATCH | `/api/admin/users[/:id/admin]` | (관리자) 가입자 목록 / 권한 부여·회수 |
+| GET | `/api/admin/stats` | (관리자) 통계 개요 |
+| GET/PATCH/DELETE | `/api/admin/users[/:id/admin]` | (관리자) 가입자 목록 / 권한 부여·회수 / 회원 삭제 |
+| GET/DELETE | `/api/admin/rooms[/:id]` · `/tiers[/:id]` | (관리자) 모임·그룹 목록 / 삭제(모더레이션) |
 
 ---
 
@@ -118,6 +121,6 @@ Moim/
 └─ frontend/
    └─ src/
       ├─ app/           # home · dashboard · friends · tiers · rooms · requests · tools/leave · admin · u/[userId] · auth/callback
-      ├─ components/    # Nav · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Avatar · MemberRow · Notice · AccountDrawer · LegalModal · CopyButton · Tooltip · RoomChat · QuickActions · AdUnit
-      └─ lib/           # api · clipboard · types · format · brand · colors · leave · holidays · adsense
+      ├─ components/    # Nav(+QuickActions FAB) · PageHero · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Modal · Select · TimeSelect · ColorPalette(+ColorWheel) · Avatar · MemberRow · Notice · Accordion · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · RoomChat · UserProfileModal · ConfirmHost · Toaster · AdUnit
+      └─ lib/           # api · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · toast · leave · holidays · adsense
 ```
