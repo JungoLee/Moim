@@ -6,7 +6,8 @@
   "description": "Moim 백엔드 — 친구 스케줄 공유/빈 시간 찾기 캘린더 API",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "mail-worker": "node src/workers/mailWorker.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
