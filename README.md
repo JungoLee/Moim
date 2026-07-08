@@ -10,7 +10,7 @@
 ---
 
 ## 주요 기능 (현재)
-- **구글 로그인**(팝업) → 내 일정 작성 — **FullCalendar** 월 뷰, 드래그/클릭으로 기간 선택해 추가(종일·위치·메모)
+- **구글 로그인**(팝업) **또는 이메일 코드 로그인**(아무 이메일 → 12자리 코드 → 로그인, 같은 이메일 계정 자동 통합) → 내 일정 작성 — **FullCalendar** 월 뷰, 드래그/클릭으로 기간 선택해 추가(종일·위치·메모)
 - **친구 + 그룹** — 그룹을 만들어 **이메일 또는 고유 코드**로 멤버 추가, 그룹별 캘린더 라인 색
 - **공유/비공개** — 일정별로 `공유(누구나)` / `비공개(특정 그룹에만)` 제어. 비대상에게는 "바쁨"만 노출
 - **모임 방**(`/rooms`) — 코드/URL 초대 + 3모드 가용성(되는날·안되는날·시간 이후) → **모두 되는 날** 집계 + 플로팅 채팅
@@ -119,10 +119,10 @@ Moim/
 ├─ README.md
 ├─ docs/                # PLAN.md(로드맵·현재상태) · ONBOARDING.md · refactoring-guide.md
 ├─ backend/
-│  └─ src/{config,middleware,models,routes,utils}   # models: User·Friendship·Tier·Room·Event·TimeRequest
+│  └─ src/{config,middleware,models,routes,utils}   # models: User·Friendship·Tier·Room·Event·TimeRequest·LoginCode
 └─ frontend/
    └─ src/
       ├─ app/           # home · dashboard · friends · tiers · rooms · requests · tools/leave · admin · u/[userId] · auth/callback
-      ├─ components/    # Nav(+QuickActions FAB) · PageHero · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Modal · Select · TimeSelect · ColorPalette(+ColorWheel) · Avatar · MemberRow · Notice · Accordion · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · RoomChat · UserProfileModal · ConfirmHost · Toaster · AdUnit
-      └─ lib/           # api · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · toast · leave · holidays · adsense
+      ├─ components/    # Nav(+QuickActions FAB) · PageHero · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Modal · Select · TimeSelect · ColorPalette(+ColorWheel) · Avatar · MemberRow · Notice · Accordion · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · RoomChat · UserProfileModal · ConfirmHost · Toaster · GuideHost · AdUnit
+      └─ lib/           # api · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense
 ```

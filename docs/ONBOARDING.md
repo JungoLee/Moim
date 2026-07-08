@@ -4,7 +4,7 @@
 > 규칙은 [`../CLAUDE.md`](../CLAUDE.md), 살아있는 할 일은 [`PLAN.md`](PLAN.md), 리팩토링 절차는 [`refactoring-guide.md`](refactoring-guide.md).
 
 ## 0. 이게 뭔가
-친구들과 스케줄을 공유하고 함께 비는 시간을 찾는 소셜 캘린더. **프론트** Next.js(App Router)+TS+SCSS(`frontend/`, :3000), **백** Node+Express(ESM)+MongoDB(`backend/`, :4000). 인증은 Google OAuth → 백엔드 JWT 발급 → 프론트가 `Authorization: Bearer` 로 호출.
+친구들과 스케줄을 공유하고 함께 비는 시간을 찾는 소셜 캘린더. **프론트** Next.js(App Router)+TS+SCSS(`frontend/`, :3000), **백** Node+Express(ESM)+MongoDB(`backend/`, :4000). 인증은 **Google OAuth 또는 이메일 코드**(12자리 OTP) → 백엔드 JWT 발급 → 프론트가 `Authorization: Bearer` 로 호출.
 
 ---
 
@@ -41,6 +41,7 @@ npm run dev                        # http://localhost:3000
 | 5 | OAuth **승인된 리디렉션 URI** = `http://localhost:4000/api/auth/google/callback` | Google Cloud Console | 콜백 단계에서 실패 |
 | 6 | **NODE_OPTIONS=--use-system-ca** (VPN) | 환경변수 | npm install/build 인증서 오류 |
 | 7 | `frontend/.env.local` 의 **NEXT_PUBLIC_API_URL=http://localhost:4000** | 프론트 환경 | API 호출 실패 |
+| 8 | (선택) `backend/.env` 의 **SMTP_HOST/PORT/USER/PASS** | Gmail + 앱 비밀번호 | 이메일 코드가 메일 대신 백엔드 콘솔에만 출력 |
 
 > `backend/.env.example`·`frontend/.env.local.example` 에 전체 변수 설명이 있음. **`.env` 는 커밋 금지.**
 
@@ -64,6 +65,9 @@ npm run dev                        # http://localhost:3000
 ### 🔴 로그인은 되는데 자꾸 "토큰이 유효하지 않습니다"
 → **JWT_SECRET 이 재시작마다 바뀌는 경우.** `.env` 에 고정값으로 박아둘 것.
 
+### 🟡 이메일 로그인 코드가 메일로 안 옴
+→ **SMTP 미설정.** `backend/.env` 에 `SMTP_HOST/PORT/USER/PASS` 가 없으면 발송 대신 **백엔드 콘솔에 코드가 출력**된다(개발용 폴백) — 로컬은 콘솔에서 코드를 복사해 쓰면 되고, 운영은 Render 대시보드에 `SMTP_PASS` 시크릿을 넣어야 함(나머지 SMTP 값은 render.yaml 에 있음).
+
 ### 🔴 CORS 에러 (브라우저 콘솔)
 → `backend/.env` 의 `FRONTEND_URL` 이 `http://localhost:3000` 인지, 프론트 포트와 일치하는지 확인.
 
@@ -86,15 +90,16 @@ frontend/  Next.js App Router
   src/app/        라우트 (로그인 / home / dashboard / friends / tiers(그룹) / rooms(모임) / requests(시간요청) / tools/leave(연차) / admin / u/[userId] / auth/callback)
   src/components/ 공용:
                   Nav(현재탭 강조+우하단 FAB=QuickActions, FAB는 페이지가 lib/quickActions 로 액션 등록) · PageHero(탭 상단 비주얼 헤더) · Calendar=FullCalendar(월 뷰) · AvailabilityCalendar · DatePicker(block 풀폭·일정 점 표시)
-                  RoomChat(모임 플로팅 채팅·말풍선·폴링) · UserProfileModal(타인 프로필 액션) · Modal(공용 모달 래퍼) · ConfirmHost(커스텀 확인창) · Toaster · Accordion(접기)
+                  RoomChat(모임 플로팅 채팅·말풍선·폴링) · UserProfileModal(타인 프로필 액션) · Modal(공용 모달 래퍼) · ConfirmHost(커스텀 확인창) · Toaster · Accordion(접기) · GuideHost(사용 가이드 스포트라이트 투어)
                   Select(커스텀 드롭다운) · TimeSelect(24시 시/분) · ColorPalette+ColorWheel(그룹 색) · Avatar · MemberRow(그룹·모임 멤버 행 공용) · Notice · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · AdUnit(광고)
-  src/lib/        api.ts(fetch+토큰) · clipboard.ts(복사 공용) · types.ts · format.ts · brand.ts · colors.ts(그룹/일정 색) · datetime.ts(날짜·시간 유틸·HOURS/MINUTES) · marks.ts(달력 점 계산) · confirm.ts(커스텀 확인창) · quickActions.ts(FAB 액션 레지스트리) · toast.ts(토스트) · leave.ts(연차) · holidays.ts · adsense.ts
+  src/lib/        api.ts(fetch+토큰) · clipboard.ts(복사 공용) · types.ts · format.ts · brand.ts · colors.ts(그룹/일정 색) · datetime.ts(날짜·시간 유틸·HOURS/MINUTES) · marks.ts(달력 점 계산) · confirm.ts(커스텀 확인창) · quickActions.ts(FAB 액션 레지스트리) · guide.ts(사용 가이드 스텝 정의) · inapp.ts(인앱 브라우저 감지·탈출) · toast.ts(토스트) · leave.ts(연차) · holidays.ts · adsense.ts
   public/         ads.txt(애드센스 게시자 확인 → /ads.txt 로 서빙)
 backend/   Express(ESM)
   src/routes/     auth · events · friends · tiers(그룹) · rooms(모임) · calendar · admin · requests(시간요청)
-  src/models/     User · Friendship · Tier(그룹) · Room(모임) · Event · TimeRequest(시간요청)
-  src/middleware/ auth.js(requireAuth) · admin.js(requireAdmin)
+  src/models/     User · Friendship · Tier(그룹) · Room(모임) · Event · TimeRequest(시간요청) · LoginCode(이메일 코드)
+  src/middleware/ auth.js(requireAuth — 사용자 존재까지 확인) · admin.js(requireAdmin)
   src/config/     db.js · passport.js(Google)
+  src/utils/      jwt.js · mailer.js(SMTP 발송, 미설정 시 콘솔) · admins.js(기본 관리자 판정)
 docs/      PLAN.md(로드맵·할 일) · refactoring-guide.md · ONBOARDING.md(이 문서) · PLAN_others.md(⚠️ Moim 무관 별도 프로젝트 계획, 새 레포 분리 전 임시 보관)
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 루트        package.json(`npm run dev`=두 서버 동시 실행, concurrently) · render.yaml(Render 배포 Blueprint)
@@ -116,7 +121,7 @@ CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 | `moim-api`(백) | `backend` | `npm install` | `npm start` | https://moim-api.onrender.com |
 | `moim-web`(프론트, SSR) | `frontend` | `npm install && npm run build` | `npm start` | https://moim-web.onrender.com |
 
-- **배포 방법**: Render → New → Blueprint → `JungoLee/Moim` 선택 → 시크릿(`MONGODB_URI`·`JWT_SECRET`·`GOOGLE_CLIENT_SECRET`) 입력 → Apply. 이후 `main` push 시 **autoDeploy**.
+- **배포 방법**: Render → New → Blueprint → `JungoLee/Moim` 선택 → 시크릿(`MONGODB_URI`·`JWT_SECRET`·`GOOGLE_CLIENT_SECRET`·`SMTP_PASS`) 입력 → Apply. 이후 `main` push 시 **autoDeploy**.
 - **시크릿만** `sync:false`(대시보드 입력), 공개값(URL·`GOOGLE_CLIENT_ID`·`NEXT_PUBLIC_API_URL`)은 `render.yaml`에 명시.
 - **Atlas Network Access**: Render outbound IP 대역(서비스 → Connect → Outbound)을 화이트리스트에 추가해야 백엔드가 DB에 붙음. 빠지면 `moim-api`가 DB 연결 실패로 죽고 `/api/health`가 503.
 - **구글 콘솔**: 운영 콜백 `https://moim-api.onrender.com/api/auth/google/callback`을 OAuth 클라이언트 "승인된 리디렉션 URI"에 추가.
