@@ -66,7 +66,7 @@ npm run dev                        # http://localhost:3000
 → **JWT_SECRET 이 재시작마다 바뀌는 경우.** `.env` 에 고정값으로 박아둘 것.
 
 ### 🟡 이메일 로그인 코드가 메일로 안 옴
-→ **SMTP 미설정.** `backend/.env` 에 `SMTP_HOST/PORT/USER/PASS` 가 없으면 발송 대신 **백엔드 콘솔에 코드가 출력**된다(개발용 폴백) — 로컬은 콘솔에서 코드를 복사해 쓰면 되고, 운영은 Render 대시보드에 `SMTP_PASS` 시크릿을 넣어야 함(나머지 SMTP 값은 render.yaml 에 있음).
+→ 발송 경로 확인. **로컬**: `backend/.env` 의 SMTP 설정이 있으면 즉시 발송, 없으면 백엔드 콘솔에 코드 출력. **운영**: Render free 는 SMTP 차단이라 서버가 직접 발송 못 함 — 로컬에서 **`backend: npm run mail-worker`**(메일 전송기)를 켜두면 DB 폴링으로 대신 발송한다. 전송기도 꺼져 있으면 Render Logs 의 `[mail]` 줄에서 코드 확인 가능. (추후 Brevo `BREVO_API_KEY` 설정 시 운영 직접 발송)
 
 ### 🔴 CORS 에러 (브라우저 콘솔)
 → `backend/.env` 의 `FRONTEND_URL` 이 `http://localhost:3000` 인지, 프론트 포트와 일치하는지 확인.

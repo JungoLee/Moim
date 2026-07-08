@@ -5,8 +5,9 @@ import mongoose from 'mongoose';
 const loginCodeSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, index: true },
   codeHash: { type: String, required: true },
-  // TEMP(email-approval): 발송 수단(Brevo/SMTP)이 없을 때만 평문 보관 — 관리자가 확인해
-  // 본인에게 직접 전달(승인)하는 임시 운영용. 발송 수단 설정 후엔 항상 '' → 그때 제거 가능.
+  // TEMP(email-approval): 서버에 발송 수단(Brevo/SMTP)이 없을 때만 평문 보관 —
+  // 로컬 메일 전송기(workers/mailWorker.js)가 이걸 읽어 대신 발송한다. 발송 후 '' 로 비움.
+  // 운영이 직접 발송(Brevo/Starter)하게 되면 워커와 함께 제거.
   code: { type: String, default: '' },
   expiresAt: { type: Date, required: true },
   attempts: { type: Number, default: 0 }, // 검증 실패 횟수 (5회 초과 시 코드 폐기)

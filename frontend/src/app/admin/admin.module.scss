@@ -225,19 +225,6 @@
   text-align: center;
   color: var(--color-muted);
 }
-.hint {
-  margin: calc(var(--space-4) * -1) 0 var(--space-4);
-  color: var(--color-muted);
-  font-size: 0.9rem;
-}
-.sectionGap {
-  margin-top: var(--space-6);
-}
-.sectionTitle {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin: 0 0 var(--space-3);
-}
 
 /* ---------- 반응형: 좁은 화면 = 사이드바를 상단 바로 ---------- */
 @media (max-width: 768px) {

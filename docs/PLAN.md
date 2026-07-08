@@ -58,7 +58,7 @@
 - **리팩토링**: `lib/`(api·datetime·marks·clipboard·confirm·quickActions) 공용화, 데드코드 정리 3차까지(2026-07-08: `AvailabilityCalendar` 미사용 `mode` prop, `leave.ts` 내부 전용 함수 unexport, 미사용 `@fullcalendar/timegrid` 의존성 제거)
 
 ### 다음 작업 (남은 것)
-- [ ] **이메일 코드 수동 승인(TEMP) 제거** — Render free 가 SMTP 를 막아 임시 운영 중: 운영 서버는 코드를 DB 에만 저장 → ① 로컬 **메일 전송기**(`backend: npm run mail-worker`, 같은 Atlas 폴링 → Gmail 발송, PC 켜져 있을 때) ② 전송기 꺼져 있으면 **관리자 페이지 "코드 대기" 목록에서 수동 전달**이 폴백. **Brevo 가입 후 `BREVO_API_KEY` 를 Render 에 넣으면 운영이 직접 발송**하게 되며, 그 뒤 `TEMP(email-approval)` 마커가 달린 코드(LoginCode.code 평문 필드 · admin `/login-codes` 라우트 · admin 페이지 대기 섹션 · auth request 분기 · `workers/mailWorker.js`)를 일괄 삭제
+- [ ] **이메일 코드 전송기(TEMP) 제거** — Render free 가 SMTP 를 막아 임시 운영 중: 운영 서버는 코드를 DB 에만 저장(평문) → 로컬 **메일 전송기**(`backend: npm run mail-worker`, 같은 Atlas 폴링 → Gmail 발송)가 대신 발송. 전송기가 꺼져 있으면 Render Logs 의 `[mail]` 출력에서 코드 확인 가능(관리자 승인 UI 는 제거함). **Brevo 가입 후 `BREVO_API_KEY` 를 Render 에 넣으면 운영이 직접 발송**하게 되며, 그 뒤 `TEMP(email-approval)` 마커 코드(LoginCode.code 평문 필드 · auth request 분기 · `workers/mailWorker.js`)를 일괄 삭제
 - [ ] **안 읽음 표시 본격화** — 받은 친구요청 배지 + 모임 채팅 안읽음 카운트(클라 `lastRead`)는 됨. **서버 `lastSeen` 영속**·다른 알림(모임 변경 등)은 추후
 - [ ] **Nav 공통 레이아웃화** — 현재 각 페이지가 `<Nav/>` 렌더 → 이동마다 리마운트(짧은 깜빡임). route group 레이아웃으로 올려 네비/FAB 고정·본문만 교체하면 SPA 체감 향상
 - [ ] **실시간 채팅(Socket.io)** — 현재 6초 폴링. 진짜 푸시는 Phase 4

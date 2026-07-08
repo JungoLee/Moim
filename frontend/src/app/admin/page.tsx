@@ -6,9 +6,8 @@ import Link from 'next/link';
 import { api, getToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
 import { displayName } from '@/lib/format';
-import { dayLabel, timeKey } from '@/lib/datetime';
+import { dayLabel } from '@/lib/datetime';
 import { toast } from '@/lib/toast';
-import CopyButton from '@/components/CopyButton';
 import { BRAND_NAME } from '@/lib/brand';
 import type { User } from '@/lib/types';
 import styles from './admin.module.scss';
@@ -16,8 +15,6 @@ import styles from './admin.module.scss';
 type Stats = { users: number; admins: number; events: number; tiers: number; rooms: number; friendships: number };
 type Entity = { _id: string; name: string; code: string; memberCount: number; owner: string; createdAt?: string };
 type Tab = 'overview' | 'users' | 'rooms' | 'tiers';
-// TEMP(email-approval): 이메일 로그인 코드 수동 전달용 — 발송 수단(Brevo/SMTP) 설정 후 제거 가능
-type PendingCode = { _id: string; email: string; code: string; expiresAt: string };
 
 const STAT_LABELS: Array<[keyof Stats, string]> = [
   ['users', '가입자'],
@@ -46,7 +43,6 @@ export default function Admin() {
   const [users, setUsers] = useState<User[]>([]);
   const [rooms, setRooms] = useState<Entity[]>([]);
   const [tiers, setTiers] = useState<Entity[]>([]);
-  const [pendingCodes, setPendingCodes] = useState<PendingCode[]>([]); // TEMP(email-approval)
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -55,9 +51,6 @@ export default function Admin() {
       setStats(s.stats);
       const u = await api<{ users: User[] }>('/api/admin/users');
       setUsers(u.users);
-      // TEMP(email-approval): 발송 수단이 생기면 항상 빈 배열
-      const c = await api<{ codes: PendingCode[] }>('/api/admin/login-codes');
-      setPendingCodes(c.codes);
       setError('');
     } catch (e) {
       setError(e instanceof Error ? e.message : '권한이 없습니다.');
@@ -177,45 +170,6 @@ export default function Admin() {
               </div>
             )}
 
-            {/* TEMP(email-approval): 발송 수단(Brevo/SMTP) 미설정 동안 관리자가 코드를 직접 전달(승인).
-                발송 수단 설정 후엔 목록이 항상 비어 렌더되지 않음 → 그때 이 섹션 제거 가능 */}
-            {pendingCodes.length > 0 && (
-              <>
-                <h3 className={styles.sectionTitle}>📨 이메일 로그인 코드 대기 ({pendingCodes.length})</h3>
-                <p className={styles.hint}>
-                  메일 발송이 아직 꺼져 있어요 — 코드를 요청한 본인에게 직접 전달(카톡 등)하면 승인됩니다.
-                </p>
-                <div className={styles.tableWrap}>
-                  <table className={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>이메일</th>
-                        <th>코드</th>
-                        <th>만료</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pendingCodes.map((c) => (
-                        <tr key={c._id}>
-                          <td>{c.email}</td>
-                          <td className={styles.codeCell}>{c.code}</td>
-                          <td className={styles.metaCell}>{timeKey(new Date(c.expiresAt))} 까지</td>
-                          <td className={styles.actionsCell}>
-                            <CopyButton text={c.code} label="복사" />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className={styles.sectionGap}>
-                  <button className={styles.btnSm} onClick={load}>
-                    새로고침
-                  </button>
-                </div>
-              </>
-            )}
           </>
         )}
 

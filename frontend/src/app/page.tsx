@@ -56,9 +56,7 @@ export default function Home() {
       setCode('');
       setNotice({
         ok: true,
-        text: r.manual
-          ? `${email.trim()} 로 코드 전송을 요청했어요 — 몇 분 안에 메일이 오지 않으면 관리자에게 문의해 코드를 받아 입력하세요. (30분 유효)`
-          : `${email.trim()} 로 12자리 코드를 보냈어요. (10분 유효)`,
+        text: `${email.trim()} 로 12자리 코드를 보냈어요. (${r.manual ? '30분' : '10분'} 유효)`,
       });
     } catch (err) {
       setNotice({ ok: false, text: err instanceof Error ? err.message : '코드 발송 실패' });

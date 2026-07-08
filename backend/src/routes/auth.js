@@ -38,7 +38,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 헷갈리는 글자(I·L·O·0·1) 제외
 const CODE_LEN = 12;
 const CODE_TTL_MS = 10 * 60 * 1000; // 10분 (메일 발송 시)
-const MANUAL_TTL_MS = 30 * 60 * 1000; // 30분 — TEMP(email-approval): 관리자 수동 전달 시 여유
+const MANUAL_TTL_MS = 30 * 60 * 1000; // 30분 — TEMP(email-approval): 전송기(워커) 발송 지연 대비 여유
 const RESEND_COOLDOWN_MS = 60 * 1000; // 재전송 60초
 const MAX_ATTEMPTS = 5;
 
@@ -61,8 +61,8 @@ router.post('/email/request', async (req, res) => {
     return res.status(429).json({ ok: false, message: '잠시 후 다시 요청해주세요. (1분에 1회)' });
   }
   const code = generateCode();
-  // TEMP(email-approval): 발송 수단이 없으면 '관리자 수동 전달' 모드 —
-  // 평문 코드를 보관해 관리자 페이지에 노출(관리자가 카톡 등으로 전달=승인), 유효시간은 30분으로 여유.
+  // TEMP(email-approval): 발송 수단이 없으면(운영 — Render free 는 SMTP 차단) 평문 코드를 보관 —
+  // 로컬 메일 전송기(npm run mail-worker)가 DB 를 폴링해 대신 발송한다. 유효시간은 30분으로 여유.
   const deliverable = hasMailTransport();
   const ttl = deliverable ? CODE_TTL_MS : MANUAL_TTL_MS;
   await LoginCode.findOneAndUpdate(

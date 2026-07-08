@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
-import LoginCode from '../models/LoginCode.js';
 import Event from '../models/Event.js';
 import Tier from '../models/Tier.js';
 import Room from '../models/Room.js';
@@ -25,16 +24,6 @@ router.get('/stats', async (req, res) => {
     Friendship.countDocuments(),
   ]);
   res.json({ ok: true, stats: { users, admins, events, tiers, rooms, friendships } });
-});
-
-// TEMP(email-approval): 이메일 로그인 코드 대기 목록 — 발송 수단(Brevo/SMTP)이 없는 동안
-// 관리자가 코드를 확인해 본인에게 직접 전달(승인)하는 임시 운영용.
-// 발송 수단 설정 후엔 평문(code)이 저장되지 않아 항상 빈 배열 → 이 라우트·admin 페이지 섹션 제거 가능.
-router.get('/login-codes', async (req, res) => {
-  const codes = await LoginCode.find({ code: { $ne: '' }, expiresAt: { $gt: new Date() } })
-    .select('email code expiresAt sentAt')
-    .sort({ sentAt: -1 });
-  res.json({ ok: true, codes });
 });
 
 // 가입자 목록
