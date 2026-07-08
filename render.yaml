@@ -26,8 +26,6 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_SECRET # 구글 OAuth 시크릿
         sync: false
-      - key: SMTP_PASS # SMTP 비밀번호 (Gmail 앱 비밀번호) — ⚠ free 플랜은 외부 SMTP 포트 차단이라 미사용
-        sync: false
       - key: BREVO_API_KEY # Brevo(HTTP 발송) API 키 — free 플랜 메일 발송용 (대시보드 입력)
         sync: false
       # ── 공개값: yaml 에 그대로 ─────────────────────────────
@@ -37,11 +35,9 @@ services:
         value: https://moim-api.onrender.com/api/auth/google/callback
       - key: FRONTEND_URL # CORS 허용 + 로그인 후 리디렉션 대상 (= 프론트 서비스 URL)
         value: https://moim-web.onrender.com
-      - key: SMTP_HOST # 이메일 코드 로그인 SMTP 서버 (미설정 시 코드가 서버 로그로만 출력)
-        value: smtp.gmail.com
-      - key: SMTP_PORT
-        value: '587'
-      - key: SMTP_USER # 발신 Gmail 계정 (주소는 비밀 아님 — 비밀번호만 sync:false)
+      # ⚠ free 플랜은 외부 SMTP 포트(25·465·587) 차단 → SMTP_HOST/PORT/PASS 는 넣지 않는다
+      #   (넣으면 서버가 발송 가능으로 오판해 '관리자 수동 승인' 모드가 꺼짐). 발송은 BREVO_API_KEY 로.
+      - key: SMTP_FROM # (Brevo 사용 시) 발신자 표시 주소 — Brevo 에서 인증한 주소여야 함
         value: tough123181@gmail.com
 
   # ── 프론트엔드 (Next.js 14 App Router, SSR) ─────────────────
