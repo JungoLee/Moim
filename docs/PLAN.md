@@ -108,6 +108,6 @@
 - 연차 계산기 공휴일은 `lib/holidays.ts` 에 2026–2031 양력+음력+대체공휴일 내장(음력 당일은 LUNAR 테이블, 임시공휴일·선거일은 수동 추가).
 - `EnMono` 는 실제 폰트 파일 없이 시스템 모노스페이스 별칭(`local()`) — 환경별 글리프 차이 있음. 실제 폰트 확보 시 `@font-face src: url()` 연결.
 - `AdUnit` 컴포넌트는 현재 어디서도 렌더하지 않음(수동 광고 배치용 대기 — AdSense 승인 후 사용, 삭제 금지).
-- 이메일 코드 발송은 **Gmail SMTP + 앱 비밀번호**(일 ~500통 한도, 발신자=개인 Gmail) — 사용자 증가·커스텀 도메인 시 Resend/SES 로 교체(env 만 변경, `utils/mailer.js` 가 표준 SMTP). SMTP 미설정 환경은 코드가 서버 콘솔에만 출력됨.
+- 이메일 코드 발송: **Render free 플랜이 외부 SMTP 포트(25·465·587)를 차단** → 운영은 **Brevo HTTP API**(`BREVO_API_KEY`, 무료 300통/일), 로컬은 Gmail SMTP+앱 비밀번호. 둘 다 없으면 코드가 서버 콘솔에만 출력. 사용자 증가 시 Resend/SES 등으로 교체(`utils/mailer.js` 한 파일만 수정).
 - 테스트 코드 없음.
 - Render free 플랜은 15분 무트래픽 시 슬립 → 첫 요청 콜드스타트 지연(~50s). 프론트/백 **2개 서비스**라 로그인 시 백엔드 콜드스타트가 한 번 더 노출됨. **완화 적용**: 랜딩 진입 시 `warmApi()`가 백엔드 `/api/health` 를 미리 깨워 2차 화면 감소. 완전 제거는 **Starter 승격**(`render.yaml` `plan: free`→`starter`, 코드 변경 불필요). ※ 무료는 계정당 750 인스턴스-시간/월(2개 상시 keep-alive는 초과).

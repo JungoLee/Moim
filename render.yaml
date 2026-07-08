@@ -26,7 +26,9 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_SECRET # 구글 OAuth 시크릿
         sync: false
-      - key: SMTP_PASS # SMTP 비밀번호 (Gmail 앱 비밀번호) — 유일하게 대시보드 입력 필요한 시크릿
+      - key: SMTP_PASS # SMTP 비밀번호 (Gmail 앱 비밀번호) — ⚠ free 플랜은 외부 SMTP 포트 차단이라 미사용
+        sync: false
+      - key: BREVO_API_KEY # Brevo(HTTP 발송) API 키 — free 플랜 메일 발송용 (대시보드 입력)
         sync: false
       # ── 공개값: yaml 에 그대로 ─────────────────────────────
       - key: GOOGLE_CLIENT_ID # OAuth 클라이언트 ID (공개값 — OAuth 리다이렉트에 노출됨)
