@@ -26,9 +26,7 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_SECRET # 구글 OAuth 시크릿
         sync: false
-      - key: SMTP_USER # 이메일 코드 로그인 발송 계정 (예: Gmail 주소)
-        sync: false
-      - key: SMTP_PASS # SMTP 비밀번호 (Gmail 은 앱 비밀번호)
+      - key: SMTP_PASS # SMTP 비밀번호 (Gmail 앱 비밀번호) — 유일하게 대시보드 입력 필요한 시크릿
         sync: false
       # ── 공개값: yaml 에 그대로 ─────────────────────────────
       - key: GOOGLE_CLIENT_ID # OAuth 클라이언트 ID (공개값 — OAuth 리다이렉트에 노출됨)
@@ -41,6 +39,8 @@ services:
         value: smtp.gmail.com
       - key: SMTP_PORT
         value: '587'
+      - key: SMTP_USER # 발신 Gmail 계정 (주소는 비밀 아님 — 비밀번호만 sync:false)
+        value: tough123181@gmail.com
 
   # ── 프론트엔드 (Next.js 14 App Router, SSR) ─────────────────
   - type: web
