@@ -22,6 +22,7 @@
 - **네이밍은 브랜드 비종속(generic)** — 코드 식별자(클래스·함수·변수·파일명)에 브랜드명 금지. 프론트 전역 클래스는 `app-*` 접두사. 브랜드는 **사용자 노출 텍스트에만**, 단일 출처 `frontend/src/lib/brand.ts` 의 `BRAND_NAME`(=`NEXT_PUBLIC_BRAND_NAME` 오버라이드)로 렌더.
 - **TS**: `any` 지양 — props·API 응답·상태에 명시적 인터페이스(`src/lib/types.ts`). `as` 캐스팅 최소화.
 - **스타일**: 인라인 `style={{}}` 지양. 색·치수는 `globals.scss` 의 `--color-*`/`--radius-*`/`--space-*` 토큰. 컴포넌트 전용 스타일이 커지면 `Foo.module.scss` 동거.
+- **치수는 `rem()`** — px 로 쓰고 rem 으로 출력한다: `padding: rem(12) rem(20)`. `@use '@/styles/rem' as *;` 후 사용. 손으로 계산한 `0.875rem` 같은 값 금지. 근거·기준값은 [docs/rem-convention.md](docs/rem-convention.md).
 - **백엔드**: 에러 응답은 `{ ok:false, message }` + 적절한 status. `:id` 라우트는 `mongoose.Types.ObjectId.isValid()` 선행. 입력 검증은 라우트에서(서버가 최종 검증).
 - **API 응답 형태**: 성공도 `{ ok:true, ...payload }` 로 통일.
 

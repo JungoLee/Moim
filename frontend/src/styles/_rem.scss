@@ -1,0 +1,106 @@
+// px → rem 변환 유틸 — boilerplate-2026 (`src/assets/styles/abstracts/_mixins.scss`) 공식 이식.
+// 최신 Sass 모듈 문법(@use 'sass:math')으로 옮기고, 이 프로젝트에 필요한 부분만 남겼다.
+//
+// ── 왜 쓰나
+// 디자인은 px 로 온다. 그런데 px 로 박으면 사용자가 브라우저 기본 글자 크기를 키워도
+// 화면이 안 커진다(접근성). rem 으로 쓰되 계산은 도구가 하게 한다.
+//
+// ── 사용법
+//   @use '../styles/rem' as *;              // 컴포넌트 SCSS 상단
+//
+//   font-size: rem(14);                     // → 0.875rem
+//   padding: rem(12) rem(20);               // → 0.75rem 1.25rem
+//   margin: rem(10 5);                      // 리스트도 됨 → 0.625rem 0.3125rem
+//   @include rem(font-size, 14);            // 선언까지 한 번에
+//   @include rem(padding, 12 20);
+//   @include rem(border, 1 solid #333);     // 숫자만 변환, 나머지는 그대로
+//
+// 단위는 생략해도 되고 px 를 붙여도 된다: rem(14) == rem(14px).
+//
+// ── 기준값(baseline)
+// 이 프로젝트는 html 글자 크기를 건드리지 않는다 → 1rem = 16px.
+// boilerplate 는 $global-font-size: 10px(1rem = 10px)를 쓰지만, 이미 작성된 rem 값이
+// 많은 프로젝트에서 기준을 바꾸면 화면 전체가 62.5% 로 줄어든다. 그래서 기준만 16px 로 두고
+// 변환 공식은 동일하게 쓴다. 신규 프로젝트라면 `$rem-baseline: 10px` 로 두고
+// `@include rem-baseline;` 을 html 에 걸면 boilerplate 와 완전히 같아진다.
+
+@use 'sass:math';
+@use 'sass:meta';
+@use 'sass:list';
+@use 'sass:map';
+
+$rem-baseline: 16px !default;
+
+// 숫자에서 단위만 제거
+@function strip-unit($number) {
+  @if meta.type-of($number) == 'number' and not math.is-unitless($number) {
+    @return math.div($number, $number * 0 + 1);
+  }
+
+  @return $number;
+}
+
+@function rem-separator($list) {
+  @if meta.function-exists('list-separator') == true {
+    @return list.separator($list);
+  }
+
+  $test-list: ();
+  @each $item in $list {
+    $test-list: list.append($test-list, $item, space);
+  }
+
+  @return if($test-list == $list, space, comma);
+}
+
+// px(또는 단위 없는 숫자) → rem. 숫자가 아닌 값(solid, #333 …)은 손대지 않는다.
+@function rem-convert($values...) {
+  $result: ();
+  $separator: rem-separator($values);
+
+  @each $value in $values {
+    // 단위를 생략한 숫자는 px 로 본다: rem(14) == rem(14px)
+    @if meta.type-of($value) == 'number' and math.is-unitless($value) {
+      $value: $value * 1px;
+    }
+
+    @if meta.type-of($value) == 'number' and math.unit($value) == 'px' {
+      $result: list.append($result, math.div(strip-unit($value), strip-unit($rem-baseline)) * 1rem, $separator);
+    } @else if meta.type-of($value) == 'list' {
+      $result: list.append($result, rem-convert($value...), $separator);
+    } @else {
+      $result: list.append($result, $value, $separator);
+    }
+  }
+
+  @return if(list.length($result) == 1, list.nth($result, 1), $result);
+}
+
+@function rem($values...) {
+  @return rem-convert($values...);
+}
+
+// 선언까지 한 번에. 맵으로 여러 속성을 함께 줄 수도 있다.
+//   @include rem((margin: 10 5, padding: 12));
+@mixin rem($properties, $values...) {
+  @if meta.type-of($properties) == 'map' {
+    @each $property in map.keys($properties) {
+      @include rem($property, map.get($properties, $property));
+    }
+  } @else {
+    @each $property in $properties {
+      #{$property}: rem-convert($values...);
+    }
+  }
+}
+
+// html 기준 글자 크기. 좁은 화면에서 rem 이 자연스럽게 줄도록 유동 계산을 넣는다
+// (boilerplate 의 500px 분기와 같은 방식). 기준을 16px 로 쓰는 이 프로젝트에서는
+// 호출하지 않는다 — 호출하면 기존 rem 값 전체의 실제 크기가 바뀐다.
+@mixin rem-baseline($base: $rem-baseline) {
+  font-size: $base;
+
+  @media (max-width: 500px) {
+    font-size: calc(#{$base} + 0.0266 * (100vw - 375px));
+  }
+}
