@@ -37,7 +37,7 @@ export default function UserProfileModal({ user, onClose }: { user: ProfileUser;
 
   function goCalendar() {
     onClose();
-    router.push(`/u/${user._id}`);
+    router.push(`/u?id=${user._id}`);
   }
 
   function goTimeRequest() {

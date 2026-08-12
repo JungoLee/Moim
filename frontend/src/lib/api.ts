@@ -1,4 +1,6 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+// 프론트와 API 가 같은 도메인(Workers)이라 기본은 상대경로.
+// (분리 배포 등 예외 상황에서만 NEXT_PUBLIC_API_URL 로 오버라이드)
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 const TOKEN_KEY = 'moim_token';
 

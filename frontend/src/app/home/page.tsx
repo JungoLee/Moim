@@ -203,7 +203,7 @@ export default function Home() {
             <p className="app-muted">참여 중인 모임이 없습니다.</p>
           ) : (
             rooms.slice(0, 5).map((r) => (
-              <Link key={r._id} href={`/rooms/${r._id}`} className={styles.row}>
+              <Link key={r._id} href={`/rooms/detail?id=${r._id}`} className={styles.row}>
                 <strong>{r.name}</strong>
                 <span className="app-spacer" />
                 <span className="app-muted">멤버 {r.memberCount}명</span>

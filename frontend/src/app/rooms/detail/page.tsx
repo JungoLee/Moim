@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { FormEvent } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import AvailabilityCalendar, { type DaySummary } from '@/components/AvailabilityCalendar';
 import CopyButton from '@/components/CopyButton';
@@ -46,8 +46,8 @@ function dayTile(key: string, kind: 'full' | 'partial', time?: string) {
 
 export default function RoomPage() {
   const router = useRouter();
-  const params = useParams();
-  const roomId = params.id as string;
+  // 정적 export 는 동적 세그먼트를 만들 수 없어 ?id= 로 받는다 (구 /rooms/<id> 는 워커가 301)
+  const [roomId, setRoomId] = useState('');
 
   const [room, setRoom] = useState<RoomDetail | null>(null);
   const [availabilities, setAvailabilities] = useState<Record<string, Mark[]>>({});
@@ -87,10 +87,15 @@ export default function RoomPage() {
   }, [roomId]);
 
   useEffect(() => {
+    setRoomId(new URLSearchParams(window.location.search).get('id') || '');
+  }, []);
+
+  useEffect(() => {
+    if (!roomId) return;
     if (!getToken()) {
       // 로그인 후 이 방으로 돌아오도록 경로 기억 (URL 가입 링크 공유 대응)
       try {
-        sessionStorage.setItem('postLoginRedirect', `/rooms/${roomId}`);
+        sessionStorage.setItem('postLoginRedirect', `/rooms/detail?id=${roomId}`);
       } catch {
         /* 무시 */
       }
@@ -98,7 +103,7 @@ export default function RoomPage() {
       return;
     }
     load();
-  }, [router, load]);
+  }, [router, load, roomId]);
 
   const total = room?.members.length || 0;
 
@@ -367,7 +372,7 @@ export default function RoomPage() {
               <span className="app-muted">초대 코드</span>
               <code className="room-code-val">{room.code}</code>
               <CopyButton text={room.code} label="코드 복사" />
-              <CopyButton text={`${window.location.origin}/rooms/${room._id}`} icon title="초대 링크 복사" />
+              <CopyButton text={`${window.location.origin}/rooms/detail?id=${room._id}`} icon title="초대 링크 복사" />
             </div>
 
             {room.owner === meId ? (

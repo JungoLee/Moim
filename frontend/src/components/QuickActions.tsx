@@ -15,7 +15,11 @@ import type { RoomComment } from '@/lib/types';
 /** 모든 페이지 우하단 플로팅 + 버튼. 페이지별 '추가' 액션(레지스트리) + '친구 추가'(전역) + 모임 방 '채팅'. */
 export default function QuickActions() {
   const pathname = usePathname();
-  const roomId = (pathname?.match(/^\/rooms\/([a-zA-Z0-9]+)$/) || [])[1] || '';
+  // 모임 방은 /rooms/detail?id=… (정적 export 라 동적 세그먼트를 쓸 수 없다)
+  const [roomId, setRoomId] = useState('');
+  useEffect(() => {
+    setRoomId(pathname === '/rooms/detail' ? new URLSearchParams(window.location.search).get('id') || '' : '');
+  }, [pathname]);
   // 현재 페이지에 사용 가이드(스포트라이트 투어)가 정의돼 있으면 FAB 메뉴에 노출
   const guideSteps = guideForPath(pathname || '');
 
@@ -238,7 +242,7 @@ export default function QuickActions() {
               <button
                 type="button"
                 className="app-share-opt"
-                onClick={() => copyText(`${window.location.origin}/rooms/${roomId}`, '초대 링크를 복사했습니다.')}
+                onClick={() => copyText(`${window.location.origin}/rooms/detail?id=${roomId}`, '초대 링크를 복사했습니다.')}
               >
                 <span className="app-share-icon">🔗</span>
                 <span>URL 복사</span>

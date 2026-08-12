@@ -56,7 +56,7 @@ export default function Rooms() {
     setCreateErr('');
     try {
       const res = await api<{ room: { _id: string } }>('/api/rooms', { method: 'POST', body: { name } });
-      router.push(`/rooms/${res.room._id}`);
+      router.push(`/rooms/detail?id=${res.room._id}`);
     } catch (err) {
       setCreateErr(err instanceof Error ? err.message : '생성 실패');
     }
@@ -68,7 +68,7 @@ export default function Rooms() {
     setJoinErr('');
     try {
       const res = await api<{ roomId: string }>('/api/rooms/join', { method: 'POST', body: { code } });
-      router.push(`/rooms/${res.roomId}`);
+      router.push(`/rooms/detail?id=${res.roomId}`);
     } catch (err) {
       setJoinErr(err instanceof Error ? err.message : '입장 실패');
     }
@@ -137,7 +137,7 @@ export default function Rooms() {
         <h3>내 모임</h3>
         {rooms.length === 0 && <p className="app-muted">아직 모임이 없습니다.</p>}
         {rooms.map((r) => (
-          <Link key={r._id} href={`/rooms/${r._id}`} className="app-card" style={{ display: 'block' }}>
+          <Link key={r._id} href={`/rooms/detail?id=${r._id}`} className="app-card" style={{ display: 'block' }}>
             <div className="app-row">
               <strong>{r.name}</strong>
               {r.isOwner && <span className="app-pill">방장</span>}

@@ -99,7 +99,7 @@ export default function Friends() {
                 <button className="app-btn app-btn--ghost" onClick={() => setAddFor(f)}>
                   그룹에 추가
                 </button>
-                <Link className="app-btn app-btn--ghost" href={`/u/${f.user._id}`}>
+                <Link className="app-btn app-btn--ghost" href={`/u?id=${f.user._id}`}>
                   캘린더 보기
                 </Link>
               </div>

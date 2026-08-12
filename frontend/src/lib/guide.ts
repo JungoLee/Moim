@@ -67,7 +67,7 @@ const GUIDES: Record<string, GuideStep[]> = {
     { target: FAB, title: '모임 만들기 · 입장', body: '+ 버튼에서 모임을 만들거나 초대 코드로 입장해요. 방에 들어가면 URL·코드 공유로 친구를 초대할 수 있어요.' },
     { target: g('rooms-list'), title: '내 모임', body: '모임을 누르면 방으로 들어가요. 방 안에서 각자 가능한 날짜를 표시하면 모두 되는 날을 자동으로 찾아줘요. 방 안에서도 + 버튼 → 📖 사용 가이드로 자세한 사용법을 볼 수 있어요.' },
   ],
-  // 모임 방 내부 (/rooms/:id — guideForPath 에서 패턴 매칭)
+  // 모임 방 내부 (/rooms/detail?id=… — guideForPath 에서 매칭)
   '/rooms/:id': [
     { target: g('room-head'), title: '멤버 · 설정', body: '함께하는 멤버들이에요. 멤버 칩을 누르면 프로필이 떠서 캘린더 보기·친구/시간 요청을 보낼 수 있어요. 방장은 ⚙ 설정에서 방 이름 변경·초대 코드 재발급·URL 가입 허용·멤버 강퇴·삭제를 해요.' },
     { target: g('room-modes'), title: '표시 모드 고르기', body: '먼저 무엇을 표시할지 골라요 — 되는 날 / 안 되는 날 / 시간 이후(예: 19:00부터 가능, 시각 선택). [리셋]은 내 표시 전체 해제, [새로고침]은 친구들 표시 갱신이에요.' },
@@ -83,8 +83,8 @@ const GUIDES: Record<string, GuideStep[]> = {
 };
 
 export function guideForPath(pathname: string): GuideStep[] | null {
+  // 모임 방 내부 — 목록(/rooms)보다 먼저 판정
+  if (pathname === '/rooms/detail') return GUIDES['/rooms/:id'];
   if (GUIDES[pathname]) return GUIDES[pathname];
-  // 동적 라우트 — 모임 방 내부
-  if (/^\/rooms\/[a-zA-Z0-9]+$/.test(pathname)) return GUIDES['/rooms/:id'];
   return null;
 }

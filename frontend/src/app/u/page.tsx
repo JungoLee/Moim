@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Nav from '@/components/Nav';
 import Calendar from '@/components/Calendar';
 import PageHero from '@/components/PageHero';
@@ -10,12 +10,16 @@ import type { MoimEvent, User } from '@/lib/types';
 
 export default function FriendCalendar() {
   const router = useRouter();
-  const params = useParams();
-  const userId = params.userId as string;
+  // 정적 export 는 동적 세그먼트를 만들 수 없어 ?id= 로 받는다 (구 /u/<id> 는 워커가 301)
+  const [userId, setUserId] = useState('');
 
   const [owner, setOwner] = useState<User | null>(null);
   const [events, setEvents] = useState<MoimEvent[]>([]);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setUserId(new URLSearchParams(window.location.search).get('id') || '');
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -32,8 +36,9 @@ export default function FriendCalendar() {
       router.replace('/');
       return;
     }
+    if (!userId) return;
     load();
-  }, [router, load]);
+  }, [router, load, userId]);
 
   return (
     <>
