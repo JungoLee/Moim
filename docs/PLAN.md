@@ -112,3 +112,19 @@
 - 이메일 코드 발송: **Render free 플랜이 외부 SMTP 포트(25·465·587)를 차단** → 운영은 **Brevo HTTP API**(`BREVO_API_KEY`, 무료 300통/일), 로컬은 Gmail SMTP+앱 비밀번호. 둘 다 없으면 코드가 서버 콘솔에만 출력. 사용자 증가 시 Resend/SES 등으로 교체(`utils/mailer.js` 한 파일만 수정).
 - 테스트 코드 없음.
 - Render free 플랜은 15분 무트래픽 시 슬립 → 첫 요청 콜드스타트 지연(~50s). 프론트/백 **2개 서비스**라 로그인 시 백엔드 콜드스타트가 한 번 더 노출됨. **완화 적용**: 랜딩 진입 시 `warmApi()`가 백엔드 `/api/health` 를 미리 깨워 2차 화면 감소. 완전 제거는 **Starter 승격**(`render.yaml` `plan: free`→`starter`, 코드 변경 불필요). ※ 무료는 계정당 750 인스턴스-시간/월(2개 상시 keep-alive는 초과).
+
+---
+
+## ☁️ 인프라 이전 계획 (2026-07-31 결정)
+
+**방향: 호스팅을 Cloudflare Workers 로 통합하고, DB 를 MongoDB → Cloudflare D1(SQL) 로 전환한다. 시점은 "나중에".**
+
+- **왜**: Workers 는 잠들지 않고(Render 무료의 첫 접속 지연 없음), GitHub push → 자동 배포(Workers Builds)가 되고, 도메인·DNS 가 이미 Cloudflare 에 있다. D1 은 같은 워커 바인딩(`env.DB`)이라 접속 정보·커넥션 관리가 0.
+- **Mongo 를 그대로 들고 갈 수도 있지만 이득이 작다**: `nodejs_compat` 으로 공식 드라이버는 동작한다. 단 ① `mongodb+srv://` 는 Workers 가 DNS SRV/TXT 조회를 못 해 못 쓴다(호스트 나열 seedlist URI 필요) ② isolate 마다 커넥션이 따로 열려 풀 공유가 안 된다(Durable Objects 로 잡으면 홉·비용·단일 스레드 병목) ③ 커넥션 최적화 도구 Hyperdrive 는 Postgres/MySQL 만 지원.
+- ⚠️ **"마이그레이션만 하면 되는" 작업이 아니다.** 실제로는 3단계다:
+  1. **스키마 재설계** — document → 테이블. 배열·중첩 객체는 별도 테이블로 분해해야 한다.
+  2. **쿼리 전면 재작성** — mongoose → `env.DB.prepare(...).bind(...)`. D1 은 대화형 트랜잭션이 없어 다중 쓰기는 `batch([...])`.
+  3. **서버 이관** — Express 라우터 → Workers 라우터, Node 전용 API(`fs`·`crypto`·`Buffer`) 사용처 제거.
+- **순서: 작은 것부터 하나씩 끝까지.** MyBudget → Moim → Gilo. 동시 진행 금지(한 개 완료 후 다음).
+- **그때까지**: Render 무료 유지. "안 꺼지는 것"만 급하면 **코드 무수정**으로 Railway 또는 Render 유료($7/월) 전환이 대안 — Cloudflare 이전과 별개 선택지다.
+- 참고: `C:\workspace\HOSTING-PLAN.md` · 선례 = `youtubePlaylist`(DB 가 없던 케이스, Workers 이전 완료) · 신규 프로젝트 `MenuManager`(Tabl)는 처음부터 Workers + D1.
