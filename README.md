@@ -2,8 +2,9 @@
 
 친구들과 스케줄을 공유하고, 함께 비는 시간을 찾아 모임·여행을 잡는 소셜 캘린더.
 
-- **frontend/** — Next.js(App Router) + TypeScript + SCSS
-- **backend/** — Node + Express(ESM) + MongoDB(Mongoose), Google OAuth + JWT
+- **frontend/** — Next.js(App Router, 정적 export) + TypeScript + SCSS
+- **worker/** — Cloudflare Workers(API) + D1(SQLite), Google OAuth + JWT
+- **backend/** — (구) Node + Express + MongoDB — Workers 이관 완료 후 삭제 예정
 
 > 작업 규칙은 [CLAUDE.md](CLAUDE.md), 기능 로드맵·현재 상태·데이터 모델은 [docs/PLAN.md](docs/PLAN.md), 셋업·트러블슈팅은 [docs/ONBOARDING.md](docs/ONBOARDING.md) 참조.
 
@@ -21,57 +22,56 @@
 
 ## 사전 준비
 1. **Node.js 18+** (개발 환경엔 24 설치됨)
-2. **MongoDB** — 로컬 설치 또는 [MongoDB Atlas](https://www.mongodb.com/atlas) 무료 클러스터
+2. **Cloudflare 계정** — `npx wrangler login` (D1·Workers 배포용)
 3. **Google OAuth 클라이언트** — 아래 절차 참고
 
 ### Google OAuth 클라이언트 만들기
 1. [Google Cloud Console](https://console.cloud.google.com/) → 프로젝트 생성
 2. **API 및 서비스 → OAuth 동의 화면** 구성(외부, 테스트 사용자에 본인 이메일 추가)
 3. **사용자 인증 정보 → 사용자 인증 정보 만들기 → OAuth 2.0 클라이언트 ID → 웹 애플리케이션**
-4. **승인된 리디렉션 URI** 에 추가: `http://localhost:4000/api/auth/google/callback`
-5. 발급된 **클라이언트 ID/비밀번호** 를 `backend/.env` 에 입력
+4. **승인된 리디렉션 URI** 에 추가:
+   - `https://moim.opnae.com/api/auth/google/callback` (운영)
+   - `http://localhost:8790/api/auth/google/callback` (로컬 `wrangler dev`)
+5. 발급된 **클라이언트 ID** 는 `wrangler.toml` `[vars]`, **비밀번호** 는 시크릿(`wrangler secret put GOOGLE_CLIENT_SECRET`)
 
 ---
 
 ## 셋업 & 실행
 
-### 0) 최초 1회 — 설정 파일 + 의존성
-```powershell
-cd backend;  Copy-Item .env.example .env          # 값 채우기 (MONGODB_URI, JWT_SECRET, GOOGLE_*)
-cd ..\frontend; Copy-Item .env.local.example .env.local
-cd ..
-$env:NODE_OPTIONS="--use-system-ca"   # VPN 환경에서만 필요
-npm run install:all                   # backend + frontend 의존성 한 번에 설치
-```
-
-### 1) 루트에서 두 서버 한 번에 (권장)
+### 0) 최초 1회 — 의존성 + 로컬 시크릿 + 로컬 DB
 ```powershell
 $env:NODE_OPTIONS="--use-system-ca"   # VPN 환경에서만 필요
-npm run dev
+npm run install:all                   # 루트 + frontend 의존성
+# .dev.vars 에 JWT_SECRET · GOOGLE_CLIENT_SECRET 작성 (gitignore)
+npm run db:schema                     # 로컬 D1 에 스키마 적용
 ```
-- backend(`:4000`) + frontend(`:3000`)를 한 콘솔에서 실행. 출력은 `[backend]`/`[frontend]` 로 구분.
-- **Ctrl+C** 한 번이면 두 서버가 함께 종료. 한쪽이 죽으면 나머지도 자동 정리(`concurrently`).
 
-### 1-b) 개별 실행 (디버깅 등 따로 띄우고 싶을 때)
+### 1) 프론트 빌드 + 워커 실행 (운영과 동일한 구성)
 ```powershell
-# 터미널 A
-cd backend;  $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localhost:4000
-# 터미널 B
-cd frontend; $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # http://localhost:3000
+npm run build         # frontend/out 정적 export
+npm run worker:dev    # http://localhost:8790 (API + 정적 자산)
 ```
 
-브라우저에서 `http://localhost:3000` → "Sign in with Google"(팝업으로 로그인 → 자동 복귀).
+### 1-b) 프론트만 빠르게 고칠 때
+```powershell
+cd frontend; npm run dev    # http://localhost:3000 (HMR)
+```
+API 는 상대경로라 이 모드에서는 호출이 3000 포트로 나간다 — API 까지 필요하면 위 1) 방식을 쓴다.
 
 ---
 
-## 배포 (Render)
-운영은 **Render**에 루트 `render.yaml` **Blueprint**로 배포 — web 서비스 2개(`moim-api` 백 + `moim-web` 프론트, SSR) + MongoDB Atlas.
+## 배포 (Cloudflare Workers + D1)
+단일 Workers 배포 — **https://moim.opnae.com** (API `/api/*` + 정적 프론트, 커스텀 도메인은 wrangler 가 DNS 자동 생성).
 
-- Render → **New → Blueprint** → `JungoLee/Moim` 선택 → 시크릿(`MONGODB_URI`·`JWT_SECRET`·`GOOGLE_CLIENT_SECRET`) 입력 → **Apply**. 이후 `main` push 시 **autoDeploy**.
-- **Atlas Network Access** 에 Render outbound IP 대역 등록(아니면 백엔드 DB 연결 실패 → `/api/health` 503).
-- **구글 콘솔** OAuth 클라이언트에 운영 콜백 `https://moim-api.onrender.com/api/auth/google/callback` 등록.
+```powershell
+npm run db:schema:remote                        # 최초 1회 (원격 D1 스키마)
+npx wrangler secret put JWT_SECRET              # 최초 1회
+npx wrangler secret put GOOGLE_CLIENT_SECRET    # 최초 1회
+npm run worker:deploy                           # 빌드 + 배포
+```
+- **로그인 코드 메일**: `BREVO_API_KEY` 시크릿을 넣으면 실제 발송, 없으면 `npx wrangler tail` 로그에 코드 출력.
 - (선택) **AdSense**: `NEXT_PUBLIC_ADSENSE_CLIENT` 설정 시 광고 로드, `public/ads.txt`가 `/ads.txt`로 서빙(게시자 확인).
-- 자세히 → [docs/ONBOARDING.md](docs/ONBOARDING.md) §7.
+- 이관 배경·의사결정 → [docs/cf-migration.md](docs/cf-migration.md).
 
 ---
 
