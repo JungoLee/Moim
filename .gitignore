@@ -23,3 +23,9 @@ Thumbs.db
 
 # Claude Code 로컬 설정 (머신별 — 커밋하지 않음)
 .claude/
+
+# Cloudflare Workers 이관 (개인 데이터·로컬 시크릿 — 커밋 금지)
+backup/
+.dev.vars
+.wrangler/
+worker/seed.sql

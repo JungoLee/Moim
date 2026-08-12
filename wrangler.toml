@@ -1,0 +1,38 @@
+# Cloudflare Workers 설정 — /api/* 는 worker/index.js, 그 외는 frontend/out 정적 자산
+# 시크릿은 커밋하지 않는다:
+#   npx wrangler secret put JWT_SECRET
+#   npx wrangler secret put GOOGLE_CLIENT_SECRET
+#   npx wrangler secret put BREVO_API_KEY      (선택 — 없으면 로그인 코드가 로그에만 출력)
+# 로컬 개발은 .dev.vars 파일(gitignore 됨) 사용.
+name = "moim"
+main = "worker/index.js"
+compatibility_date = "2026-08-01"
+
+# 커스텀 도메인 — Cloudflare 가 DNS 레코드와 인증서를 자동 생성한다
+routes = [
+  { pattern = "moim.opnae.com", custom_domain = true },
+]
+
+[assets]
+directory = "./frontend/out"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+# ⚠️ 필수: SPA 폴백이 워커 경로를 가로채지 않게 워커를 먼저 태운다.
+# /rooms/:id · /u/:id 는 정적 export 로 만들 수 없어 쿼리스트링 페이지로 301 하는 구경로.
+run_worker_first = ["/api/*", "/rooms/*", "/u/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "moim"
+database_id = "3b132cbb-4822-48e9-a710-b921e3e67ea7"
+
+[vars]
+# 공개 값 — 시크릿 아님
+GOOGLE_CLIENT_ID = "677148716312-8qr96i7bt0t68cm1602pqvaar90ttjt7.apps.googleusercontent.com"
+ADMIN_EMAILS = "tough123181@gmail.com"
+BRAND_NAME = "Moim"
+SMTP_FROM = "tough123181@gmail.com"
+
+[dev]
+# 같은 PC 의 다른 Workers 프로젝트(MyBudget 8788 등)와 겹치지 않게 고정
+port = 8790
