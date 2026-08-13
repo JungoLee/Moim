@@ -157,6 +157,9 @@ export async function emailRequest(request, env, params, body) {
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
   if (!EMAIL_RE.test(email)) return fail('올바른 이메일을 입력해주세요.');
 
+  // Mongo TTL 인덱스가 없으므로 만료된 코드는 여기서 함께 정리한다
+  await env.DB.prepare('DELETE FROM login_codes WHERE expires_at < ?').bind(nowIso()).run();
+
   const existing = await env.DB.prepare('SELECT sent_at FROM login_codes WHERE email = ?').bind(email).first();
   if (existing && Date.now() - new Date(existing.sent_at).getTime() < RESEND_COOLDOWN_MS) {
     return fail('잠시 후 다시 요청해주세요. (1분에 1회)', 429);

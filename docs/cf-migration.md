@@ -1,7 +1,49 @@
-# Cloudflare Workers + D1 이관 계획 (2026-08-12)
+# Cloudflare Workers + D1 이관 (2026-08-13 완료)
 
-> Render(moim-api + moim-web) + MongoDB Atlas → **단일 Workers**(moim.opnae.com) + **D1**.
-> 선례: `C:\workspace\MyBudget` (2026-08-12 완료). 진행 상태는 이 문서 하단 체크리스트.
+> Render(moim-api + moim-web) + MongoDB Atlas → **단일 Workers**(https://moim.opnae.com) + **D1**.
+> 선례: `C:\workspace\MyBudget`. 이관에서 얻은 교훈은 [PLAN.md](PLAN.md) "Moim 이관에서 배운 것" 절.
+
+## ✅ 현재 상태
+
+| 항목 | 상태 |
+|---|---|
+| D1 스키마(12 테이블) | 로컬·원격 적용 완료 |
+| 워커(53 라우트) | 배포 완료 |
+| 프론트 정적 export | 배포 완료 (64 파일) |
+| 커스텀 도메인 | `moim.opnae.com` 연결 완료(DNS 자동) |
+| 시크릿 | `JWT_SECRET`·`GOOGLE_CLIENT_SECRET` 등록 완료 |
+| 로컬 검증 | **57/57 통과** |
+| 프로덕션 검증 | **57/57 통과** |
+| **Mongo 데이터 이전** | ❌ **미완** — Atlas 클러스터가 DNS 에서 사라짐(무료 플랜 일시정지 추정). 운영 D1 은 현재 빈 상태 |
+
+### 사용자가 해야 할 일 (남은 것)
+
+**1. Google Cloud Console — 리디렉션 URI 추가** ⚠ *구글 로그인은 이걸 해야 동작한다*
+[console.cloud.google.com](https://console.cloud.google.com) → API 및 서비스 → 사용자 인증 정보 → OAuth 2.0 클라이언트 → **승인된 리디렉션 URI** 에 추가:
+- `https://moim.opnae.com/api/auth/google/callback`
+- `http://localhost:8790/api/auth/google/callback` (로컬 개발용)
+
+**2. MongoDB Atlas — 데이터 살릴지 결정**
+[cloud.mongodb.com](https://cloud.mongodb.com) 에서 `Cluster0`(`yrdimyh`) 상태 확인:
+- **Paused** → Resume 누르고 알려주면 백업 → D1 이전까지 진행한다(기존 로그인 세션까지 그대로 살아난다)
+- **Deleted** → 복구 불가. 빈 DB 로 새로 시작(현재 상태 그대로)
+
+**3. Render 서비스 삭제** (프로덕션 며칠 지켜본 뒤)
+[dashboard.render.com](https://dashboard.render.com) → 각 서비스 → Settings → 맨 아래 **Delete Service**:
+- [ ] `moim-api`
+- [ ] `moim-web`
+- [ ] Blueprint 자체(`Blueprints` 탭에 `moim` 이 남아 있으면 함께 삭제)
+- ※ 저장소의 `render.yaml` 은 구 `backend/` 를 지울 때 함께 정리한다(PLAN.md "다음 작업")
+
+**4. (선택) 로그인 코드 메일 발송**
+현재 `BREVO_API_KEY` 미설정 → 이메일 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`).
+[brevo.com](https://www.brevo.com) 무료 가입(300통/일) → API 키 발급 → `npx wrangler secret put BREVO_API_KEY`.
+
+**5. (선택) Atlas 클러스터 정리** — 데이터 이전을 끝냈거나 포기했다면 클러스터 삭제로 비용·계정 정리.
+
+---
+
+## 이관 기록 (아래는 작업 당시 계획·분석)
 
 ---
 
@@ -76,11 +118,8 @@ Moim/
 6. **배포** — 원격 D1 생성·스키마·시드·시크릿 → `wrangler deploy` → 프로덕션 curl 검증
 7. **문서** — CLAUDE.md·README·docs 갱신 + Render 삭제 체크리스트 (`docs: 이관 완료`)
 
-## 3. 사용자가 직접 해야 하는 것 (완료 후 체크리스트로 재안내)
-
-- [ ] **Google Cloud Console** — 승인된 리디렉션 URI 에 `https://moim.opnae.com/api/auth/google/callback` 와 `http://localhost:8790/api/auth/google/callback` 추가 (없으면 `redirect_uri_mismatch` 로 구글 로그인 불가)
-- [ ] Render 대시보드에서 `moim-api`·`moim-web` 서비스 삭제 (프로덕션 검증 후)
-- [ ] (선택) MongoDB Atlas 클러스터 정리 — 백업 확보 후
+## 3. 사용자가 직접 해야 하는 것
+→ 문서 상단 "사용자가 해야 할 일" 절로 이동(완료 시점 기준으로 정리됨).
 
 ## 4. 리스크 / 유의
 

@@ -113,16 +113,21 @@ npm run worker:deploy                           # 빌드 + 배포
 ## 폴더 구조
 ```
 Moim/
-├─ package.json         # 루트: concurrently 로 두 서버 동시 실행 (npm run dev)
-├─ render.yaml          # Render 배포 Blueprint (web 2개: moim-api·moim-web)
+├─ wrangler.toml        # Workers 설정: moim.opnae.com · assets(frontend/out) · D1 바인딩
+├─ package.json         # 루트: worker:dev / worker:deploy / db:schema
 ├─ CLAUDE.md            # 작업 규칙
 ├─ README.md
-├─ docs/                # PLAN.md(로드맵·현재상태) · ONBOARDING.md · refactoring-guide.md
-├─ backend/
-│  └─ src/{config,middleware,models,routes,utils}   # models: User·Friendship·Tier·Room·Event·TimeRequest·LoginCode
+├─ docs/                # PLAN.md(로드맵·현재상태) · cf-migration.md(이관) · ONBOARDING.md · refactoring-guide.md
+├─ worker/              # Cloudflare Workers API
+│  ├─ index.js          # 라우트 표 53개 + 구 동적경로 301 + 정적 자산 폴백
+│  ├─ auth·google·mailer·db·http.js                 # 인증·OAuth·메일·D1 변환·응답 헬퍼
+│  ├─ events·friends·calendar·tiers·rooms·requests·admin.js
+│  └─ schema.sql        # D1 12테이블 (users·events·friendships·tiers·rooms·time_requests·login_codes + 조인 5)
+├─ scripts/             # verify-api.mjs(통합 검증 57항목) · mongo-to-d1-seed.mjs(데이터 이전)
+├─ backend/             # ⚠ 구 Express+Mongo — 데이터 이전용으로만 존치(삭제 예정)
 └─ frontend/
    └─ src/
-      ├─ app/           # home · dashboard · friends · tiers · rooms · requests · tools/leave · admin · u/[userId] · auth/callback
+      ├─ app/           # home · dashboard · friends · tiers · rooms(+rooms/detail?id=) · requests · tools/leave · admin · u?id= · auth/callback
       ├─ components/    # Nav(+QuickActions FAB) · PageHero · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Modal · Select · TimeSelect · ColorPalette(+ColorWheel) · Avatar · MemberRow · Notice · Accordion · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · RoomChat · UserProfileModal · ConfirmHost · Toaster · GuideHost · AdUnit
       └─ lib/           # api · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense
 ```

@@ -15,8 +15,20 @@ const log = (ok, name, detail = '') => {
   ok ? pass++ : fail++;
 };
 
+/** 네트워크가 불안정한 환경(여러 A 레코드 중 일부 차단 등) 대비 — 연결 실패만 재시도 */
+async function fetchRetry(url, init, tries = 4) {
+  for (let i = 1; ; i++) {
+    try {
+      return await fetch(url, init);
+    } catch (err) {
+      if (i >= tries) throw err;
+      await new Promise((r) => setTimeout(r, 500 * i));
+    }
+  }
+}
+
 async function call(path, { method = 'GET', body, token } = {}) {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetchRetry(`${BASE}${path}`, {
     method,
     headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -256,10 +268,10 @@ const run = async () => {
   log(legacyUser.status === 301 && legacyUser.location?.includes(`/u?id=${idA}`), '구 /u/<id> → 301', legacyUser.location);
 
   // 28. 정적 자산 서빙
-  const idx = await fetch(`${BASE}/`);
+  const idx = await fetchRetry(`${BASE}/`);
   const idxText = await idx.text();
-  log(idx.status === 200 && idxText.includes('<!DOCTYPE html>'), '정적 프론트 서빙(/)');
-  const detailPage = await fetch(`${BASE}/rooms/detail?id=${roomId}`);
+  log(idx.status === 200 && /<!DOCTYPE html>/i.test(idxText), '정적 프론트 서빙(/)');
+  const detailPage = await fetchRetry(`${BASE}/rooms/detail?id=${roomId}`);
   log(detailPage.status === 200, '정적 페이지 /rooms/detail');
 
   // 29. 존재하지 않는 API → JSON 404
