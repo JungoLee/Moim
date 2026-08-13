@@ -97,13 +97,34 @@
 - [ ] `InviteToken{ token, calendar/group, scope, expiresAt }`
 - [ ] 토큰 링크로 특정 캘린더/근무표 입장 + 제한된 편집
 
-### Phase 8 — 수익화 & 운영
-- [ ] **AdSense 활성화** (코드는 준비 완료 — 남은 건 구글 쪽 신청·승인 절차)
-  - [ ] [adsense.google.com](https://adsense.google.com) 가입 — 사이트 URL = `moim.opnae.com`
-  - [ ] 발급된 게시자 ID(`ca-pub-…`)를 `frontend/.env.local` 의 `NEXT_PUBLIC_ADSENSE_CLIENT` 에 설정(빌드 타임 인라인) + `public/ads.txt` 의 `pub-…` 숫자 교체 → `npm run worker:deploy`
-  - [ ] 애드센스 사이트 **심사 통과 대기**(보통 수일~2주, 그동안 광고 자리는 빈칸)
-  - [ ] ⚠️ 승인 리스크: 콘텐츠가 로그인 뒤에 숨어 있으면 "콘텐츠 부족"으로 거절 가능 → **로그인 없이 보이는 공개 소개 페이지**(서비스 설명/스크린샷 등) 보강 필요. (개인정보 처리방침·이용약관은 이미 있음)
-  - [ ] 승인 후: 대시보드에서 **Auto ads** 켜기(자동 배치) 또는 광고 단위 슬롯 발급 → `<AdUnit slot="…" />` 로 수동 배치
+### Phase 8 — 검색 노출 & 수익화
+
+#### 8-1. 검색 등록 (SEO 코드는 2026-08-13 적용 완료 — 남은 건 구글에 알리는 절차)
+> 적용된 것: `robots.txt`·`sitemap.xml`·canonical·OG/Twitter·`manifest.webmanifest`·`icon.svg`,
+> 로그인 뒤 화면 9개 noindex, 랜딩 공개 소개(기능·4단계 사용법·FAQ 5문항) + JSON-LD(WebApplication·HowTo·FAQPage),
+> `/tools/leave` 전용 메타데이터("연차 계산기"·"징검다리 연휴" 타겟).
+
+- [ ] **Google Search Console 등록**
+  - [ ] [search.google.com/search-console](https://search.google.com/search-console) → 속성 추가 → **URL 접두어** → `https://moim.opnae.com`
+  - [ ] 소유권 확인 — **HTML 태그** 방식이 가장 쉽다. 받은 `<meta name="google-site-verification" content="…">` 값을
+        `frontend/src/app/layout.tsx` 의 `metadata.verification.google` 에 넣고 `npm run worker:deploy`
+        (DNS TXT 방식도 가능 — 도메인이 Cloudflare 에 있으므로 DNS 레코드 추가로도 됨)
+  - [ ] **Sitemaps** 메뉴에서 `sitemap.xml` 제출
+  - [ ] **URL 검사** → `https://moim.opnae.com/` 와 `/tools/leave` 색인 요청
+  - [ ] 1~2주 뒤 "페이지" 리포트에서 색인 여부·제외 사유 확인
+- [ ] **네이버 서치어드바이저**([searchadvisor.naver.com](https://searchadvisor.naver.com)) 등록 — 국내 검색 유입엔 구글보다 중요할 수 있다. 사이트 소유확인 + `sitemap.xml` 제출
+- [ ] **Bing Webmaster Tools** — Search Console 계정 연동으로 몇 클릭에 끝난다
+- [ ] (선택) OG 이미지 — 지금은 이미지 없이 텍스트 카드만 노출된다. 1200×630 PNG 를 `frontend/public/og.png` 로 넣고
+      `layout.tsx` 의 `openGraph.images`·`twitter.images` 에 연결하면 공유 시 썸네일이 붙는다
+- [ ] (선택) 개인정보 처리방침·이용약관을 **모달이 아닌 별도 페이지**(`/privacy`·`/terms`)로 — 크롤러가 읽을 수 있어야 신뢰도·AdSense 심사에 유리
+
+#### 8-2. AdSense (코드는 준비 완료 — 남은 건 구글 쪽 신청·승인)
+- [ ] [adsense.google.com](https://adsense.google.com) 가입 — 사이트 URL = `moim.opnae.com`
+- [ ] 발급된 게시자 ID(`ca-pub-…`)를 `frontend/.env.local` 의 `NEXT_PUBLIC_ADSENSE_CLIENT` 에 설정(빌드 타임 인라인) + `frontend/public/ads.txt` 의 `pub-…` 숫자 교체 → `npm run worker:deploy`
+- [ ] 애드센스 사이트 **심사 통과 대기**(보통 수일~2주, 그동안 광고 자리는 빈칸)
+- [x] ~~승인 리스크: 콘텐츠가 로그인 뒤에 숨어 "콘텐츠 부족"으로 거절~~ → 랜딩 공개 소개 + FAQ + 연차 계산기(비로그인 공개 도구)로 **2026-08-13 해소**. 다만 심사 전 `/privacy`·`/terms` 페이지화(8-1)를 해두면 더 안전
+- [ ] 승인 후: 대시보드에서 **Auto ads** 켜기(자동 배치) 또는 광고 단위 슬롯 발급 → `<AdUnit slot="…" />` 로 수동 배치
+- [ ] 광고 배치 시 주의 — 로그인 폼 위나 달력 조작 영역 근처는 오클릭 유발로 정책 위반이 될 수 있다. 랜딩 소개 섹션 사이·연차 계산기 결과 아래가 안전
 - [ ] 운영 보안: JWT → httpOnly 쿠키 전환, Rate limit, 입력 검증 강화 (CORS 는 단일 도메인이 되어 불필요해짐)
 - [x] 커스텀 도메인 + 콜드스타트 제거 ✅ — Workers 이관으로 해결(moim.opnae.com, 상시 가동)
 
