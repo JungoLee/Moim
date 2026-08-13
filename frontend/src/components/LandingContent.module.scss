@@ -1,0 +1,173 @@
+@use '@/styles/rem' as *;
+
+/* 랜딩 하단 공개 소개 — 히어로(로그인 카드) 아래로 흐른다 */
+.wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: rem(880);
+  margin: 0 auto;
+  padding: rem(64) 0 rem(32);
+  display: flex;
+  flex-direction: column;
+  gap: rem(56);
+}
+
+.section {
+  text-align: center;
+}
+
+.h2 {
+  font-size: clamp(#{rem(22)}, 4.2vw, #{rem(30)});
+  font-weight: 700;
+  margin: 0 0 var(--space-5);
+  color: var(--color-text);
+  word-break: keep-all;
+}
+
+.h3 {
+  font-size: rem(17);
+  font-weight: 650;
+  margin: 0 0 var(--space-3);
+  color: var(--color-text);
+  word-break: keep-all;
+}
+
+.lead {
+  max-width: rem(620);
+  margin: 0 auto;
+  color: var(--color-muted);
+  font-size: rem(16);
+  line-height: 1.8;
+  word-break: keep-all;
+
+  strong {
+    color: var(--color-text);
+    font-weight: 650;
+  }
+}
+
+.body {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: rem(15);
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+/* 기능 카드 */
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  text-align: left;
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: rgba(20, 26, 44, 0.62);
+  border: 1px solid var(--color-border-soft);
+  backdrop-filter: saturate(140%) blur(12px);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+}
+
+.icon {
+  display: block;
+  font-size: rem(26);
+  margin-bottom: var(--space-3);
+  line-height: 1;
+}
+
+/* 사용법 */
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: rem(620);
+  margin-inline: auto;
+}
+
+.step {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  text-align: left;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: rgba(20, 26, 44, 0.62);
+  border: 1px solid var(--color-border-soft);
+}
+
+.stepNum {
+  flex: 0 0 auto;
+  width: rem(30);
+  height: rem(30);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: rem(14);
+  color: var(--color-bg);
+  background: var(--color-accent);
+}
+
+.toolLink {
+  display: inline-block;
+  margin-top: var(--space-5);
+  padding: rem(10) rem(20);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-soft);
+  color: var(--color-accent);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(70, 214, 194, 0.1);
+  }
+}
+
+/* FAQ */
+.faq {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: rem(680);
+  margin-inline: auto;
+}
+
+.faqItem {
+  text-align: left;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: rgba(20, 26, 44, 0.62);
+  border: 1px solid var(--color-border-soft);
+
+  dd {
+    margin: 0;
+  }
+}
+
+.footer {
+  color: var(--color-muted);
+  font-size: rem(13);
+  text-align: center;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-soft);
+
+  p {
+    margin: 0;
+    word-break: keep-all;
+  }
+}

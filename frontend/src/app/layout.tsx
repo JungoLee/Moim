@@ -1,16 +1,49 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import Script from 'next/script';
 import './globals.scss';
 import { BRAND_NAME } from '@/lib/brand';
+import { SITE_URL, SITE_TAGLINE, SITE_DESCRIPTION, SITE_KEYWORDS } from '@/lib/seo';
 import { ADSENSE_CLIENT } from '@/lib/adsense';
 import Toaster from '@/components/Toaster';
 import ConfirmHost from '@/components/ConfirmHost';
 import GuideHost from '@/components/GuideHost';
 
 export const metadata: Metadata = {
-  title: BRAND_NAME,
-  description: '친구들과 스케줄을 공유하고 함께 비는 시간을 찾는 캘린더',
+  metadataBase: new URL(SITE_URL),
+  // 하위 페이지는 title 만 주면 "제목 | 브랜드" 로 완성된다
+  title: {
+    default: `${BRAND_NAME} — ${SITE_TAGLINE}`,
+    template: `%s | ${BRAND_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  applicationName: BRAND_NAME,
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: BRAND_NAME,
+    locale: 'ko_KR',
+    url: SITE_URL,
+    title: `${BRAND_NAME} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${BRAND_NAME} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+  },
+  formatDetection: { telephone: false },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0f1424',
+  colorScheme: 'dark',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

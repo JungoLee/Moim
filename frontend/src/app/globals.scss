@@ -1666,11 +1666,17 @@ a.app-card:hover {
 .app-landing {
   position: relative;
   min-height: 100dvh;
+  padding: var(--space-6);
+  overflow: hidden;
+}
+/* 첫 화면 — 로그인 카드를 세로 가운데. 아래로는 공개 소개 콘텐츠가 이어진다. */
+.app-landing-top {
+  position: relative;
+  z-index: 1;
+  min-height: calc(100dvh - var(--space-6) * 2);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6);
-  overflow: hidden;
 }
 /* 블러 처리된 큰 원이 천천히 떠다니며 깊이감을 준다 */
 .app-orb {

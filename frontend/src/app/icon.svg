@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c8cff"/>
+      <stop offset="1" stop-color="#46d6c2"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="#141a2c"/>
+  <!-- 캘린더 몸통 -->
+  <rect x="12" y="17" width="40" height="35" rx="7" fill="none" stroke="url(#g)" stroke-width="4"/>
+  <!-- 고리 -->
+  <path d="M23 11v10M41 11v10" stroke="url(#g)" stroke-width="4" stroke-linecap="round"/>
+  <!-- 겹치는 빈 시간 = 가운데 채워진 칸 -->
+  <rect x="27" y="32" width="10" height="10" rx="3" fill="url(#g)"/>
+</svg>
