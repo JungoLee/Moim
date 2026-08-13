@@ -103,17 +103,6 @@ export function tierDoc(row, members = []) {
   };
 }
 
-export function friendshipDoc(row, requester = null) {
-  return {
-    _id: row.id,
-    requester: requester || row.requester,
-    recipient: row.recipient,
-    status: row.status,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
 export function timeRequestDoc(row, from = null, to = null) {
   return {
     _id: row.id,

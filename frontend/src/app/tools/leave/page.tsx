@@ -5,7 +5,8 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import type { EventInput } from '@fullcalendar/core';
 import Nav from '@/components/Nav';
-import { addDays, computeLeavePlan, toKey, formatDate, metricLabel, type Bridge, type LeaveStyle } from '@/lib/leave';
+import { dayLabel } from '@/lib/datetime';
+import { addDays, computeLeavePlan, toKey, metricLabel, type Bridge, type LeaveStyle } from '@/lib/leave';
 import { getHolidays } from '@/lib/holidays';
 import { api, getToken } from '@/lib/api';
 import DatePicker from '@/components/DatePicker';
@@ -232,7 +233,7 @@ export default function LeavePlanner() {
                     <div className={styles.row} key={`c${i}`}>
                       <span className={styles.eff}>{metricLabel(p, result.style)}</span>
                       <strong>
-                        {formatDate(p.spanStart)} ~ {formatDate(p.spanEnd)}
+                        {dayLabel(p.spanStart)} ~ {dayLabel(p.spanEnd)}
                       </strong>
                       <span className="app-muted">
                         연차 {p.leaveDays}일 → {p.totalDays}일 휴무
@@ -255,7 +256,7 @@ export default function LeavePlanner() {
                     <div className={styles.row} key={`a${i}`}>
                       <span className={styles.eff}>{metricLabel(p, result.style)}</span>
                       <strong>
-                        {formatDate(p.spanStart)} ~ {formatDate(p.spanEnd)}
+                        {dayLabel(p.spanStart)} ~ {dayLabel(p.spanEnd)}
                       </strong>
                       <span className="app-spacer" />
                       <span className="app-muted">

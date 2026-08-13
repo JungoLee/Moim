@@ -35,12 +35,6 @@ function isNonWorking(d: Date, holidays: Holidays): boolean {
   return isWeekend(d) || isHoliday(d, holidays);
 }
 
-export function formatDate(d: Date): string {
-  const days = ['일', '월', '화', '수', '목', '금', '토'];
-  // YYYY-MM-DD (요일) — 연도 포함, 월/일 한글 표기 없이
-  return `${toKey(d)} (${days[d.getDay()]})`;
-}
-
 // 표시용 지표: '길게 몰아서'는 순이익 점수(+N점), 그 외는 효율(Nx)
 export function metricLabel(b: Bridge, style: LeaveStyle): string {
   return style === 'long' ? `+${b.score}점` : `${b.efficiency}x`;

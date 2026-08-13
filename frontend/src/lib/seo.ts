@@ -25,9 +25,6 @@ export const SITE_KEYWORDS = [
   BRAND_NAME,
 ];
 
-/** 페이지 제목 — 루트 레이아웃의 template 과 함께 쓴다 */
-export const pageTitle = (t: string) => `${t} | ${BRAND_NAME}`;
-
 /** 소셜 공유 카드 공통 필드 */
 export function socialCard(title: string, description: string, path = '/') {
   const url = `${SITE_URL}${path}`;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, getToken, setToken, googleLoginUrl, onTokenStored, warmApi } from '@/lib/api';
+import { api, getToken, setToken, googleLoginUrl, onTokenStored } from '@/lib/api';
 import { isInAppBrowser, escapeInAppBrowser } from '@/lib/inapp';
 import { toast } from '@/lib/toast';
 import { BRAND_NAME } from '@/lib/brand';
@@ -35,8 +35,6 @@ export default function Home() {
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
-    // 백엔드(별도 서비스)를 미리 깨워 로그인 시 콜드스타트 화면을 줄인다.
-    warmApi();
     if (getToken()) {
       router.replace(consumePostLoginDest());
       return;

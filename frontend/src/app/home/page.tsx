@@ -8,7 +8,8 @@ import Tooltip from '@/components/Tooltip';
 import Icon, { type IconName } from '@/components/Icon';
 import { api, getToken } from '@/lib/api';
 import { formatRange, displayName } from '@/lib/format';
-import { computeLeavePlan, formatDate, metricLabel, type LeaveStyle } from '@/lib/leave';
+import { dayLabel } from '@/lib/datetime';
+import { computeLeavePlan, metricLabel, type LeaveStyle } from '@/lib/leave';
 import { getHolidays } from '@/lib/holidays';
 import type { MoimEvent, User, FriendRequest, RoomSummary, TimeRequest } from '@/lib/types';
 import styles from './home.module.scss';
@@ -177,7 +178,7 @@ export default function Home() {
             {upcomingLeave.map((b, i) => (
               <div key={i} className={styles.row}>
                 <strong>
-                  {formatDate(b.spanStart)} ~ {formatDate(b.spanEnd)}
+                  {dayLabel(b.spanStart)} ~ {dayLabel(b.spanEnd)}
                 </strong>
                 <span className="app-spacer" />
                 <span className="app-pill">{metricLabel(b, leaveSettings?.style || 'balanced')}</span>

@@ -63,7 +63,7 @@
 
 ### 다음 작업 (남은 것)
 - [ ] **이메일 코드 API 레이트 리밋** ⚠️ — 현재 재요청 쿨다운(60초)이 **이메일 주소별**이라, 주소를 바꿔가며 호출하면 무제한이다(`worker/auth.js` `emailRequest`). `BREVO_API_KEY` 를 넣는 순간 **하루 300통 무료 쿼터가 통째로 소진될 수 있다**. 메일 발송을 켜기 전에 IP 기준 제한을 먼저 붙일 것 — Workers 에서는 `request.headers.get('cf-connecting-ip')` 를 키로 KV(또는 D1 테이블)에 카운트하거나, Cloudflare 대시보드의 **Rate Limiting Rules** 로 `/api/auth/email/request` 경로에 걸면 코드 수정 없이도 된다
-- [ ] **이메일 코드 발송 활성화** — 현재 `BREVO_API_KEY` 미설정이라 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`). Brevo 키를 `npx wrangler secret put BREVO_API_KEY` 로 넣으면 실제 메일 발송. (Workers 는 SMTP 불가 — HTTP API 만. 구 `backend/workers/mailWorker.js` 폴링 전송기와 `LoginCode.code` 평문 필드는 이관 과정에서 제거됨)
+- [ ] **이메일 코드 발송 활성화** — 현재 `BREVO_API_KEY` 미설정이라 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`). Brevo 키를 `npx wrangler secret put BREVO_API_KEY` 로 넣으면 실제 메일 발송. (Workers 는 SMTP 불가 — HTTP API 만. 구 폴링 전송기·평문 코드 보관 방식은 새 워커에 이식하지 않았다 — 잔재는 삭제 예정인 `backend/` 안에만 있다)
 - [ ] **안 쓰는 크리덴셜 폐기** 🔐 — 이관으로 안 쓰이게 됐지만 **아직 살아 있는** 값들이다. 유출 시 그대로 악용된다
   - [ ] **Gmail 앱 비밀번호**(`backend/.env` 의 `SMTP_PASS`, 2026-07-08 발급) — Workers 는 SMTP 를 못 써 영영 안 쓴다. [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) 에서 삭제
   - [ ] `backend/.env` 자체 폐기 — Mongo 계정·Google 시크릿이 평문으로 남아 있다(gitignore 라 커밋되진 않았다). `backend/` 삭제 시 함께
