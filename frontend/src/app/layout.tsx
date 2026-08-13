@@ -1,7 +1,16 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import Script from 'next/script';
+import { Black_Ops_One } from 'next/font/google';
 import './globals.scss';
+
+// 브랜드 로고 폰트 — 빌드 시 셀프호스팅되어 외부 요청·렌더 블로킹이 사라진다
+const brandFont = Black_Ops_One({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-brand',
+});
 import { BRAND_NAME } from '@/lib/brand';
 import { SITE_URL, SITE_TAGLINE, SITE_DESCRIPTION, SITE_KEYWORDS } from '@/lib/seo';
 import { ADSENSE_CLIENT } from '@/lib/adsense';
@@ -48,17 +57,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={brandFont.variable}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* 본문 한글 폰트 (Gilo와 동일: Pretendard) — globals.scss 의 body font-family 1순위 */}
+        {/* 본문 한글 폰트(Pretendard) — 동적 서브셋이라 필요한 글자만 받는다.
+            CDN 연결을 미리 열어 두면 첫 렌더까지의 왕복이 줄어든다. */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard-dynamic-subset.min.css"
         />
-        {/* 브랜드 로고 아이덴티티 폰트 (Gilo와 동일: Black Ops One) */}
-        <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet" />
       </head>
       <body>
         {/* 구글 애드센스 — 게시자 ID 설정 시에만 로드 (Auto ads 는 대시보드에서 활성화) */}

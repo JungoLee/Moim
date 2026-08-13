@@ -1652,7 +1652,7 @@ a.app-card:hover {
 /* 브랜드 마크 — 그라데이션 텍스트 */
 .brand-mark {
   display: inline-block;
-  font-family: 'Black Ops One', system-ui, sans-serif; // Gilo 아이덴티티 폰트
+  font-family: var(--font-brand), system-ui, sans-serif; // 아이덴티티 폰트(next/font 셀프호스팅)
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.06em;

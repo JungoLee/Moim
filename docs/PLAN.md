@@ -62,10 +62,13 @@
 - **리팩토링**: `lib/`(api·datetime·marks·clipboard·confirm·quickActions) 공용화, 데드코드 정리 3차까지(2026-07-08: `AvailabilityCalendar` 미사용 `mode` prop, `leave.ts` 내부 전용 함수 unexport, 미사용 `@fullcalendar/timegrid` 의존성 제거)
 
 ### 다음 작업 (남은 것)
+- [ ] **이메일 코드 API 레이트 리밋** ⚠️ — 현재 재요청 쿨다운(60초)이 **이메일 주소별**이라, 주소를 바꿔가며 호출하면 무제한이다(`worker/auth.js` `emailRequest`). `BREVO_API_KEY` 를 넣는 순간 **하루 300통 무료 쿼터가 통째로 소진될 수 있다**. 메일 발송을 켜기 전에 IP 기준 제한을 먼저 붙일 것 — Workers 에서는 `request.headers.get('cf-connecting-ip')` 를 키로 KV(또는 D1 테이블)에 카운트하거나, Cloudflare 대시보드의 **Rate Limiting Rules** 로 `/api/auth/email/request` 경로에 걸면 코드 수정 없이도 된다
 - [ ] **이메일 코드 발송 활성화** — 현재 `BREVO_API_KEY` 미설정이라 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`). Brevo 키를 `npx wrangler secret put BREVO_API_KEY` 로 넣으면 실제 메일 발송. (Workers 는 SMTP 불가 — HTTP API 만. 구 `backend/workers/mailWorker.js` 폴링 전송기와 `LoginCode.code` 평문 필드는 이관 과정에서 제거됨)
 - [ ] **구 `backend/` 삭제** — Atlas 클러스터까지 삭제(2026-08-13)돼 **이제 실행 자체가 불가능한 죽은 코드**다. 함께 정리할 것: `render.yaml`, 루트 `package.json` 의 `dev`/`start`/`dev:backend`/`install:all` 스크립트, `docs/ONBOARDING.md`·README 의 backend 언급. ※ `backend/scripts/mongo-backup.mjs` 도 함께 사라지므로, 로컬 `backup/*.json` 이 유일한 원본 스냅샷임을 유의
 - [x] ~~Render 서비스·Blueprint 삭제~~ ✅ 2026-08-13 (서비스 2개 + Blueprint)
 - [x] ~~MongoDB Atlas 클러스터 삭제~~ ✅ 2026-08-13
+- [ ] **Workers Builds 자동 배포 켜기** — GitHub 연결 시 push 만으로 배포된다. 대시보드 설정 절차·형제 프로젝트용 프롬프트는 [workers-auto-deploy.md](workers-auto-deploy.md)
+- [ ] **Cloudflare Web Analytics 붙이기** — 무료·쿠키 없음. SEO 성과(유입·페이지뷰)를 봐야 다음 액션이 정해진다. 대시보드에서 스니펫 받아 `frontend/src/app/layout.tsx` 에 `<Script>` 로 추가
 - [ ] **Fable 모델로 리팩토링 가이드** — `docs/refactoring-guide.md` 절차를 Fable 5 로 한 번 돌려 코드 정리 방향을 다시 잡는다(작업 자체보다 "무엇을 정리할지" 판단이 목적)
 - [ ] **안 읽음 표시 본격화** — 받은 친구요청 배지 + 모임 채팅 안읽음 카운트(클라 `lastRead`)는 됨. **서버 `lastSeen` 영속**·다른 알림(모임 변경 등)은 추후
 - [ ] **Nav 공통 레이아웃화** — 현재 각 페이지가 `<Nav/>` 렌더 → 이동마다 리마운트(짧은 깜빡임). route group 레이아웃으로 올려 네비/FAB 고정·본문만 교체하면 SPA 체감 향상
