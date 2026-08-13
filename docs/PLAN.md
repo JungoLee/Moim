@@ -62,14 +62,9 @@
 - **리팩토링**: `lib/`(api·datetime·marks·clipboard·confirm·quickActions) 공용화, 데드코드 정리 3차까지(2026-07-08: `AvailabilityCalendar` 미사용 `mode` prop, `leave.ts` 내부 전용 함수 unexport, 미사용 `@fullcalendar/timegrid` 의존성 제거)
 
 ### 다음 작업 (남은 것)
-- [ ] **⚠ Mongo 데이터 이전 (미완)** — Atlas 클러스터(`cluster0.yrdimyh`)가 **DNS 에서 사라진 상태**(무료 플랜 미사용 자동 일시정지로 추정)라 백업을 못 떴다. 현재 운영 D1 은 **빈 DB**. 복구 절차:
-  1. [cloud.mongodb.com](https://cloud.mongodb.com) 에서 클러스터 **Resume**(삭제됐다면 데이터 복구 불가 → 이 항목 폐기)
-  2. `node backend/scripts/mongo-backup.mjs` → `backup/*.json`
-  3. `node scripts/mongo-to-d1-seed.mjs` → `worker/seed.sql`
-  4. `npx wrangler d1 execute moim --remote --file worker/seed.sql`
-  ※ 기존 ObjectId 를 그대로 승계하므로 **사용자들의 기존 JWT(로그인)도 그대로 살아난다**
 - [ ] **이메일 코드 발송 활성화** — 현재 `BREVO_API_KEY` 미설정이라 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`). Brevo 키를 `npx wrangler secret put BREVO_API_KEY` 로 넣으면 실제 메일 발송. (Workers 는 SMTP 불가 — HTTP API 만. 구 `backend/workers/mailWorker.js` 폴링 전송기와 `LoginCode.code` 평문 필드는 이관 과정에서 제거됨)
-- [ ] **구 `backend/` 삭제** — 프로덕션(D1) 안정 확인 후 제거. 현재는 데이터 이전(위 항목)에 `backend/scripts/mongo-backup.mjs` 와 mongoose 의존성이 필요해 남겨둔다. 함께 정리할 것: `render.yaml`, 루트 `package.json` 의 `dev`/`start`/`dev:backend` 스크립트
+- [ ] **구 `backend/` 삭제** — 데이터 이전은 끝났으므로(2026-08-13) 프로덕션 안정 확인 후 제거하면 된다. 함께 정리할 것: `render.yaml`, 루트 `package.json` 의 `dev`/`start`/`dev:backend`/`install:all` 스크립트, `docs/ONBOARDING.md`·README 의 backend 언급
+- [ ] **Render 서비스 2개 삭제**(사용자) + 그 뒤 GitHub push — 지금 push 하면 아직 살아있는 Render 가 autoDeploy 를 시도한다. 체크리스트는 [cf-migration.md](cf-migration.md) 상단
 - [ ] **안 읽음 표시 본격화** — 받은 친구요청 배지 + 모임 채팅 안읽음 카운트(클라 `lastRead`)는 됨. **서버 `lastSeen` 영속**·다른 알림(모임 변경 등)은 추후
 - [ ] **Nav 공통 레이아웃화** — 현재 각 페이지가 `<Nav/>` 렌더 → 이동마다 리마운트(짧은 깜빡임). route group 레이아웃으로 올려 네비/FAB 고정·본문만 교체하면 SPA 체감 향상
 - [ ] **실시간 채팅(Socket.io)** — 현재 6초 폴링. 진짜 푸시는 Phase 4
@@ -146,6 +141,8 @@
 - **D1 엔 TTL 인덱스가 없다** — Mongo TTL 로 자동 삭제되던 것(로그인 코드)은 관련 요청 경로에서 만료행을 직접 지운다. 크론까지 갈 필요 없음.
 - Mongo 의 "배열 dedupe" 같은 애플리케이션 규칙은 **복합 PK/UNIQUE 로 승격**하면 코드가 준다(`PK(room_id,user_id,date)`).
 - 검증은 **스크립트로 만들어 저장소에 남긴다** — 로컬/프로덕션에 같은 걸 돌려 비교할 수 있고, 다음 배포 때도 재사용된다.
+- ⚠️ **PowerShell 파이프로 `wrangler secret put` 하면 개행이 섞여 값이 오염된다**(`"값" | npx wrangler secret put X`). 자체 검증은 통과하지만(서명·검증 모두 같은 오염된 값) **외부에서 발급된 기존 JWT 가 전부 401** 이 된다. 실제로 이번에 물렸다. → **`npx wrangler secret bulk secrets.json`** 으로 넣을 것. 값이 맞는지는 "이전 시스템이 발급한 토큰"으로 확인해야 드러난다.
+- 데이터 이전 검증은 API 스모크만으론 부족하다 — **원본 백업의 실제 id 로 토큰을 만들어** 목록·상세·가시성까지 훑어야 매핑 오류가 잡힌다.
 - 로컬 DNS 가 새 커스텀 도메인을 늦게 잡을 수 있다(negative cache). `curl --resolve` 로 먼저 확인하면 배포 문제와 구분된다.
 
 **남은 순서: Gilo** (`C:\workspace\Gilo`, 별도 Atlas 클러스터 `cluster0.0bxwd0q` 사용 중).

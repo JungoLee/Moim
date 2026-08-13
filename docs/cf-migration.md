@@ -13,8 +13,10 @@
 | 커스텀 도메인 | `moim.opnae.com` 연결 완료(DNS 자동) |
 | 시크릿 | `JWT_SECRET`·`GOOGLE_CLIENT_SECRET` 등록 완료 |
 | 로컬 검증 | **57/57 통과** |
-| 프로덕션 검증 | **57/57 통과** |
-| **Mongo 데이터 이전** | ❌ **미완** — Atlas 클러스터가 DNS 에서 사라짐(무료 플랜 일시정지 추정). 운영 D1 은 현재 빈 상태 |
+| 프로덕션 검증 | **57/57 통과** (API) + **14/14 통과** (실데이터·기존 JWT) |
+| **Mongo 데이터 이전** | ✅ **완료** — 사용자 5 · 일정 10 · 친구 4 · 그룹 1(멤버 4) · 모임 2(멤버 7 · 가용성 24 · 댓글 12) · 시간요청 2 (총 220행, 유실 0) |
+
+기존 사용자 5명 전원의 **JWT 가 그대로 유효**함을 확인했다(ObjectId 를 TEXT PK 로 승계한 덕분) — 재로그인 불필요.
 
 ### 사용자가 해야 할 일 (남은 것)
 
@@ -23,23 +25,18 @@
 - `https://moim.opnae.com/api/auth/google/callback`
 - `http://localhost:8790/api/auth/google/callback` (로컬 개발용)
 
-**2. MongoDB Atlas — 데이터 살릴지 결정**
-[cloud.mongodb.com](https://cloud.mongodb.com) 에서 `Cluster0`(`yrdimyh`) 상태 확인:
-- **Paused** → Resume 누르고 알려주면 백업 → D1 이전까지 진행한다(기존 로그인 세션까지 그대로 살아난다)
-- **Deleted** → 복구 불가. 빈 DB 로 새로 시작(현재 상태 그대로)
-
-**3. Render 서비스 삭제** (프로덕션 며칠 지켜본 뒤)
+**2. Render 서비스 삭제** (프로덕션 며칠 지켜본 뒤)
 [dashboard.render.com](https://dashboard.render.com) → 각 서비스 → Settings → 맨 아래 **Delete Service**:
 - [ ] `moim-api`
 - [ ] `moim-web`
 - [ ] Blueprint 자체(`Blueprints` 탭에 `moim` 이 남아 있으면 함께 삭제)
 - ※ 저장소의 `render.yaml` 은 구 `backend/` 를 지울 때 함께 정리한다(PLAN.md "다음 작업")
 
-**4. (선택) 로그인 코드 메일 발송**
+**3. (선택) 로그인 코드 메일 발송**
 현재 `BREVO_API_KEY` 미설정 → 이메일 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`).
 [brevo.com](https://www.brevo.com) 무료 가입(300통/일) → API 키 발급 → `npx wrangler secret put BREVO_API_KEY`.
 
-**5. (선택) Atlas 클러스터 정리** — 데이터 이전을 끝냈거나 포기했다면 클러스터 삭제로 비용·계정 정리.
+**4. (선택) Atlas 클러스터 정리** — 데이터 이전이 끝났으므로 클러스터를 삭제해도 된다. 로컬 `backup/*.json` 에 원본 스냅샷이 있다(gitignore). 며칠 지켜본 뒤 정리 권장.
 
 ---
 
