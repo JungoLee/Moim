@@ -9,7 +9,7 @@ import CopyButton from '@/components/CopyButton';
 import Modal from '@/components/Modal';
 import type { Friend, Tier } from '@/lib/types';
 
-export type ProfileUser = { _id: string; name: string; email: string; picture?: string };
+type ProfileUser = { _id: string; name: string; email: string; picture?: string };
 
 /** 타인 프로필 액션 모달 — 캘린더 보기 / 친구 요청·시간 요청 / 그룹에 추가 / 이메일 복사 */
 export default function UserProfileModal({ user, onClose }: { user: ProfileUser; onClose: () => void }) {

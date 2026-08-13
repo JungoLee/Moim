@@ -1,7 +1,7 @@
 // Google OAuth — passport-google-oauth20 을 fetch 로 대체 (Workers 는 passport 미지원)
 // 콜백 URL 은 요청 origin 에서 유도한다(로컬 8790 / 운영 moim.opnae.com 자동 대응).
 
-export const callbackUrl = (origin) => `${origin}/api/auth/google/callback`;
+const callbackUrl = (origin) => `${origin}/api/auth/google/callback`;
 
 /** 구글 동의 화면 URL */
 export function buildAuthUrl(origin, env) {

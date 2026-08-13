@@ -54,7 +54,15 @@
     - `GET /api/calendar.ics?token=<서명토큰>` — 내 일정을 iCal 텍스트로 렌더(워커에서 문자열 생성, 라이브러리 불필요). 구글/애플 캘린더가 주기 폴링
     - DB 변화: 없음(구독 토큰은 JWT 서명 재사용 가능). 효과: "내 캘린더 앱에서도 보인다" — 이탈 방지. ⚠️ 토큰 유출 시 일정 노출이므로 폐기(재발급) 수단 필수
 
-## D. 검색·콘텐츠
+## D. 코드 구조 (기능 변화 없음 — 여유 있을 때)
+
+14. **`holidays.ts → leave.ts → datetime.ts` 우회 의존 정리**
+    - `leave.ts:6-7` 이 `addDays` 재수출 + `toKey = dateKey` 별칭을 두고 있어(기존 import 호환용 shim), `holidays.ts` 가 날짜 유틸을 `datetime` 이 아니라 `leave` 에서 가져온다. `holidays.ts` 를 `datetime` 직접 참조로 바꾸고 shim 을 걷어내면 의존 방향이 단순해진다
+    - 주의: `toKey` 를 쓰는 호출처가 여러 곳이라 이름 정리까지 하면 diff 가 커진다. 기능 변화 0이지만 리뷰 부담이 있어 별건으로 분리
+
+15. **`Nav` 공통 레이아웃화** — PLAN "다음 작업" 에도 있음. route group 레이아웃으로 올리면 페이지 이동 시 리마운트(깜빡임)가 사라진다. 정적 export 와도 무관하게 적용 가능
+
+## E. 검색·콘텐츠
 
 12. **일정·댓글 검색 — SQLite FTS5**
     - D1 은 FTS5 가상 테이블을 지원. `events(title, memo)`·`room_comments(text)` 인덱스로 "그 약속 언제였지?" 검색

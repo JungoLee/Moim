@@ -8,7 +8,7 @@ import { sendLoginCode, hasMailTransport } from './mailer.js';
 
 const secretKey = (env) => new TextEncoder().encode(env.JWT_SECRET);
 
-export async function signToken(sub, env) {
+async function signToken(sub, env) {
   return new SignJWT({})
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(sub)

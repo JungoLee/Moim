@@ -230,7 +230,7 @@ function selectPeriods(
   return { selected, usedDays };
 }
 
-export type LeavePlan = {
+type LeavePlan = {
   combo: Bridge[]; // 겹치지 않는 추천 조합
   comboLeave: number; // 사용 연차 합
   comboOff: number; // 총 휴무일 합

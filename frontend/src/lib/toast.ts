@@ -1,5 +1,5 @@
 // 아주 가벼운 전역 토스트 (모듈 pub/sub). Toaster 컴포넌트가 구독해서 렌더.
-export type ToastType = 'info' | 'success' | 'error';
+type ToastType = 'info' | 'success' | 'error';
 export type ToastItem = { id: number; msg: string; type: ToastType };
 
 let items: ToastItem[] = [];

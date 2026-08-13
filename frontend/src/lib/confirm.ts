@@ -1,5 +1,5 @@
 // 전역 커스텀 확인 다이얼로그 (네이티브 confirm 대체). ConfirmHost 가 구독해서 렌더.
-export type ConfirmOptions = {
+type ConfirmOptions = {
   message: string;
   title?: string;
   confirmText?: string;

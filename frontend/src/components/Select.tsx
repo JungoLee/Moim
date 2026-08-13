@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-export type SelectOption = { value: string; label: string };
+type SelectOption = { value: string; label: string };
 
 type Props = {
   value: string;
