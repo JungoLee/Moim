@@ -64,6 +64,14 @@
 ### 다음 작업 (남은 것)
 - [ ] **이메일 코드 API 레이트 리밋** ⚠️ — 현재 재요청 쿨다운(60초)이 **이메일 주소별**이라, 주소를 바꿔가며 호출하면 무제한이다(`worker/auth.js` `emailRequest`). `BREVO_API_KEY` 를 넣는 순간 **하루 300통 무료 쿼터가 통째로 소진될 수 있다**. 메일 발송을 켜기 전에 IP 기준 제한을 먼저 붙일 것 — Workers 에서는 `request.headers.get('cf-connecting-ip')` 를 키로 KV(또는 D1 테이블)에 카운트하거나, Cloudflare 대시보드의 **Rate Limiting Rules** 로 `/api/auth/email/request` 경로에 걸면 코드 수정 없이도 된다
 - [ ] **이메일 코드 발송 활성화** — 현재 `BREVO_API_KEY` 미설정이라 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`). Brevo 키를 `npx wrangler secret put BREVO_API_KEY` 로 넣으면 실제 메일 발송. (Workers 는 SMTP 불가 — HTTP API 만. 구 `backend/workers/mailWorker.js` 폴링 전송기와 `LoginCode.code` 평문 필드는 이관 과정에서 제거됨)
+- [ ] **안 쓰는 크리덴셜 폐기** 🔐 — 이관으로 안 쓰이게 됐지만 **아직 살아 있는** 값들이다. 유출 시 그대로 악용된다
+  - [ ] **Gmail 앱 비밀번호**(`backend/.env` 의 `SMTP_PASS`, 2026-07-08 발급) — Workers 는 SMTP 를 못 써 영영 안 쓴다. [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) 에서 삭제
+  - [ ] `backend/.env` 자체 폐기 — Mongo 계정·Google 시크릿이 평문으로 남아 있다(gitignore 라 커밋되진 않았다). `backend/` 삭제 시 함께
+  - [ ] (판단) Google OAuth 클라이언트 시크릿 회전 — 이관 중 여러 곳을 거쳤으니 찜찜하면 콘솔에서 새로 발급 후 `wrangler secret bulk` 로 교체
+- [ ] **D1 정기 백업** — Time Travel 은 30일까지만이고 DB 삭제는 못 되돌린다. 이관 전 스냅샷(`backup/`)은 있지만 **이관 후 새로 쌓이는 데이터는 D1 에만 있다**. `npx wrangler d1 export moim --remote --output backup/d1-YYYYMMDD.sql` 를 가끔 떠 둘 것
+- [ ] **저장소 위생** — `docs/PLAN_others.md`(Moim 무관 프로젝트 계획)·`docs/gilo-porting-prompt.md`(Gilo 용)를 해당 저장소로 옮기거나 제거
+- [ ] **에러 알림** — 지금은 사용자가 말해주기 전엔 장애를 모른다. Cloudflare 대시보드 알림 또는 Logpush 검토
+- [ ] **커스텀 404 페이지** — 현재 Next 기본 404. `frontend/src/app/not-found.tsx` 로 브랜드 404 만들기(사소하지만 검색 유입 이탈을 줄인다)
 - [ ] **구 `backend/` 삭제** — Atlas 클러스터까지 삭제(2026-08-13)돼 **이제 실행 자체가 불가능한 죽은 코드**다. 함께 정리할 것: `render.yaml`, 루트 `package.json` 의 `dev`/`start`/`dev:backend`/`install:all` 스크립트, `docs/ONBOARDING.md`·README 의 backend 언급. ※ `backend/scripts/mongo-backup.mjs` 도 함께 사라지므로, 로컬 `backup/*.json` 이 유일한 원본 스냅샷임을 유의
 - [x] ~~Render 서비스·Blueprint 삭제~~ ✅ 2026-08-13 (서비스 2개 + Blueprint)
 - [x] ~~MongoDB Atlas 클러스터 삭제~~ ✅ 2026-08-13
