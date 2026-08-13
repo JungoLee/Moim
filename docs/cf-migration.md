@@ -36,7 +36,9 @@
 현재 `BREVO_API_KEY` 미설정 → 이메일 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`).
 [brevo.com](https://www.brevo.com) 무료 가입(300통/일) → API 키 발급 → `npx wrangler secret put BREVO_API_KEY`.
 
-**4. (선택) Atlas 클러스터 정리** — 데이터 이전이 끝났으므로 클러스터를 삭제해도 된다. 로컬 `backup/*.json` 에 원본 스냅샷이 있다(gitignore). 며칠 지켜본 뒤 정리 권장.
+**4. ~~Atlas 클러스터 정리~~** ✅ 2026-08-13 `Cluster0` 삭제 완료. 원본 스냅샷은 로컬 `backup/*.json` 에만 남아 있다(gitignore — 이 폴더를 지우면 복구본이 사라진다).
+
+> 이로써 **MongoDB·Render 의존이 완전히 끊겼다.** 남은 `backend/` 는 이제 동작 자체가 불가능한 죽은 코드다.
 
 ---
 

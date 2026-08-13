@@ -63,8 +63,9 @@
 
 ### 다음 작업 (남은 것)
 - [ ] **이메일 코드 발송 활성화** — 현재 `BREVO_API_KEY` 미설정이라 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`). Brevo 키를 `npx wrangler secret put BREVO_API_KEY` 로 넣으면 실제 메일 발송. (Workers 는 SMTP 불가 — HTTP API 만. 구 `backend/workers/mailWorker.js` 폴링 전송기와 `LoginCode.code` 평문 필드는 이관 과정에서 제거됨)
-- [ ] **구 `backend/` 삭제** — 데이터 이전은 끝났으므로(2026-08-13) 프로덕션 안정 확인 후 제거하면 된다. 함께 정리할 것: `render.yaml`, 루트 `package.json` 의 `dev`/`start`/`dev:backend`/`install:all` 스크립트, `docs/ONBOARDING.md`·README 의 backend 언급
-- [ ] **Render 서비스 2개 삭제**(사용자) + 그 뒤 GitHub push — 지금 push 하면 아직 살아있는 Render 가 autoDeploy 를 시도한다. 체크리스트는 [cf-migration.md](cf-migration.md) 상단
+- [ ] **구 `backend/` 삭제** — Atlas 클러스터까지 삭제(2026-08-13)돼 **이제 실행 자체가 불가능한 죽은 코드**다. 함께 정리할 것: `render.yaml`, 루트 `package.json` 의 `dev`/`start`/`dev:backend`/`install:all` 스크립트, `docs/ONBOARDING.md`·README 의 backend 언급. ※ `backend/scripts/mongo-backup.mjs` 도 함께 사라지므로, 로컬 `backup/*.json` 이 유일한 원본 스냅샷임을 유의
+- [x] ~~Render 서비스·Blueprint 삭제~~ ✅ 2026-08-13 (서비스 2개 + Blueprint)
+- [x] ~~MongoDB Atlas 클러스터 삭제~~ ✅ 2026-08-13
 - [ ] **Fable 모델로 리팩토링 가이드** — `docs/refactoring-guide.md` 절차를 Fable 5 로 한 번 돌려 코드 정리 방향을 다시 잡는다(작업 자체보다 "무엇을 정리할지" 판단이 목적)
 - [ ] **안 읽음 표시 본격화** — 받은 친구요청 배지 + 모임 채팅 안읽음 카운트(클라 `lastRead`)는 됨. **서버 `lastSeen` 영속**·다른 알림(모임 변경 등)은 추후
 - [ ] **Nav 공통 레이아웃화** — 현재 각 페이지가 `<Nav/>` 렌더 → 이동마다 리마운트(짧은 깜빡임). route group 레이아웃으로 올려 네비/FAB 고정·본문만 교체하면 SPA 체감 향상
