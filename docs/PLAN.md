@@ -48,16 +48,16 @@
 
 구현된 것 (도메인별 요약 — 상세 이력은 git log):
 
-- **인증·계정**: 구글 OAuth **팝업 로그인**(localStorage `storage` 이벤트로 부모창 복귀) + JWT, **이메일 코드 로그인**(아무 이메일 → 12자리 코드 발송(nodemailer/SMTP, 미설정 시 콘솔 출력) → 검증 → JWT. 같은 이메일 구글 계정과 자동 통합), 닉네임 설정, 계정 드로어(아바타·고유번호 복사·이용약관/개인정보·로그아웃), **회원 탈퇴**(cascade — `requireAuth`가 `User.exists` 확인으로 탈퇴 계정의 잔여 JWT 차단, 로그아웃/탈퇴는 전체 페이지 로드로 캐시 초기화), **401 자동 로그아웃**, 비로그인으로 방 URL 진입 시 로그인 후 원래 방 복귀, **인앱 브라우저(카카오톡 등) 감지 → 기본 브라우저 탈출**(구글 disallowed_useragent 우회)
+- **인증·계정**: 구글 OAuth **팝업 로그인**(localStorage `storage` 이벤트로 부모창 복귀) + JWT, **이메일 코드 로그인**(아무 이메일 → 12자리 코드 발송(Brevo HTTP API, 키 미설정 시 워커 로그 출력) → 검증 → JWT. 같은 이메일 구글 계정과 자동 통합), 닉네임 설정, 계정 드로어(아바타·고유번호 복사·이용약관/개인정보·로그아웃), **회원 탈퇴**(cascade — `requireAuth`가 `User.exists` 확인으로 탈퇴 계정의 잔여 JWT 차단, 로그아웃/탈퇴는 전체 페이지 로드로 캐시 초기화), **401 자동 로그아웃**, 비로그인으로 방 URL 진입 시 로그인 후 원래 방 복귀, **인앱 브라우저(카카오톡 등) 감지 → 기본 브라우저 탈출**(구글 disallowed_useragent 우회)
 - **일정·캘린더**: FullCalendar **월 뷰**(주 토글 제거), 클릭·드래그 → 통합 모달(커스텀 DatePicker + 24시 TimeSelect + 종일 토글 + 위치 + 메모), 일정 클릭=수정/삭제, **공유/비공개 × 그룹** 가시성, 그룹별 라인 색(공개=초록·비공개=주황 기본). **타임존 왕복 버그 수정**(종일 종료일 +1·타임드 시간 밀림, 2026-06-24) + 종일 다중일 일정 마지막 날 채움 수정
 - **친구·그룹**: 친구 요청/수락/거절, 그룹(Tier) 생성·이메일/코드로 멤버 추가, **친구 카드 "그룹에 추가" 팝업**(그룹 칩 선택·이미 포함 표시), 그룹 설정 모달(코드 복사·색 변경 `PATCH /api/tiers/:id`·삭제), 멤버 아코디언(공용 `MemberRow`), 친구 캘린더(공유=상세/비공개=바쁨)
 - **모임(rooms)**: 코드 초대 + 3모드 가용성(되는날/안되는날 드래그/시간 이후) → **모두 되는 날 집계**, 가용성 캘린더 주말 파스텔 배경(일=핑크·토=하늘)·비활성 셀 어둡게(2026-06-25), **플로팅 채팅**(말풍선·6초 폴링·안읽은 배지·연속 메시지 그룹핑·본인 삭제·리사이즈), 방장 설정 모달(이름 변경·코드 재발급·멤버 강퇴·**URL 가입 토글**·삭제), 공유 모달(URL/코드 복사), 타인 프로필 모달(캘린더 보기·친구/시간 요청·그룹 추가)
-- **시간 요청**: `TimeRequest` + `/requests` 페이지(보내기/받은/보낸), **수락 시 양쪽 캘린더에 일정 자동 생성**(종일 지원, **비공개로 생성**(둘 사이 약속 — 타 친구에겐 "바쁨"), 캘린더에서 **전용 보라색**(`REQUEST_COLOR`) 고정, `Event.origin` 출처 스냅샷(+`requestId` 쌍 연결) — 일정 클릭 시 누가·언제 요청했는지 표시, **상대가 자기 사본을 삭제했으면 클릭 시 커스텀 알림 + 같이 삭제 제안**(`originPartnerGone` 서버 주석). 기존 데이터는 `scripts/backfill-event-origin.mjs` 로 소급), 홈 받은 요청 배너, **Nav '시간 요청' 탭 빨간 점**(대기 요청 있을 때, 10초 TTL 캐시)
+- **시간 요청**: `TimeRequest` + `/requests` 페이지(보내기/받은/보낸), **수락 시 양쪽 캘린더에 일정 자동 생성**(종일 지원, **비공개로 생성**(둘 사이 약속 — 타 친구에겐 "바쁨"), 캘린더에서 **전용 보라색**(`REQUEST_COLOR`) 고정, `Event.origin` 출처 스냅샷(+`requestId` 쌍 연결) — 일정 클릭 시 누가·언제 요청했는지 표시, **상대가 자기 사본을 삭제했으면 클릭 시 커스텀 알림 + 같이 삭제 제안**(`originPartnerGone` 서버 주석)), 홈 받은 요청 배너, **Nav '시간 요청' 탭 빨간 점**(대기 요청 있을 때, 10초 TTL 캐시)
 - **연차 계산기**(`/tools/leave`): 브릿지 알고리즘(공휴일 낀 구간 우선 + 연중 고른 분산), 공휴일 **2026–2031** 내장(음력·대체공휴일 자동, `lib/holidays.ts`), 설정 DB 저장(`User.leave`, 갱신일 자동 이월), 홈 **추천 연차 카드**(`computeLeavePlan` 공용)
 - **홈**(`/home`): 친구요청 알림 · 다가오는 일정(D-day) · 내 모임 요약 · 추천 연차 (로그인 후 랜딩)
 - **관리자**(`/admin`): 통계 개요 · 회원 권한/탈퇴(cascade) · 모임/그룹 모더레이션. 기본 관리자는 env `ADMIN_EMAILS`
 - **공통 UI**: 디자인 토큰(globals.scss) + rem 반응형(clamp), PageHero(전 탭), Nav(활성 강조·중앙 스크롤) + 우하단 FAB(`lib/quickActions`), 공용 컴포넌트(Modal·Select·TimeSelect·DatePicker·ColorPalette+휠·Avatar·MemberRow·Notice·Accordion·Tooltip), 커스텀 confirm(`lib/confirm`)·토스트, 랜딩 글래스 리디자인
-- **사용 가이드(스포트라이트 투어)**: FAB '📖 사용 가이드' → 대상 요소를 `box-shadow` 컷아웃으로 강조 + 스텝 설명 카드(`lib/guide` 라우트별 정의 + `GuideHost`, 대상은 각 페이지 `data-guide` 속성). 7개 탭 + **모임 방 내부**(/rooms/:id, 멤버·모드·드래그 표시·집계·채팅/공유 5스텝) 지원, 조건부 섹션 자동 스킵, 설명 카드는 실제 높이 측정 후 화면 안 클램프
+- **사용 가이드(스포트라이트 투어)**: FAB '📖 사용 가이드' → 대상 요소를 `box-shadow` 컷아웃으로 강조 + 스텝 설명 카드(`lib/guide` 라우트별 정의 + `GuideHost`, 대상은 각 페이지 `data-guide` 속성). 7개 탭 + **모임 방 내부**(`/rooms/detail?id=`, 멤버·모드·드래그 표시·집계·채팅/공유 5스텝) 지원, 조건부 섹션 자동 스킵, 설명 카드는 실제 높이 측정 후 화면 안 클램프
 - **배포·수익화**: **Cloudflare Workers + D1 단일 배포**(2026-08-13, https://moim.opnae.com) — 잠들지 않아 콜드스타트 없음, **AdSense 코드 연동**(Auto ads 스크립트 + `AdUnit` 수동 슬롯 + `ads.txt` — 승인 절차만 남음, Phase 8 참조)
 - **리팩토링**: `lib/`(api·datetime·marks·clipboard·confirm·quickActions) 공용화, 데드코드 정리 3차까지(2026-07-08: `AvailabilityCalendar` 미사용 `mode` prop, `leave.ts` 내부 전용 함수 unexport, 미사용 `@fullcalendar/timegrid` 의존성 제거)
 
@@ -73,27 +73,23 @@
 - [ ] **에러 알림** — 지금은 사용자가 말해주기 전엔 장애를 모른다. Cloudflare 대시보드 알림 또는 Logpush 검토
 - [ ] **커스텀 404 페이지** — 현재 Next 기본 404. `frontend/src/app/not-found.tsx` 로 브랜드 404 만들기(사소하지만 검색 유입 이탈을 줄인다)
 - [ ] **구 `backend/` 삭제** — Atlas 클러스터까지 삭제(2026-08-13)돼 **이제 실행 자체가 불가능한 죽은 코드**다. 함께 정리할 것: `render.yaml`, 루트 `package.json` 의 `dev`/`start`/`dev:backend`/`install:all` 스크립트, `docs/ONBOARDING.md`·README 의 backend 언급. ※ `backend/scripts/mongo-backup.mjs` 도 함께 사라지므로, 로컬 `backup/*.json` 이 유일한 원본 스냅샷임을 유의
-- [x] ~~Render 서비스·Blueprint 삭제~~ ✅ 2026-08-13 (서비스 2개 + Blueprint)
-- [x] ~~MongoDB Atlas 클러스터 삭제~~ ✅ 2026-08-13
 - [ ] **Workers Builds 자동 배포 켜기** — GitHub 연결 시 push 만으로 배포된다. 대시보드 설정 절차·형제 프로젝트용 프롬프트는 [workers-auto-deploy.md](workers-auto-deploy.md)
 - [ ] **Cloudflare Web Analytics 붙이기** — 무료·쿠키 없음. SEO 성과(유입·페이지뷰)를 봐야 다음 액션이 정해진다. 대시보드에서 스니펫 받아 `frontend/src/app/layout.tsx` 에 `<Script>` 로 추가
-- [ ] **Fable 모델로 리팩토링 가이드** — `docs/refactoring-guide.md` 절차를 Fable 5 로 한 번 돌려 코드 정리 방향을 다시 잡는다(작업 자체보다 "무엇을 정리할지" 판단이 목적)
 - [ ] **안 읽음 표시 본격화** — 받은 친구요청 배지 + 모임 채팅 안읽음 카운트(클라 `lastRead`)는 됨. **서버 `lastSeen` 영속**·다른 알림(모임 변경 등)은 추후
 - [ ] **Nav 공통 레이아웃화** — 현재 각 페이지가 `<Nav/>` 렌더 → 이동마다 리마운트(짧은 깜빡임). route group 레이아웃으로 올려 네비/FAB 고정·본문만 교체하면 SPA 체감 향상
-- [ ] **실시간 채팅(Socket.io)** — 현재 6초 폴링. 진짜 푸시는 Phase 4
+- [ ] **실시간 채팅** — 현재 6초 폴링. 진짜 푸시는 Phase 4(Durable Objects + WebSocket)
 
 ---
 
 ## 백로그 (Phase 2+ — 우선순위 순)
 
-### Phase 2 — 공통 빈 시간 찾기 (남은 것)
-- [x] 모임 방(3모드 가용성 + 모두 되는 날 집계 + 부분 가용 "HH:MM 이후") ✅ — 위 "현재 상태" 참조
+### Phase 2 — 공통 빈 시간 찾기 (남은 것 — 모임 방·집계는 완료, "현재 상태" 참조)
 - [ ] 기존 등록 일정(Event)에서 자동 취합 (수동 표시 없이 겹치는 빈 시간 계산)
 - [ ] 빈 시간 결과 시각화(히트맵/추천 날짜)
 
 ### Phase 4 — 실시간 채팅
-- [ ] 백엔드 Socket.io 도입(JWT 핸드셰이크 인증)
-- [ ] `ChatRoom` / `Message` 모델, 1:1 및 그룹
+- [ ] **Durable Objects + WebSocket** 도입(JWT 핸드셰이크 인증) — Workers 는 Socket.io 불가
+- [ ] `chat_rooms` / `messages` 테이블(D1), 1:1 및 그룹
 - [ ] 프론트 채팅 UI(실시간 수신, 미읽음)
 
 ### Phase 5 — 근무 스케줄 방
@@ -133,11 +129,10 @@
 - [ ] [adsense.google.com](https://adsense.google.com) 가입 — 사이트 URL = `moim.opnae.com`
 - [ ] 발급된 게시자 ID(`ca-pub-…`)를 `frontend/.env.local` 의 `NEXT_PUBLIC_ADSENSE_CLIENT` 에 설정(빌드 타임 인라인) + `frontend/public/ads.txt` 의 `pub-…` 숫자 교체 → `npm run worker:deploy`
 - [ ] 애드센스 사이트 **심사 통과 대기**(보통 수일~2주, 그동안 광고 자리는 빈칸)
-- [x] ~~승인 리스크: 콘텐츠가 로그인 뒤에 숨어 "콘텐츠 부족"으로 거절~~ → 랜딩 공개 소개 + FAQ + 연차 계산기(비로그인 공개 도구)로 **2026-08-13 해소**. 다만 심사 전 `/privacy`·`/terms` 페이지화(8-1)를 해두면 더 안전
 - [ ] 승인 후: 대시보드에서 **Auto ads** 켜기(자동 배치) 또는 광고 단위 슬롯 발급 → `<AdUnit slot="…" />` 로 수동 배치
-- [ ] 광고 배치 시 주의 — 로그인 폼 위나 달력 조작 영역 근처는 오클릭 유발로 정책 위반이 될 수 있다. 랜딩 소개 섹션 사이·연차 계산기 결과 아래가 안전
-- [ ] 운영 보안: JWT → httpOnly 쿠키 전환, Rate limit, 입력 검증 강화 (CORS 는 단일 도메인이 되어 불필요해짐)
-- [x] 커스텀 도메인 + 콜드스타트 제거 ✅ — Workers 이관으로 해결(moim.opnae.com, 상시 가동)
+  - 배치 시 주의 — 로그인 폼 위나 달력 조작 영역 근처는 오클릭 유발로 정책 위반이 될 수 있다. 랜딩 소개 섹션 사이·연차 계산기 결과 아래가 안전
+  - "콘텐츠 부족" 거절 리스크는 랜딩 공개 소개 + FAQ + 연차 계산기로 해소됨(2026-08-13). 심사 전 `/privacy`·`/terms` 페이지화(8-1)를 해두면 더 안전
+- [ ] 운영 보안: JWT → httpOnly 쿠키 전환, Rate limit, 입력 검증 강화
 
 ---
 
@@ -163,8 +158,8 @@
 
 - 구성: `wrangler.toml`(custom_domain + assets `frontend/out` + `run_worker_first` + D1 바인딩) · `worker/`(수제 라우터 53 라우트) · `worker/schema.sql`(12 테이블)
 - 검증: 로컬(`wrangler dev`) **57/57**, 프로덕션 **57/57** 통과 (`scripts/verify-api.mjs`)
-- 상세 배경·설계 판단은 **[cf-migration.md](cf-migration.md)** 참조
-- ⚠️ **데이터는 아직 안 옮겨졌다** — Atlas 클러스터가 사라진 상태. 위 "다음 작업" 첫 항목 참조.
+- 데이터: Mongo 220행 전량 이전(유실 0), 기존 사용자 JWT 유지 확인. Render 서비스·Blueprint·Atlas 클러스터 삭제 완료(2026-08-13)
+- 상세 배경·설계 판단은 **[cf-migration.md](cf-migration.md)**, 운영 규칙은 **[operating-notes.md](operating-notes.md)** 참조
 
 ### Moim 이관에서 배운 것 (다음 프로젝트 = Gilo 용)
 - **ObjectId 를 TEXT PK 로 그대로 승계**하면 매핑 테이블도, 재로그인도 필요 없다(JWT `sub` 가 그대로 유효). MyBudget 처럼 `_id` 를 버리는 건 참조 관계가 없을 때만 가능.

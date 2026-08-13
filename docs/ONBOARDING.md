@@ -8,7 +8,7 @@
 **단일 Cloudflare Workers 배포** — https://moim.opnae.com. `/api/*` 는 워커(`worker/`), 그 외 경로는 Next.js 정적 export 산출물(`frontend/out`)을 같은 워커가 서빙한다. DB 는 **D1**(바인딩 `env.DB`).
 인증은 **Google OAuth 또는 이메일 코드**(12자리 OTP) → 워커가 JWT 발급 → 프론트가 `localStorage` 에 담아 `Authorization: Bearer` 로 호출.
 
-> `backend/`(구 Express + MongoDB)는 **데이터 이전용으로만 남아 있다**. 운영과 무관하므로 고치지 말 것.
+> `backend/`(구 Express + MongoDB)는 **삭제 예정 잔재**다 — 데이터 이전·Atlas 삭제까지 끝나 실행 자체가 불가능하다. 고치지 말 것.
 
 ---
 
@@ -121,7 +121,7 @@ frontend/  Next.js App Router (정적 export → out/)
   src/lib/        api.ts(fetch+토큰) · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense
   public/         ads.txt(애드센스 게시자 확인)
 scripts/   verify-api.mjs(API 통합 검증 57항목) · mongo-to-d1-seed.mjs(백업 JSON → seed.sql)
-backend/   ⚠️ 구 Express+Mongo — 데이터 이전용으로만 존치(수정 금지, PLAN.md 참조)
+backend/   ⚠️ 구 Express+Mongo — 삭제 예정 잔재(수정 금지, PLAN.md "다음 작업" 참조)
 docs/      PLAN.md(로드맵·할 일) · cf-migration.md(이관) · refactoring-guide.md · ONBOARDING.md(이 문서) · PLAN_others.md
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 루트        wrangler.toml(도메인·assets·D1 바인딩) · .dev.vars(로컬 시크릿, gitignore) · package.json
