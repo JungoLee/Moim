@@ -153,9 +153,25 @@ function randomFrom(chars, len) {
   return out;
 }
 
+// 메일 발송 IP 제한 — 이메일별 쿨다운만으로는 주소를 바꿔가며 무제한 발송이 가능해
+// 무료 쿼터(하루 100통)가 소진될 수 있다. IP 당 하루 10통까지만 받는다.
+const MAIL_PER_IP_PER_DAY = 10;
+
+async function overMailRate(request, env) {
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  const day = nowIso().slice(0, 10);
+  // 지난 날짜의 키는 여기서 함께 정리한다
+  await env.DB.prepare(`DELETE FROM mail_rate WHERE key NOT LIKE '%:' || ?`).bind(day).run();
+  const row = await env.DB.prepare(
+    'INSERT INTO mail_rate (key, count) VALUES (?, 1) ON CONFLICT(key) DO UPDATE SET count = count + 1 RETURNING count',
+  ).bind(`${ip}:${day}`).first();
+  return row.count > MAIL_PER_IP_PER_DAY;
+}
+
 export async function emailRequest(request, env, params, body) {
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
   if (!EMAIL_RE.test(email)) return fail('올바른 이메일을 입력해주세요.');
+  if (await overMailRate(request, env)) return fail('요청이 너무 많습니다. 내일 다시 시도해주세요.', 429);
 
   // Mongo TTL 인덱스가 없으므로 만료된 코드는 여기서 함께 정리한다
   await env.DB.prepare('DELETE FROM login_codes WHERE expires_at < ?').bind(nowIso()).run();

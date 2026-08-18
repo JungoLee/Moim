@@ -1,5 +1,6 @@
-// 로그인 코드 메일 발송 — Brevo HTTP API 만 사용한다.
+// 로그인 코드 메일 발송 — Resend HTTP API 만 사용한다.
 // (Workers 는 raw TCP 를 못 열어 SMTP/nodemailer 불가. 키가 없으면 콘솔 출력 = wrangler tail 로 확인)
+// 발신 도메인 opnae.com 은 Resend 에 인증돼 있고, 키는 opnae 프로젝트들이 공용으로 쓴다.
 
 function buildLoginMail(code, env) {
   const brand = env.BRAND_NAME || 'Moim';
@@ -17,26 +18,26 @@ function buildLoginMail(code, env) {
   };
 }
 
-/** 발송 수단(Brevo API 키)이 설정돼 있는가 */
-export const hasMailTransport = (env) => !!env.BREVO_API_KEY;
+/** 발송 수단(Resend API 키)이 설정돼 있는가 */
+export const hasMailTransport = (env) => !!env.RESEND_API_KEY;
 
 /** 로그인 인증 코드 발송. 발송 수단이 없으면 로그 출력(개발·폴백). */
 export async function sendLoginCode(email, code, env) {
-  if (!env.BREVO_API_KEY) {
+  if (!env.RESEND_API_KEY) {
     console.log(`[mail] (발송 수단 미설정 — 개발용 출력) ${email} 로그인 코드: ${code}`);
     return;
   }
   const { brand, subject, text, html } = buildLoginMail(code, env);
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+  const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json' },
+    headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
     body: JSON.stringify({
-      sender: { email: env.SMTP_FROM, name: brand },
-      to: [{ email }],
+      from: `${brand} <${env.SMTP_FROM}>`,
+      to: [email],
       subject,
-      textContent: text,
-      htmlContent: html,
+      text,
+      html,
     }),
   });
-  if (!res.ok) throw new Error(`Brevo 발송 실패 (${res.status}): ${await res.text()}`);
+  if (!res.ok) throw new Error(`Resend 발송 실패 (${res.status}): ${await res.text()}`);
 }

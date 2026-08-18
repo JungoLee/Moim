@@ -73,10 +73,10 @@ GOOGLE_CLIENT_SECRET=<구글 클라이언트 비밀번호>
 → **JWT_SECRET 불일치.** 로컬 `.dev.vars` 와 운영 시크릿이 다르면 서로의 토큰을 못 읽는다. 운영 시크릿을 바꾸면 **전체 사용자가 로그아웃**된다.
 
 ### 🟡 이메일 로그인 코드가 메일로 안 옴
-→ `BREVO_API_KEY` 가 없으면 **발송하지 않고 워커 로그에만 출력**한다(정상 동작).
+→ `RESEND_API_KEY` 가 없으면 **발송하지 않고 워커 로그에만 출력**한다(정상 동작). 운영에는 등록돼 있어 실제 발송된다.
 - 로컬: `wrangler dev` 콘솔의 `[mail] … 로그인 코드: XXXX`
 - 운영: `npx wrangler tail` 로 같은 줄 확인
-- 실제 발송하려면 [brevo.com](https://www.brevo.com) 무료 가입 후 `npx wrangler secret put BREVO_API_KEY`
+- 실제 발송하려면 [resend.com](https://resend.com) 가입 후 `npx wrangler secret put RESEND_API_KEY` (opnae 공용 키 있음)
 - ⚠️ Workers 는 raw TCP 를 못 열어 **SMTP 는 불가능**. HTTP API 만 쓴다.
 
 ### 🟡 배포했는데 도메인이 안 잡힘
@@ -142,7 +142,7 @@ CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 npm run db:schema:remote                        # 원격 D1 스키마
 npx wrangler secret put JWT_SECRET              # 운영 값 (고정 유지)
 npx wrangler secret put GOOGLE_CLIENT_SECRET
-npx wrangler secret put BREVO_API_KEY           # (선택) 메일 발송
+npx wrangler secret put RESEND_API_KEY          # (선택) 메일 발송 — opnae 공용 키
 
 # 배포
 npm run worker:deploy                           # = npm run build && wrangler deploy

@@ -48,7 +48,7 @@
 
 구현된 것 (도메인별 요약 — 상세 이력은 git log):
 
-- **인증·계정**: 구글 OAuth **팝업 로그인**(localStorage `storage` 이벤트로 부모창 복귀) + JWT, **이메일 코드 로그인**(아무 이메일 → 12자리 코드 발송(Brevo HTTP API, 키 미설정 시 워커 로그 출력) → 검증 → JWT. 같은 이메일 구글 계정과 자동 통합), 닉네임 설정, 계정 드로어(아바타·고유번호 복사·이용약관/개인정보·로그아웃), **회원 탈퇴**(cascade — `requireAuth`가 `User.exists` 확인으로 탈퇴 계정의 잔여 JWT 차단, 로그아웃/탈퇴는 전체 페이지 로드로 캐시 초기화), **401 자동 로그아웃**, 비로그인으로 방 URL 진입 시 로그인 후 원래 방 복귀, **인앱 브라우저(카카오톡 등) 감지 → 기본 브라우저 탈출**(구글 disallowed_useragent 우회)
+- **인증·계정**: 구글 OAuth **팝업 로그인**(localStorage `storage` 이벤트로 부모창 복귀) + JWT, **이메일 코드 로그인**(아무 이메일 → 12자리 코드 발송(Resend HTTP API, 키 미설정 시 워커 로그 출력) → 검증 → JWT. 같은 이메일 구글 계정과 자동 통합), 닉네임 설정, 계정 드로어(아바타·고유번호 복사·이용약관/개인정보·로그아웃), **회원 탈퇴**(cascade — `requireAuth`가 `User.exists` 확인으로 탈퇴 계정의 잔여 JWT 차단, 로그아웃/탈퇴는 전체 페이지 로드로 캐시 초기화), **401 자동 로그아웃**, 비로그인으로 방 URL 진입 시 로그인 후 원래 방 복귀, **인앱 브라우저(카카오톡 등) 감지 → 기본 브라우저 탈출**(구글 disallowed_useragent 우회)
 - **일정·캘린더**: FullCalendar **월 뷰**(주 토글 제거), 클릭·드래그 → 통합 모달(커스텀 DatePicker + 24시 TimeSelect + 종일 토글 + 위치 + 메모), 일정 클릭=수정/삭제, **공유/비공개 × 그룹** 가시성, 그룹별 라인 색(공개=초록·비공개=주황 기본). **타임존 왕복 버그 수정**(종일 종료일 +1·타임드 시간 밀림, 2026-06-24) + 종일 다중일 일정 마지막 날 채움 수정
 - **친구·그룹**: 친구 요청/수락/거절, 그룹(Tier) 생성·이메일/코드로 멤버 추가, **친구 카드 "그룹에 추가" 팝업**(그룹 칩 선택·이미 포함 표시), 그룹 설정 모달(코드 복사·색 변경 `PATCH /api/tiers/:id`·삭제), 멤버 아코디언(공용 `MemberRow`), 친구 캘린더(공유=상세/비공개=바쁨)
 - **모임(rooms)**: 코드 초대 + 3모드 가용성(되는날/안되는날 드래그/시간 이후) → **모두 되는 날 집계**, 가용성 캘린더 주말 파스텔 배경(일=핑크·토=하늘)·비활성 셀 어둡게(2026-06-25), **플로팅 채팅**(말풍선·6초 폴링·안읽은 배지·연속 메시지 그룹핑·본인 삭제·리사이즈), 방장 설정 모달(이름 변경·코드 재발급·멤버 강퇴·**URL 가입 토글**·삭제), 공유 모달(URL/코드 복사), 타인 프로필 모달(캘린더 보기·친구/시간 요청·그룹 추가)
@@ -62,8 +62,8 @@
 - **리팩토링**: `lib/`(api·datetime·marks·clipboard·confirm·quickActions) 공용화, 데드코드 정리 3차까지(2026-07-08: `AvailabilityCalendar` 미사용 `mode` prop, `leave.ts` 내부 전용 함수 unexport, 미사용 `@fullcalendar/timegrid` 의존성 제거)
 
 ### 다음 작업 (남은 것)
-- [ ] **이메일 코드 API 레이트 리밋** ⚠️ — 현재 재요청 쿨다운(60초)이 **이메일 주소별**이라, 주소를 바꿔가며 호출하면 무제한이다(`worker/auth.js` `emailRequest`). `BREVO_API_KEY` 를 넣는 순간 **하루 300통 무료 쿼터가 통째로 소진될 수 있다**. 메일 발송을 켜기 전에 IP 기준 제한을 먼저 붙일 것 — Workers 에서는 `request.headers.get('cf-connecting-ip')` 를 키로 KV(또는 D1 테이블)에 카운트하거나, Cloudflare 대시보드의 **Rate Limiting Rules** 로 `/api/auth/email/request` 경로에 걸면 코드 수정 없이도 된다
-- [ ] **이메일 코드 발송 활성화** — 현재 `BREVO_API_KEY` 미설정이라 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`). Brevo 키를 `npx wrangler secret put BREVO_API_KEY` 로 넣으면 실제 메일 발송. (Workers 는 SMTP 불가 — HTTP API 만. 구 폴링 전송기·평문 코드 보관 방식은 새 워커에 이식하지 않았다 — 잔재는 삭제 예정인 `backend/` 안에만 있다)
+- [x] **이메일 코드 API 레이트 리밋** — IP 당 하루 10통 제한을 붙였다(`worker/auth.js` `overMailRate`, D1 `mail_rate` 테이블). 2026-08-18
+- [x] **이메일 코드 발송 활성화** — **Resend** 로 실제 발송한다(`RESEND_API_KEY` 등록, 발신 `noreply@opnae.com`, opnae.com 도메인 인증됨). Brevo 에서 교체 — 가입 시 회사 실주소를 요구해 제외. 키는 opnae 프로젝트 공용. 2026-08-18
 - [ ] **안 쓰는 크리덴셜 폐기** 🔐 — 이관으로 안 쓰이게 됐지만 **아직 살아 있는** 값들이다. 유출 시 그대로 악용된다
   - [ ] **Gmail 앱 비밀번호**(`backend/.env` 의 `SMTP_PASS`, 2026-07-08 발급) — Workers 는 SMTP 를 못 써 영영 안 쓴다. [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) 에서 삭제
   - [ ] `backend/.env` 자체 폐기 — Mongo 계정·Google 시크릿이 평문으로 남아 있다(gitignore 라 커밋되진 않았다). `backend/` 삭제 시 함께
@@ -147,7 +147,7 @@
 - 연차 계산기 공휴일은 `lib/holidays.ts` 에 2026–2031 양력+음력+대체공휴일 내장(음력 당일은 LUNAR 테이블, 임시공휴일·선거일은 수동 추가).
 - `EnMono` 는 실제 폰트 파일 없이 시스템 모노스페이스 별칭(`local()`) — 환경별 글리프 차이 있음. 실제 폰트 확보 시 `@font-face src: url()` 연결.
 - `AdUnit` 컴포넌트는 현재 어디서도 렌더하지 않음(수동 광고 배치용 대기 — AdSense 승인 후 사용, 삭제 금지).
-- 이메일 코드 발송: **Workers 는 raw TCP(SMTP)를 못 연다** → **Brevo HTTP API** 만 지원(`BREVO_API_KEY`, 무료 300통/일). 키가 없으면 코드가 워커 로그에만 출력(`npx wrangler tail`). 교체 시 `worker/mailer.js` 한 파일만 수정.
+- 이메일 코드 발송: **Workers 는 raw TCP(SMTP)를 못 연다** → **Resend HTTP API** 만 지원(`RESEND_API_KEY`, 무료 100통/일, 발신 `noreply@opnae.com`). 키가 없으면 코드가 워커 로그에만 출력(`npx wrangler tail`). 교체 시 `worker/mailer.js` 한 파일만 수정. IP 당 하루 10통 제한(`mail_rate`).
 - 자동화된 테스트는 없지만 **API 통합 검증 스크립트**는 있다 — `node scripts/verify-api.mjs <url> <워커로그>` (로그인→CRUD→권한→탈퇴 cascade 57 항목).
 
 ---

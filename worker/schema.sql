@@ -154,3 +154,9 @@ CREATE TABLE IF NOT EXISTS login_codes (
   attempts   INTEGER NOT NULL DEFAULT 0,
   sent_at    TEXT NOT NULL
 );
+
+-- 메일 발송 IP 제한 — key 는 "ip:YYYY-MM-DD", 하루 지나면 지운다
+CREATE TABLE IF NOT EXISTS mail_rate (
+  key   TEXT PRIMARY KEY,
+  count INTEGER NOT NULL DEFAULT 0
+);
