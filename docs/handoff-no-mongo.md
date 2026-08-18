@@ -36,7 +36,8 @@ git 으로 넘어오지 않는 파일들이 낡은 컨텍스트를 준다. **Atl
 ## 기준 PC(2026-08-18 푸시한 쪽)와 동일하게 맞추기
 
 1. `git pull` — 커밋된 것은 이걸로 끝. 기준 PC 워킹트리는 클린이며 origin 과 완전 일치.
-2. gitignore 라 손으로 옮겨야 하는 파일: 루트 **`.dev.vars`** (값은 안전한 경로로 — 저장소 금지).
+2. gitignore 라 손으로 옮겨야 하는 파일: 루트 **`.dev.vars`** + `frontend/.env.local` — 실제 값은 노션 자료실
+   [🔐 Moim Environment Variables](https://app.notion.com/p/3974c4005827814fbee2c52edffef5c1) (2026-08-18 최신화, D1 기준). 저장소 금지.
    `backend/.env` 는 보관물 전용이라 **복사 불필요** (backend 는 기동 금지).
 3. `.claude/settings.local.json` 은 PC 별 설정 — 복사하지 말고, Mongo 관련 허용 항목만 삭제.
 
