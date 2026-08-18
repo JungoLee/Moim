@@ -33,6 +33,13 @@ git 으로 넘어오지 않는 파일들이 낡은 컨텍스트를 준다. **Atl
 - `backend/` 의 데이터 이전이 실제로 끝났는지 → 끝났다면 `backend/`+`render.yaml` 삭제 가능.
 - Moim 이 쓰던 Atlas 클러스터가 아직 살아있는지 → 살아있다면 폐기/비밀번호 교체 여부.
 
+## 기준 PC(2026-08-18 푸시한 쪽)와 동일하게 맞추기
+
+1. `git pull` — 커밋된 것은 이걸로 끝. 기준 PC 워킹트리는 클린이며 origin 과 완전 일치.
+2. gitignore 라 손으로 옮겨야 하는 파일: 루트 **`.dev.vars`** (값은 안전한 경로로 — 저장소 금지).
+   `backend/.env` 는 보관물 전용이라 **복사 불필요** (backend 는 기동 금지).
+3. `.claude/settings.local.json` 은 PC 별 설정 — 복사하지 말고, Mongo 관련 허용 항목만 삭제.
+
 ## 참고
 
 - 프로젝트별 Mongo 실태 전수조사: `MenuManager(Tabl)/docs/handoff-mongodb-status.md` (2026-08-17)
