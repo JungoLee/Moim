@@ -62,8 +62,7 @@
 - **리팩토링**: `lib/`(api·datetime·marks·clipboard·confirm·quickActions) 공용화, 데드코드 정리 3차까지(2026-07-08: `AvailabilityCalendar` 미사용 `mode` prop, `leave.ts` 내부 전용 함수 unexport, 미사용 `@fullcalendar/timegrid` 의존성 제거)
 
 ### 다음 작업 (남은 것)
-- [x] **이메일 코드 API 레이트 리밋** — IP 당 하루 10통 제한을 붙였다(`worker/auth.js` `overMailRate`, D1 `mail_rate` 테이블). 2026-08-18
-- [x] **이메일 코드 발송 활성화** — **Resend** 로 실제 발송한다(`RESEND_API_KEY` 등록, 발신 `noreply@opnae.com`, opnae.com 도메인 인증됨). Brevo 에서 교체 — 가입 시 회사 실주소를 요구해 제외. 키는 opnae 프로젝트 공용. 2026-08-18
+- [ ] **운영 verify-api 대안** — Resend 활성화(2026-08-18) 이후 운영에선 로그인 코드가 로그에 안 찍혀(실메일 발송) `verify-api.mjs` 를 운영에 돌릴 수 없다(가짜 주소 실발송 + IP 일 10통 제한과도 충돌). 당분간 **검증은 로컬 `wrangler dev`(키 없는 환경) 전용** — 운영 스모크가 필요해지면 별도 방안(health 확장 등) 검토
 - [ ] **안 쓰는 크리덴셜 폐기** 🔐 — 이관으로 안 쓰이게 됐지만 **아직 살아 있는** 값들이다. 유출 시 그대로 악용된다
   - [ ] **Gmail 앱 비밀번호**(`backend/.env` 의 `SMTP_PASS`, 2026-07-08 발급) — Workers 는 SMTP 를 못 써 영영 안 쓴다. [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) 에서 삭제
   - [ ] `backend/.env` 자체 폐기 — Mongo 계정·Google 시크릿이 평문으로 남아 있다(gitignore 라 커밋되진 않았다). `backend/` 삭제 시 함께
@@ -148,7 +147,7 @@
 - `EnMono` 는 실제 폰트 파일 없이 시스템 모노스페이스 별칭(`local()`) — 환경별 글리프 차이 있음. 실제 폰트 확보 시 `@font-face src: url()` 연결.
 - `AdUnit` 컴포넌트는 현재 어디서도 렌더하지 않음(수동 광고 배치용 대기 — AdSense 승인 후 사용, 삭제 금지).
 - 이메일 코드 발송: **Workers 는 raw TCP(SMTP)를 못 연다** → **Resend HTTP API** 만 지원(`RESEND_API_KEY`, 무료 100통/일, 발신 `noreply@opnae.com`). 키가 없으면 코드가 워커 로그에만 출력(`npx wrangler tail`). 교체 시 `worker/mailer.js` 한 파일만 수정. IP 당 하루 10통 제한(`mail_rate`).
-- 자동화된 테스트는 없지만 **API 통합 검증 스크립트**는 있다 — `node scripts/verify-api.mjs <url> <워커로그>` (로그인→CRUD→권한→탈퇴 cascade 57 항목).
+- 자동화된 테스트는 없지만 **API 통합 검증 스크립트**는 있다 — `node scripts/verify-api.mjs <url> <워커로그>` (로그인→CRUD→권한→탈퇴 cascade 57 항목). 단 Resend 활성화 이후 **로컬 `wrangler dev`(키 없는 환경) 전용** — 운영은 코드가 로그에 안 찍힌다.
 
 ---
 
