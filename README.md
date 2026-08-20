@@ -69,7 +69,7 @@ npx wrangler secret put JWT_SECRET              # 최초 1회
 npx wrangler secret put GOOGLE_CLIENT_SECRET    # 최초 1회
 npm run worker:deploy                           # 빌드 + 배포
 ```
-- **로그인 코드 메일**: `BREVO_API_KEY` 시크릿을 넣으면 실제 발송, 없으면 `npx wrangler tail` 로그에 코드 출력.
+- **로그인 코드 메일**: `RESEND_API_KEY` 시크릿을 넣으면 실제 발송(Resend, 발신 `noreply@opnae.com`), 없으면 `npx wrangler tail` 로그에 코드 출력.
 - (선택) **AdSense**: `NEXT_PUBLIC_ADSENSE_CLIENT` 설정 시 광고 로드, `public/ads.txt`가 `/ads.txt`로 서빙(게시자 확인).
 - 이관 배경·의사결정 → [docs/cf-migration.md](docs/cf-migration.md).
 
@@ -81,7 +81,7 @@ npm run worker:deploy                           # 빌드 + 배포
 | GET | `/api/health` | 헬스 체크 |
 | GET | `/api/auth/google` | 구글 로그인 시작 |
 | GET | `/api/auth/google/callback` | 콜백 → JWT 발급 후 프론트로 리디렉션 |
-| POST | `/api/auth/email/request` | 이메일로 12자리 로그인 코드 발송 (1분 쿨다운) |
+| POST | `/api/auth/email/request` | 이메일로 12자리 로그인 코드 발송 (1분 쿨다운 · IP 당 하루 10통) |
 | POST | `/api/auth/email/verify` | 코드 검증 → JWT 발급 (계정 없으면 생성, 같은 이메일 구글 계정과 통합) |
 | GET/PATCH/DELETE | `/api/auth/me` | 내 정보 / 닉네임 설정 / 회원 탈퇴(데이터 cascade) |
 | GET/PUT | `/api/auth/leave` | 연차 계산기 설정 조회(갱신일 자동 이월) / 저장 |

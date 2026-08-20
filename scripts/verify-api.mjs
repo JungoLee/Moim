@@ -1,8 +1,8 @@
 // Moim Workers API 검증 — 로그인(이메일 코드) → 주요 CRUD → 권한 → 탈퇴 cascade (57 항목)
 // 사용: node scripts/verify-api.mjs <base-url> <로그파일>
-//   로컬 : npx wrangler dev  실행 후 로그를 파일로 남기고 그 경로를 넘긴다
-//   운영 : npx wrangler tail --format pretty > tail.log  를 띄운 뒤 그 경로를 넘긴다
-// 로그인 코드는 BREVO_API_KEY 미설정 시 워커 콘솔에 출력되므로 로그에서 회수한다.
+//   npx wrangler dev  실행 후 로그를 파일로 남기고 그 경로를 넘긴다
+// 로그인 코드는 RESEND_API_KEY 미설정 시 워커 콘솔에 출력되므로 로그에서 회수한다.
+// ⚠ 운영은 키가 등록돼 있어 코드가 로그에 안 찍힌다(실메일 발송) — 로컬(키 없는 환경) 전용.
 // ⚠ 검증용 계정·데이터는 마지막에 스스로 삭제한다(탈퇴 cascade).
 import fs from 'node:fs';
 

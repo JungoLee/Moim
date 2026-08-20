@@ -84,11 +84,11 @@
 ## 7. 보안
 | 항목 | 체크 |
 |------|------|
-| 시크릿 | `JWT_SECRET`·`GOOGLE_CLIENT_SECRET`·`BREVO_API_KEY` 는 `wrangler secret`(등록은 **`secret bulk`** — 파이프 금지), 로컬은 `.dev.vars`(gitignore) |
+| 시크릿 | `JWT_SECRET`·`GOOGLE_CLIENT_SECRET`·`RESEND_API_KEY` 는 `wrangler secret`(등록은 **`secret bulk`** — 파이프 금지), 로컬은 `.dev.vars`(gitignore) |
 | SQL 주입 | 문자열 조립 금지 — 반드시 `prepare(...).bind(...)` 플레이스홀더. 동적 테이블/컬럼명은 화이트리스트로만 |
 | JWT 전달 | 현재 URL 쿼리 + localStorage(MVP) → **운영 전 httpOnly 쿠키 전환** (PLAN Phase 8, OAuth `state` 추가도 함께) |
 | 바쁨 마스킹 | 타인 캘린더의 비공개 일정은 `toBusy()` 로만 — 제목·장소·메모가 새는 경로가 없는지 |
-| (추후) | 이메일 코드 IP 레이트 리밋 (PLAN "다음 작업" — Brevo 켜기 전 필수) |
+| 메일 발송 남용 | 이메일별 60초 쿨다운 + IP 당 하루 10통(`worker/auth.js` `overMailRate`)을 우회하는 발송 경로가 생기지 않았는지 |
 
 ---
 

@@ -107,7 +107,7 @@ worker/    Cloudflare Workers (API)
   index.js        라우트 표 53개 + 구 동적경로 301 + ASSETS 폴백
   auth.js         JWT(jose) · requireAuth/requireAdmin · Google OAuth · 이메일 코드 · 내 정보 · 연차
   google.js       OAuth fetch (동의 URL · code 교환 · 프로필)
-  mailer.js       Brevo HTTP API (키 없으면 로그 출력)
+  mailer.js       Resend HTTP API (키 없으면 로그 출력)
   db.js           id/시각 헬퍼 + D1 행 → 프론트 문서 형태 변환 ★계약의 단일 지점
   http.js         json()/fail() 응답 헬퍼
   events · friends · calendar · tiers · rooms · requests · admin
@@ -120,9 +120,9 @@ frontend/  Next.js App Router (정적 export → out/)
                   Select · TimeSelect · ColorPalette+ColorWheel · Avatar · MemberRow · Notice · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · AdUnit
   src/lib/        api.ts(fetch+토큰) · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense
   public/         ads.txt(애드센스 게시자 확인)
-scripts/   verify-api.mjs(API 통합 검증 57항목) · mongo-to-d1-seed.mjs(백업 JSON → seed.sql)
+scripts/   verify-api.mjs(API 통합 검증 57항목) · mongo-to-d1-seed.mjs(백업 JSON → seed.sql) · open-browser.mjs(dev 서버 뜨면 브라우저 오픈)
 backend/   ⚠️ 구 Express+Mongo — 삭제 예정 잔재(수정 금지, PLAN.md "다음 작업" 참조)
-docs/      PLAN.md(로드맵·할 일) · cf-migration.md(이관) · refactoring-guide.md · ONBOARDING.md(이 문서) · PLAN_others.md
+docs/      PLAN.md(로드맵·할 일) · operating-notes.md(운영 규칙) · cf-migration.md(이관 기록) · refactoring-guide.md · UPGRADE-IDEAS.md(아이디어 목록) · ONBOARDING.md(이 문서)
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 루트        wrangler.toml(도메인·assets·D1 바인딩) · .dev.vars(로컬 시크릿, gitignore) · package.json
 ```
@@ -150,8 +150,7 @@ npm run worker:deploy                           # = npm run build && wrangler de
 
 - **커스텀 도메인**: `wrangler.toml` 의 `routes = [{ pattern = "moim.opnae.com", custom_domain = true }]` — wrangler 가 **DNS 레코드와 인증서를 자동 생성**한다(수동 CNAME 불필요).
 - **`run_worker_first`**: `/api/*`·`/rooms/*`·`/u/*` 는 SPA 폴백보다 워커가 먼저 받아야 한다. 빠지면 API 요청에 `index.html` 이 돌아오고 구 경로 301 이 안 먹는다.
-- **배포 후 검증**: `npx wrangler tail` 을 파일로 띄운 뒤
-  `node scripts/verify-api.mjs https://moim.opnae.com <로그파일>` → 57 항목 전부 PASS 확인. (검증 계정·데이터는 스크립트가 스스로 지운다)
+- **배포 후 검증**: ⚠️ 운영은 `RESEND_API_KEY` 가 등록돼 있어 **로그인 코드가 로그에 안 찍힌다**(실메일 발송) — `verify-api.mjs` 를 운영에 돌리면 코드 회수가 안 되고, 가짜 주소로 실발송까지 나간다. **검증은 로컬 `wrangler dev`(키 없는 환경)에서 돌릴 것**: `node scripts/verify-api.mjs http://127.0.0.1:8790 <로그파일>` → 57 항목 전부 PASS 확인. (검증 계정·데이터는 스크립트가 스스로 지운다)
 - **D1 직접 조회**: `npx wrangler d1 execute moim --remote --command "SELECT COUNT(*) FROM users"`
 - **AdSense**(선택): `frontend/.env.local` 의 `NEXT_PUBLIC_ADSENSE_CLIENT`(`ca-pub-…`) 설정 후 재빌드·재배포. 빌드 타임에 인라인되므로 값 변경 시 반드시 다시 빌드.
 - **콜드스타트 없음** — Workers 는 잠들지 않는다(Render free 의 ~50s 지연이 사라진 이유).

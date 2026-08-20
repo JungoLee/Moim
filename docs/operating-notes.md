@@ -71,8 +71,10 @@ npx wrangler tail
 npx wrangler d1 execute moim --remote --command "SELECT COUNT(*) FROM users"
 
 # API 전체가 정상인지 한 번에 (57항목)
-npx wrangler tail --format pretty > tail.log     # 다른 창에서
-node scripts/verify-api.mjs https://moim.opnae.com tail.log
+# ⚠ Resend 활성화(2026-08-18) 이후 운영에선 로그인 코드가 로그에 안 찍혀(실메일 발송)
+#   이 검증을 운영에 돌릴 수 없다 — 로컬 wrangler dev(키 없는 환경)에서 돌린다
+npx wrangler dev > dev.log                       # 다른 창에서
+node scripts/verify-api.mjs http://127.0.0.1:8790 dev.log
 
 # 데이터를 실수로 날렸을 때 — 30일 내 아무 시점으로 복구
 npx wrangler d1 time-travel info moim
@@ -93,9 +95,8 @@ Render 유료(월 $7)로 갈 이유가 없어졌고, **콜드스타트(첫 접�
 
 1. **브라우저에서 실제로 써보기** — API 는 자동 검증했지만 구글 로그인 팝업·모임 만들기를 사람이 확인한 적이 없다. 가장 먼저 할 일
 2. **검색 등록** — SEO 코드는 넣었지만 구글에 "우리 사이트 있다"고 알리지 않으면 **검색에 아예 안 나온다**. Search Console 등록이 시작점 (PLAN.md Phase 8-1)
-3. **레이트 리밋 → Brevo 키** — 위 §1 순서대로
-4. **구 `backend/` 삭제** — Mongo 가 사라져 이제 실행 자체가 안 되는 죽은 코드다
-5. **에러 알림 없음** — 지금은 사용자가 말해주기 전엔 장애를 모른다. 필요해지면 Cloudflare 알림 또는 Logpush 검토
+3. **구 `backend/` 삭제** — Mongo 가 사라져 이제 실행 자체가 안 되는 죽은 코드다
+4. **에러 알림 없음** — 지금은 사용자가 말해주기 전엔 장애를 모른다. 필요해지면 Cloudflare 알림 또는 Logpush 검토
 
 ---
 

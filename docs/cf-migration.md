@@ -2,6 +2,7 @@
 
 > Render(moim-api + moim-web) + MongoDB Atlas → **단일 Workers**(https://moim.opnae.com) + **D1**.
 > 선례: `C:\workspace\MyBudget`. 이관에서 얻은 교훈은 [PLAN.md](PLAN.md) "Moim 이관에서 배운 것" 절.
+> ※ 이 문서는 **이관 당시 기록**이다. 아래 Brevo 언급은 당시 선택 — 메일 발송은 2026-08-18 **Resend** 로 교체됐다(`worker/mailer.js`, `RESEND_API_KEY`). 현행 운영 규칙은 [operating-notes.md](operating-notes.md) 참조.
 
 ## ✅ 현재 상태
 
@@ -32,9 +33,7 @@
 - [ ] Blueprint 자체(`Blueprints` 탭에 `moim` 이 남아 있으면 함께 삭제)
 - ※ 저장소의 `render.yaml` 은 구 `backend/` 를 지울 때 함께 정리한다(PLAN.md "다음 작업")
 
-**3. (선택) 로그인 코드 메일 발송**
-현재 `BREVO_API_KEY` 미설정 → 이메일 로그인 코드가 **워커 로그에만** 출력된다(`npx wrangler tail`).
-[brevo.com](https://www.brevo.com) 무료 가입(300통/일) → API 키 발급 → `npx wrangler secret put BREVO_API_KEY`.
+**3. ~~(선택) 로그인 코드 메일 발송~~** ✅ 2026-08-18 해결 — Brevo 대신 **Resend**(`RESEND_API_KEY`)로 실제 발송한다(Brevo 는 가입 시 회사 실주소를 요구해 제외).
 
 **4. ~~Atlas 클러스터 정리~~** ✅ 2026-08-13 `Cluster0` 삭제 완료. 원본 스냅샷은 로컬 `backup/*.json` 에만 남아 있다(gitignore — 이 폴더를 지우면 복구본이 사라진다).
 

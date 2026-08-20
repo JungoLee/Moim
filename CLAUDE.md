@@ -44,7 +44,7 @@
 - GitHub 원격: `github.com/JungoLee/Moim` (main). **배포는 수동** — `npm run worker:deploy`(빌드 + `wrangler deploy`).
 
 ## 환경 · 시크릿
-- 운영 시크릿은 **`npx wrangler secret put <이름>`**: `JWT_SECRET`(⚠ 고정 유지 — 바꾸면 전체 로그인 무효화) · `GOOGLE_CLIENT_SECRET` · (선택) `BREVO_API_KEY`.
+- 운영 시크릿은 **`npx wrangler secret put <이름>`**: `JWT_SECRET`(⚠ 고정 유지 — 바꾸면 전체 로그인 무효화) · `GOOGLE_CLIENT_SECRET` · (선택) `RESEND_API_KEY`(메일 발송, opnae 공용 키).
 - 공개 값은 `wrangler.toml` `[vars]`: `GOOGLE_CLIENT_ID` · `ADMIN_EMAILS` · `BRAND_NAME` · `SMTP_FROM`.
 - 로컬 시크릿은 **`.dev.vars`**(gitignore). 프론트 공개 설정은 `frontend/.env.local` (선택: `NEXT_PUBLIC_BRAND_NAME`, `NEXT_PUBLIC_ADSENSE_CLIENT`. `NEXT_PUBLIC_API_URL` 은 같은 도메인이라 비워 둠).
 - 워커 코드에서 `process.env` 금지 — 값은 핸들러 인자 `env` 로만 접근.
