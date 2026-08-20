@@ -1795,6 +1795,15 @@ a.app-card:hover {
 .app-hero-code {
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  /* 자간이 오른쪽에도 붙어 가운데 정렬이 왼쪽으로 밀린다 — 그만큼 되돌린다 */
+  text-indent: 0.18em;
+
+  /* 자간은 입력한 코드에만 — 안내 문구까지 벌어지면 읽기 어렵다 */
+  &::placeholder {
+    letter-spacing: normal;
+    text-indent: 0;
+    text-transform: none;
+  }
 }
 .app-hero-links {
   display: flex;
