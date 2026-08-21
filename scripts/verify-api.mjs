@@ -50,8 +50,9 @@ function codeFromLog(logPath, email) {
   const marker = `${email} 로그인 코드: `;
   const at = text.lastIndexOf(marker);
   if (at === -1) return null;
-  const code = text.slice(at + marker.length, at + marker.length + 12);
-  return /^[A-Z0-9]{12}$/.test(code) ? code : null;
+  // 코드는 영문 대소문자+숫자 6자 (worker/auth.js 의 CODE_CHARS·CODE_LEN)
+  const code = text.slice(at + marker.length, at + marker.length + 6);
+  return /^[A-Za-z0-9]{6}$/.test(code) ? code : null;
 }
 
 async function login(email, logPath) {
@@ -286,7 +287,7 @@ const run = async () => {
   log(cool1.status === 200 && cool2.status === 429, '로그인 코드 재요청 쿨다운 429', `1차=${cool1.status} 2차=${cool2.status}`);
 
   // 30-b. 잘못된 코드 → 남은 시도 횟수 안내
-  const badCode = await call('/api/auth/email/verify', { method: 'POST', body: { email: coolEmail, code: 'AAAAAAAAAAAA' } });
+  const badCode = await call('/api/auth/email/verify', { method: 'POST', body: { email: coolEmail, code: 'AAAAAA' } });
   log(badCode.status === 400 && /4회 남음/.test(badCode.data?.message || ''), '틀린 코드 → 시도 횟수 차감', badCode.data?.message);
 
   // 31. 탈퇴 → cascade (B 삭제 후 A 의 친구 목록 비고, 방 멤버십 정리)

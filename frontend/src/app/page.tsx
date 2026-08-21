@@ -44,7 +44,7 @@ export default function Home() {
     return onTokenStored(() => router.replace(consumePostLoginDest()));
   }, [router]);
 
-  // 입력한 이메일로 12자리 인증 코드 발송 (재전송에도 재사용)
+  // 입력한 이메일로 6자 인증 코드 발송 (재전송에도 재사용)
   async function requestCode(e?: FormEvent) {
     e?.preventDefault();
     if (!email.trim() || busy) return;
@@ -56,7 +56,7 @@ export default function Home() {
       setCode('');
       setNotice({
         ok: true,
-        text: `${email.trim()} 로 12자리 코드를 보냈어요. (${r.manual ? '30분' : '10분'} 유효)`,
+        text: `${email.trim()} 로 6자리 코드를 보냈어요. 대소문자를 구분해요. (${r.manual ? '30분' : '10분'} 유효)`,
       });
     } catch (err) {
       setNotice({ ok: false, text: err instanceof Error ? err.message : '코드 발송 실패' });

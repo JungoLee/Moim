@@ -1,4 +1,4 @@
--- Moim D1 스키마 (Mongo 7 컬렉션 → 12 테이블)
+-- Moim D1 스키마 (13 테이블 — Mongo 7 컬렉션 이관분 12 + mail_rate)
 -- 멱등: CREATE TABLE IF NOT EXISTS — 재실행 안전
 -- 규칙: id 는 TEXT(기존 Mongo ObjectId 24-hex 를 그대로 승계, 신규는 crypto.randomUUID())
 --       시각은 TEXT ISO8601 UTC / 불리언은 INTEGER 0·1 / 배열은 별도 테이블
