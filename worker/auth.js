@@ -126,8 +126,9 @@ export async function googleCallback(request, env) {
 // 흐름: 이메일 입력 → 12자리 코드 발송 → 코드 입력 → JWT 발급.
 // 같은 이메일의 기존 계정(구글 가입 포함)이 있으면 그 계정으로 로그인(메일함 소유 = 본인 증명).
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 헷갈리는 글자(I·L·O·0·1) 제외
-const CODE_LEN = 12;
+// 영문 대소문자 + 숫자(62자). 6칸 입력·붙여넣기를 전제로 하므로 헷갈리는 글자도 빼지 않는다.
+const CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const CODE_LEN = 6;
 const CODE_TTL_MS = 10 * 60 * 1000; // 10분 (메일 발송 시)
 const MANUAL_TTL_MS = 30 * 60 * 1000; // 30분 — 발송 수단이 없을 때(로그 확인) 여유
 const RESEND_COOLDOWN_MS = 60 * 1000; // 재전송 60초
@@ -203,7 +204,7 @@ export async function emailRequest(request, env, params, body) {
 
 export async function emailVerify(request, env, params, body) {
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
-  const code = typeof body?.code === 'string' ? body.code.toUpperCase().replace(/[\s-]/g, '') : '';
+  const code = typeof body?.code === 'string' ? body.code.replace(/[\s-]/g, '') : '';
   if (!EMAIL_RE.test(email) || !code) return fail('이메일과 코드를 입력해주세요.');
 
   const db = env.DB;

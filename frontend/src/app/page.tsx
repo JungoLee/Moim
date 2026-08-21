@@ -9,6 +9,7 @@ import { toast } from '@/lib/toast';
 import { BRAND_NAME } from '@/lib/brand';
 import Notice from '@/components/Notice';
 import LandingContent from '@/components/LandingContent';
+import CodeBoxes, { CODE_LEN } from '@/components/CodeBoxes';
 
 // 로그인 후 돌아갈 곳: 기억해둔 경로(예: 공유받은 모임 URL) 우선, 없으면 /home
 function consumePostLoginDest(): string {
@@ -64,15 +65,17 @@ export default function Home() {
     }
   }
 
-  async function verifyCode(e: FormEvent) {
-    e.preventDefault();
-    if (!code.trim() || busy) return;
+  // v 를 넘기면(6칸을 다 채운 순간) 버튼을 누르지 않아도 바로 확인한다
+  async function verifyCode(e?: FormEvent, v?: string) {
+    e?.preventDefault();
+    const value = (v ?? code).trim();
+    if (!value || busy) return;
     setBusy(true);
     setNotice(null);
     try {
       const res = await api<{ token: string }>('/api/auth/email/verify', {
         method: 'POST',
-        body: { email: email.trim(), code: code.trim() },
+        body: { email: email.trim(), code: value },
       });
       setToken(res.token);
       router.replace(consumePostLoginDest());
@@ -176,16 +179,13 @@ export default function Home() {
             </form>
           ) : (
             <form className="app-hero-email" onSubmit={verifyCode}>
-              <input
-                className="app-input app-hero-code"
-                placeholder="12자리 코드 입력"
+              <CodeBoxes
                 value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                maxLength={16}
-                autoComplete="one-time-code"
-                autoFocus
+                onChange={setCode}
+                onComplete={(v) => void verifyCode(undefined, v)}
+                disabled={busy}
               />
-              <button className="app-btn app-btn--ghost" type="submit" disabled={busy || !code.trim()}>
+              <button className="app-btn app-btn--ghost" type="submit" disabled={busy || code.length < CODE_LEN}>
                 {busy ? '확인 중…' : '코드로 로그인'}
               </button>
               <div className="app-hero-links">
