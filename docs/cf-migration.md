@@ -2,7 +2,12 @@
 
 > Render(moim-api + moim-web) + MongoDB Atlas → **단일 Workers**(https://moim.opnae.com) + **D1**.
 > 선례: `C:\workspace\MyBudget`. 이관에서 얻은 교훈은 [PLAN.md](PLAN.md) "Moim 이관에서 배운 것" 절.
-> ※ 이 문서는 **이관 당시 기록**이다. 아래 Brevo 언급은 당시 선택 — 메일 발송은 2026-08-18 **Resend** 로 교체됐다(`worker/mailer.js`, `RESEND_API_KEY`). 현행 운영 규칙은 [operating-notes.md](operating-notes.md) 참조.
+> ※ 이 문서는 **이관 당시(2026-08-13) 기록**이다. 아래 수치·선택은 그때 기준이며 이후 바뀐 것이 있다:
+> - 메일 발송: Brevo → **Resend**(2026-08-18, `worker/mailer.js`·`RESEND_API_KEY`)
+> - D1 테이블: 12 → **13**(`mail_rate` 추가 — 발송 IP 레이트 리밋)
+> - 로그인 코드: 대문자+숫자 12자리 → **영문 대소문자+숫자 6자**(2026-08-21, 대소문자 구분)
+>
+> 현행 데이터 모델은 [PLAN.md](PLAN.md), 운영 규칙은 [operating-notes.md](operating-notes.md) 참조.
 
 ## ✅ 현재 상태
 

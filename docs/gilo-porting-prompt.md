@@ -6,30 +6,33 @@
 ---
 
 Moim 프로젝트(c:\workspace\Moim)에서 검증 완료된 인증 기능들을 이 프로젝트(Gilo)에 이식해줘.
-Gilo의 스택·폴더 구조·기존 컨벤션을 먼저 파악하고 거기에 맞게 적용할 것 (Moim은 Next.js+Express지만 Gilo 구조가 다르면 맞춰서).
+Gilo의 스택·폴더 구조·기존 컨벤션을 먼저 파악하고 거기에 맞게 적용할 것 (Moim은 Next.js 정적 export + Cloudflare Workers/D1 이지만 Gilo 구조가 다르면 맞춰서).
 참고할 Moim 원본 파일을 명시해두니 그대로 복붙하지 말고 Gilo 구조에 맞게 옮겨줘.
 
 ## 1. 이메일 코드 로그인 (필수)
-아무 이메일 입력 → 12자리 코드 발송 → 입력하면 로그인(JWT).
-- 모델 LoginCode: email(unique)·codeHash(sha256)·expiresAt(TTL 10분)·attempts(최대 5회)·sentAt(재전송 60초 쿨다운)
-  → 참고: c:\workspace\Moim\backend\src\models\LoginCode.js
-- 코드 생성: 대문자+숫자 12자리, 헷갈리는 I·L·O·0·1 제외, crypto.randomInt
-- 라우트 2개: POST /api/auth/email/request(검증·쿨다운·발송), POST /api/auth/email/verify(만료·시도횟수 체크, 일회용 삭제, JWT 발급)
-  → 참고: c:\workspace\Moim\backend\src\routes\auth.js 의 "이메일 코드 로그인" 섹션
-- 발송: nodemailer + SMTP env(SMTP_HOST/PORT/USER/PASS/SMTP_FROM), SMTP 미설정이면 콘솔에 코드 출력(개발 폴백)
-  → 참고: c:\workspace\Moim\backend\src\utils\mailer.js  (nodemailer 설치 필요)
+아무 이메일 입력 → 6자 코드 발송 → 6칸 입력칸에 넣으면 로그인(JWT).
+- 코드 저장: email(unique)·codeHash(sha256)·expiresAt(발송되면 10분 / 로그 폴백이면 30분)·attempts(최대 5회)·sentAt(재전송 60초 쿨다운). 평문 코드는 저장하지 않는다
+  → 참고: c:\workspace\Moim\worker\schema.sql 의 `login_codes` 테이블
+- 코드 생성: **영문 대소문자+숫자 62자에서 6자**(대소문자 구분). 6칸 입력·붙여넣기 전제라 헷갈리는 글자를 빼지 않는다. 모듈러 바이어스 제거한 균일 난수(`randomFrom`)
+- 라우트 2개: POST /api/auth/email/request(검증·쿨다운·발송), POST /api/auth/email/verify(만료·시도횟수 체크, 일회용 삭제, JWT 발급). 검증은 **대소문자를 구분**한다(`toUpperCase()` 금지)
+  → 참고: c:\workspace\Moim\worker\auth.js 의 "이메일 코드 로그인" 섹션
+- 발송: **HTTP API(Resend)** — 키 미설정이면 콘솔에 코드 출력(개발 폴백). 메일은 코드가 한눈에 보이는 카드형 HTML(인라인 스타일만)
+  → 참고: c:\workspace\Moim\worker\mailer.js
+- 남용 방지: 이메일별 60초 쿨다운 + **IP 당 하루 N통** 제한(`mail_rate` 테이블, 지난 날짜 키는 요청 시 함께 삭제)
+  → 참고: c:\workspace\Moim\worker\auth.js 의 `overMailRate`
 - 계정 통합: verify 시 같은 email의 기존 유저가 있으면 그 계정으로 로그인. 새 유저는 googleId 자리표시자("email:<email>")로 생성.
-  구글 passport 전략에서 googleId 미발견 시 email+자리표시자 매칭 → 실제 googleId로 교체
-  → 참고: c:\workspace\Moim\backend\src\config\passport.js
-- 프론트 로그인 화면: 구글 버튼 아래 "또는" 구분선 + 2단계 폼(이메일 입력→코드 받기 / 코드 입력→로그인·재전송·다른 이메일)
-  → 참고: c:\workspace\Moim\frontend\src\app\page.tsx + globals.scss 의 .app-hero-or/.app-hero-email
-- env 예시 파일과 배포 설정에 SMTP 변수 추가. 시크릿은 SMTP_PASS 만(배포 대시보드 입력), HOST/PORT/USER 는 공개값.
-  SMTP 계정은 Gmail+앱 비밀번호 — Gilo 용으로 별도 발급 권장(서비스별 분리).
+  구글 로그인에서 googleId 미발견 시 email+자리표시자 매칭 → 실제 googleId로 교체
+  → 참고: c:\workspace\Moim\worker\auth.js 의 `googleCallback`
+- 프론트 로그인 화면: 구글 버튼 아래 "또는" 구분선 + 2단계 폼(이메일 입력→코드 받기 / 6칸 코드 입력→재전송·다른 이메일).
+  6칸 입력은 **마지막 칸을 채우면 버튼 없이 바로 확인**, 붙여넣기 한 번에 채움, 화면 복귀 시 클립보드가 코드 모양이면 자동 입력(권한 없으면 조용히 넘어감), 첫 칸 `autoComplete="one-time-code"`
+  → 참고: c:\workspace\Moim\frontend\src\components\CodeBoxes.tsx + app\page.tsx + globals.scss 의 .app-hero-or/.app-hero-email/.app-code-box
+- 시크릿은 메일 API 키 하나만(배포 대시보드/`wrangler secret`). 발신 주소는 공개값.
+  ⚠️ Cloudflare Workers 는 raw TCP 를 못 열어 **SMTP/nodemailer 불가** — Gilo 가 Node 서버라면 SMTP 도 선택지지만, HTTP API 쪽이 이식성이 좋다.
 
 ## 2. 세션 정리 버그 3종 수정 (필수 — Moim에서 실제 발생했던 버그)
-- requireAuth 미들웨어에서 User.exists 확인: 탈퇴한 계정의 JWT(만료 전)가 모든 API를 통과해
+- requireAuth 에서 사용자 존재 확인: 탈퇴한 계정의 JWT(만료 전)가 모든 API를 통과해
   "빈 데이터 유령 세션"이 생기는 문제 → 없으면 401
-  → 참고: c:\workspace\Moim\backend\src\middleware\auth.js
+  → 참고: c:\workspace\Moim\worker\auth.js 의 `requireAuth`
 - 로그아웃·회원탈퇴는 SPA 라우터 이동 대신 window.location.href='/' 전체 로드 (메모리 상태·모듈 캐시 초기화)
 - 아바타/유저 정보를 모듈 캐시하고 있다면 캐시에 토큰(계정)을 함께 기록해 계정이 바뀌면 무효화
   → 참고: c:\workspace\Moim\frontend\src\components\Nav.tsx, AccountDrawer.tsx
@@ -50,5 +53,5 @@ top/left/width/height transition으로 스텝 간 이동, 아래(공간 없으�
 대상은 각 페이지 data-guide 속성, 시작 시 화면에 없는 타겟은 자동 스킵, ESC/라우트 이동 시 종료.
 → 참고: c:\workspace\Moim\frontend\src\lib\guide.ts, components/GuideHost.tsx, globals.scss 의 .app-guide-*
 
-작업 순서: 백엔드부터(모델→메일러→라우트→미들웨어) 만들고 검증 후 프론트.
+작업 순서: 서버부터(코드 저장 스키마→메일러→라우트→인증 가드) 만들고 검증 후 프론트.
 각 단계마다 빌드/타입체크 통과 확인하고, 완료 후 Gilo의 문서(PLAN 등)에 반영해줘.

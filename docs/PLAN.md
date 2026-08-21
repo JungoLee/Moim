@@ -29,7 +29,7 @@
 - 공개 제어 핵심: 일정 가시성 = **일정별 공유/비공개**(`public`/`private`) × **그룹(Tier)** — 공유=친구 모두 상세, 비공개=선택 그룹 멤버만 상세(그 외 "바쁨")
 - 배포: **단일 Cloudflare Workers** — https://moim.opnae.com (`wrangler.toml`, `custom_domain` 이라 DNS 자동). `/api/*` 는 워커, 그 외는 `frontend/out` 정적 자산. 프론트·API 가 같은 도메인이라 **CORS 없음**
 
-### 데이터 모델 (D1 — 12 테이블)
+### 데이터 모델 (D1 — 13 테이블)
 > 기존 Mongo 문서를 분해한 결과. 응답 형태(`_id`·중첩 객체)는 `worker/db.js` 가 되조립해 프론트 계약을 유지한다.
 > **id 는 TEXT** — 기존 행은 Mongo ObjectId(24-hex) 승계, 신규는 `crypto.randomUUID()`. 시각은 TEXT ISO8601 UTC, 불리언은 INTEGER 0/1.
 
@@ -39,7 +39,8 @@
 - **rooms** + **room_members** + **room_availability_marks**(`PK(room_id,user_id,date)` — 날짜당 1행을 DB 제약으로 승격) + **room_comments**(`author_name` = 작성 시점 표시명 스냅샷)
 - **events** + **event_audience_tiers**: 일정(`visibility` public|private|default) + 비공개 상세 열람 그룹. `origin_*` 는 시간요청 출신 일정의 출처 스냅샷(`origin_request_id` 로 양쪽 사본 연결)
 - **time_requests**: `from_user`·`to_user`(SQL 예약어 회피), `status`(pending|accepted|declined) — 수락 시 양쪽 일정 생성
-- **login_codes**: `email`(PK), `code_hash`(sha256), `expires_at`, `attempts`(최대 5회), `sent_at`(60초 쿨다운). **D1 엔 TTL 이 없어** 코드 요청 시 만료행을 함께 DELETE
+- **login_codes**: `email`(PK), `code_hash`(sha256 — 코드는 영문 대소문자+숫자 6자, 대소문자 구분), `expires_at`(발송 가능 시 10분 / 로그 폴백 30분), `attempts`(최대 5회), `sent_at`(60초 쿨다운). **D1 엔 TTL 이 없어** 코드 요청 시 만료행을 함께 DELETE
+- **mail_rate**: `key`(PK = `<IP>:<YYYY-MM-DD>`), `count` — 메일 발송 IP 당 하루 10통 제한. 지난 날짜 키는 요청 시 함께 DELETE
 - 회원 탈퇴 cascade 는 **FK `ON DELETE CASCADE`** 가 전담(`DELETE FROM users` 한 줄) — 기존에 누락됐던 TimeRequest 고아 문제도 함께 해소
 
 ---
@@ -48,7 +49,7 @@
 
 구현된 것 (도메인별 요약 — 상세 이력은 git log):
 
-- **인증·계정**: 구글 OAuth **팝업 로그인**(localStorage `storage` 이벤트로 부모창 복귀) + JWT, **이메일 코드 로그인**(아무 이메일 → 영숫자 6자리 코드 발송(Resend HTTP API, 키 미설정 시 워커 로그 출력) → 검증 → JWT. 같은 이메일 구글 계정과 자동 통합), 닉네임 설정, 계정 드로어(아바타·고유번호 복사·이용약관/개인정보·로그아웃), **회원 탈퇴**(cascade — `requireAuth`가 `User.exists` 확인으로 탈퇴 계정의 잔여 JWT 차단, 로그아웃/탈퇴는 전체 페이지 로드로 캐시 초기화), **401 자동 로그아웃**, 비로그인으로 방 URL 진입 시 로그인 후 원래 방 복귀, **인앱 브라우저(카카오톡 등) 감지 → 기본 브라우저 탈출**(구글 disallowed_useragent 우회)
+- **인증·계정**: 구글 OAuth **팝업 로그인**(localStorage `storage` 이벤트로 부모창 복귀) + JWT, **이메일 코드 로그인**(아무 이메일 → **영문 대소문자+숫자 6자** 코드 발송(Resend HTTP API 카드형 메일, 키 미설정 시 워커 로그 출력) → **6칸 입력**(`CodeBoxes` — 마지막 칸 채우면 즉시 확인·붙여넣기 한 번에·화면 복귀 시 클립보드 자동 채움) → 대소문자 구분 검증 → JWT. 같은 이메일 구글 계정과 자동 통합), 닉네임 설정, 계정 드로어(아바타·고유번호 복사·이용약관/개인정보·로그아웃), **회원 탈퇴**(cascade — `requireAuth`가 `User.exists` 확인으로 탈퇴 계정의 잔여 JWT 차단, 로그아웃/탈퇴는 전체 페이지 로드로 캐시 초기화), **401 자동 로그아웃**, 비로그인으로 방 URL 진입 시 로그인 후 원래 방 복귀, **인앱 브라우저(카카오톡 등) 감지 → 기본 브라우저 탈출**(구글 disallowed_useragent 우회)
 - **일정·캘린더**: FullCalendar **월 뷰**(주 토글 제거), 클릭·드래그 → 통합 모달(커스텀 DatePicker + 24시 TimeSelect + 종일 토글 + 위치 + 메모), 일정 클릭=수정/삭제, **공유/비공개 × 그룹** 가시성, 그룹별 라인 색(공개=초록·비공개=주황 기본). **타임존 왕복 버그 수정**(종일 종료일 +1·타임드 시간 밀림, 2026-06-24) + 종일 다중일 일정 마지막 날 채움 수정
 - **친구·그룹**: 친구 요청/수락/거절, 그룹(Tier) 생성·이메일/코드로 멤버 추가, **친구 카드 "그룹에 추가" 팝업**(그룹 칩 선택·이미 포함 표시), 그룹 설정 모달(코드 복사·색 변경 `PATCH /api/tiers/:id`·삭제), 멤버 아코디언(공용 `MemberRow`), 친구 캘린더(공유=상세/비공개=바쁨)
 - **모임(rooms)**: 코드 초대 + 3모드 가용성(되는날/안되는날 드래그/시간 이후) → **모두 되는 날 집계**, 가용성 캘린더 주말 파스텔 배경(일=핑크·토=하늘)·비활성 셀 어둡게(2026-06-25), **플로팅 채팅**(말풍선·6초 폴링·안읽은 배지·연속 메시지 그룹핑·본인 삭제·리사이즈), 방장 설정 모달(이름 변경·코드 재발급·멤버 강퇴·**URL 가입 토글**·삭제), 공유 모달(URL/코드 복사), 타인 프로필 모달(캘린더 보기·친구/시간 요청·그룹 추가)
@@ -155,7 +156,7 @@
 
 **Render + MongoDB Atlas → Cloudflare Workers + D1 이관 완료 — https://moim.opnae.com**
 
-- 구성: `wrangler.toml`(custom_domain + assets `frontend/out` + `run_worker_first` + D1 바인딩) · `worker/`(수제 라우터 53 라우트) · `worker/schema.sql`(12 테이블)
+- 구성: `wrangler.toml`(custom_domain + assets `frontend/out` + `run_worker_first` + D1 바인딩) · `worker/`(수제 라우터 53 라우트) · `worker/schema.sql`(당시 12 테이블 — 현재 13, 위 데이터 모델 참조)
 - 검증: 로컬(`wrangler dev`) **57/57**, 프로덕션 **57/57** 통과 (`scripts/verify-api.mjs`)
 - 데이터: Mongo 220행 전량 이전(유실 0), 기존 사용자 JWT 유지 확인. Render 서비스·Blueprint·Atlas 클러스터 삭제 완료(2026-08-13)
 - 상세 배경·설계 판단은 **[cf-migration.md](cf-migration.md)**, 운영 규칙은 **[operating-notes.md](operating-notes.md)** 참조

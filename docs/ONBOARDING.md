@@ -6,7 +6,7 @@
 ## 0. 이게 뭔가
 친구들과 스케줄을 공유하고 함께 비는 시간을 찾는 소셜 캘린더.
 **단일 Cloudflare Workers 배포** — https://moim.opnae.com. `/api/*` 는 워커(`worker/`), 그 외 경로는 Next.js 정적 export 산출물(`frontend/out`)을 같은 워커가 서빙한다. DB 는 **D1**(바인딩 `env.DB`).
-인증은 **Google OAuth 또는 이메일 코드**(12자리 OTP) → 워커가 JWT 발급 → 프론트가 `localStorage` 에 담아 `Authorization: Bearer` 로 호출.
+인증은 **Google OAuth 또는 이메일 코드**(영문 대소문자+숫자 **6자** OTP, 대소문자 구분) → 워커가 JWT 발급 → 프론트가 `localStorage` 에 담아 `Authorization: Bearer` 로 호출.
 
 > `backend/`(구 Express + MongoDB)는 **삭제 예정 잔재**다 — 데이터 이전·Atlas 삭제까지 끝나 실행 자체가 불가능하다. 고치지 말 것.
 
@@ -111,18 +111,20 @@ worker/    Cloudflare Workers (API)
   db.js           id/시각 헬퍼 + D1 행 → 프론트 문서 형태 변환 ★계약의 단일 지점
   http.js         json()/fail() 응답 헬퍼
   events · friends · calendar · tiers · rooms · requests · admin
-  schema.sql      D1 스키마 12테이블 (멱등)
+  schema.sql      D1 스키마 13테이블 (멱등)
 frontend/  Next.js App Router (정적 export → out/)
   src/app/        라우트 (로그인 / home / dashboard / friends / tiers(그룹) / rooms · rooms/detail?id= / requests / tools/leave / admin / u?id= / auth/callback)
   src/components/ 공용:
                   Nav(현재탭 강조+우하단 FAB=QuickActions, FAB는 페이지가 lib/quickActions 로 액션 등록) · PageHero · Calendar=FullCalendar(월 뷰) · AvailabilityCalendar · DatePicker
                   RoomChat(모임 플로팅 채팅·폴링) · UserProfileModal · Modal · ConfirmHost · Toaster · Accordion · GuideHost(사용 가이드 투어)
                   Select · TimeSelect · ColorPalette+ColorWheel · Avatar · MemberRow · Notice · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · AdUnit
-  src/lib/        api.ts(fetch+토큰) · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense
+                  CodeBoxes(인증코드 6칸 입력) · LandingContent(랜딩 공개 소개) · JsonLd(구조화 데이터)
+  src/lib/        api.ts(fetch+토큰) · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense · seo(메타·OG·noindex)
   public/         ads.txt(애드센스 게시자 확인)
 scripts/   verify-api.mjs(API 통합 검증 57항목) · mongo-to-d1-seed.mjs(백업 JSON → seed.sql) · open-browser.mjs(dev 서버 뜨면 브라우저 오픈)
 backend/   ⚠️ 구 Express+Mongo — 삭제 예정 잔재(수정 금지, PLAN.md "다음 작업" 참조)
-docs/      PLAN.md(로드맵·할 일) · operating-notes.md(운영 규칙) · cf-migration.md(이관 기록) · refactoring-guide.md · UPGRADE-IDEAS.md(아이디어 목록) · ONBOARDING.md(이 문서)
+docs/      PLAN.md(로드맵·할 일) · operating-notes.md(운영 규칙) · refactoring-guide.md · UPGRADE-IDEAS.md(아이디어 목록) · rem-convention.md(치수 규칙) · workers-auto-deploy.md(자동 배포 절차) · ONBOARDING.md(이 문서)
+           역사·인계 기록: cf-migration.md(이관 당시 기록) · handoff-no-mongo.md(Atlas 접속 금지 인계) · gilo-porting-prompt.md·PLAN_others.md(타 저장소용 — PLAN.md '저장소 위생' 항목)
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 루트        wrangler.toml(도메인·assets·D1 바인딩) · .dev.vars(로컬 시크릿, gitignore) · package.json
 ```

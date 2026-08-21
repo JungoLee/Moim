@@ -4,14 +4,14 @@
 
 - **frontend/** — Next.js(App Router, 정적 export) + TypeScript + SCSS
 - **worker/** — Cloudflare Workers(API) + D1(SQLite), Google OAuth + JWT
-- **backend/** — (구) Node + Express + MongoDB — Workers 이관 완료 후 삭제 예정
+- **backend/** — (구) Node + Express + MongoDB — 이관 완료(2026-08-13, Atlas 삭제)로 **실행 불가능한 보관물**. 수정 금지, 삭제 대기
 
 > 작업 규칙은 [CLAUDE.md](CLAUDE.md), 기능 로드맵·현재 상태·데이터 모델은 [docs/PLAN.md](docs/PLAN.md), 셋업·트러블슈팅은 [docs/ONBOARDING.md](docs/ONBOARDING.md) 참조.
 
 ---
 
 ## 주요 기능 (현재)
-- **구글 로그인**(팝업) **또는 이메일 코드 로그인**(아무 이메일 → 12자리 코드 → 로그인, 같은 이메일 계정 자동 통합) → 내 일정 작성 — **FullCalendar** 월 뷰, 드래그/클릭으로 기간 선택해 추가(종일·위치·메모)
+- **구글 로그인**(팝업) **또는 이메일 코드 로그인**(아무 이메일 → 6자 코드 → 6칸 입력칸에 넣으면 바로 로그인, 같은 이메일 계정 자동 통합) → 내 일정 작성 — **FullCalendar** 월 뷰, 드래그/클릭으로 기간 선택해 추가(종일·위치·메모)
 - **친구 + 그룹** — 그룹을 만들어 **이메일 또는 고유 코드**로 멤버 추가, 그룹별 캘린더 라인 색
 - **공유/비공개** — 일정별로 `공유(누구나)` / `비공개(특정 그룹에만)` 제어. 비대상에게는 "바쁨"만 노출
 - **모임 방**(`/rooms`) — 코드/URL 초대 + 3모드 가용성(되는날·안되는날·시간 이후) → **모두 되는 날** 집계 + 플로팅 채팅
@@ -69,7 +69,7 @@ npx wrangler secret put JWT_SECRET              # 최초 1회
 npx wrangler secret put GOOGLE_CLIENT_SECRET    # 최초 1회
 npm run worker:deploy                           # 빌드 + 배포
 ```
-- **로그인 코드 메일**: `RESEND_API_KEY` 시크릿을 넣으면 실제 발송(Resend, 발신 `noreply@opnae.com`), 없으면 `npx wrangler tail` 로그에 코드 출력.
+- **로그인 코드 메일**: `RESEND_API_KEY` 시크릿을 넣으면 실제 발송(Resend, 발신 `noreply@opnae.com`) — **운영에는 등록돼 있다**(2026-08-18). 키가 없으면 `npx wrangler tail` 로그에 코드만 출력.
 - (선택) **AdSense**: `NEXT_PUBLIC_ADSENSE_CLIENT` 설정 시 광고 로드, `public/ads.txt`가 `/ads.txt`로 서빙(게시자 확인).
 - 이관 배경·의사결정 → [docs/cf-migration.md](docs/cf-migration.md).
 
@@ -81,8 +81,8 @@ npm run worker:deploy                           # 빌드 + 배포
 | GET | `/api/health` | 헬스 체크 |
 | GET | `/api/auth/google` | 구글 로그인 시작 |
 | GET | `/api/auth/google/callback` | 콜백 → JWT 발급 후 프론트로 리디렉션 |
-| POST | `/api/auth/email/request` | 이메일로 12자리 로그인 코드 발송 (1분 쿨다운 · IP 당 하루 10통) |
-| POST | `/api/auth/email/verify` | 코드 검증 → JWT 발급 (계정 없으면 생성, 같은 이메일 구글 계정과 통합) |
+| POST | `/api/auth/email/request` | 이메일로 6자 로그인 코드 발송 (영문 대소문자+숫자 · 1분 쿨다운 · IP 당 하루 10통) |
+| POST | `/api/auth/email/verify` | 코드 검증(**대소문자 구분**) → JWT 발급 (계정 없으면 생성, 같은 이메일 구글 계정과 통합) |
 | GET/PATCH/DELETE | `/api/auth/me` | 내 정보 / 닉네임 설정 / 회원 탈퇴(데이터 cascade) |
 | GET/PUT | `/api/auth/leave` | 연차 계산기 설정 조회(갱신일 자동 이월) / 저장 |
 | GET/POST | `/api/events` | 내 일정 목록 / 생성 |
@@ -117,17 +117,17 @@ Moim/
 ├─ package.json         # 루트: worker:dev / worker:deploy / db:schema
 ├─ CLAUDE.md            # 작업 규칙
 ├─ README.md
-├─ docs/                # PLAN.md(로드맵·현재상태) · cf-migration.md(이관) · ONBOARDING.md · refactoring-guide.md
+├─ docs/                # PLAN.md(로드맵·현재상태) · ONBOARDING.md · operating-notes.md(운영 규칙) · refactoring-guide.md · UPGRADE-IDEAS.md · cf-migration.md(이관 기록)
 ├─ worker/              # Cloudflare Workers API
 │  ├─ index.js          # 라우트 표 53개 + 구 동적경로 301 + 정적 자산 폴백
 │  ├─ auth·google·mailer·db·http.js                 # 인증·OAuth·메일·D1 변환·응답 헬퍼
 │  ├─ events·friends·calendar·tiers·rooms·requests·admin.js
-│  └─ schema.sql        # D1 12테이블 (users·events·friendships·tiers·rooms·time_requests·login_codes + 조인 5)
+│  └─ schema.sql        # D1 13테이블 (users·events·friendships·tiers·rooms·time_requests·login_codes·mail_rate + 조인 5)
 ├─ scripts/             # verify-api.mjs(통합 검증 57항목) · mongo-to-d1-seed.mjs(데이터 이전)
 ├─ backend/             # ⚠ 구 Express+Mongo — 데이터 이전용으로만 존치(삭제 예정)
 └─ frontend/
    └─ src/
       ├─ app/           # home · dashboard · friends · tiers · rooms(+rooms/detail?id=) · requests · tools/leave · admin · u?id= · auth/callback
-      ├─ components/    # Nav(+QuickActions FAB) · PageHero · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Modal · Select · TimeSelect · ColorPalette(+ColorWheel) · Avatar · MemberRow · Notice · Accordion · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · RoomChat · UserProfileModal · ConfirmHost · Toaster · GuideHost · AdUnit
-      └─ lib/           # api · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense
+      ├─ components/    # Nav(+QuickActions FAB) · PageHero · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Modal · Select · TimeSelect · ColorPalette(+ColorWheel) · Avatar · MemberRow · Notice · Accordion · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · RoomChat · UserProfileModal · ConfirmHost · Toaster · GuideHost · AdUnit · CodeBoxes · LandingContent · JsonLd
+      └─ lib/           # api · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense · seo
 ```
