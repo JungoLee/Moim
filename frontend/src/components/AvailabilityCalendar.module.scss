@@ -107,14 +107,6 @@
   background: var(--color-success);
   transition: width var(--transition);
 }
-.mine {
-  border-color: var(--color-primary);
-  box-shadow: inset 0 0 0 1px var(--color-primary);
-}
-.mine .dayNum {
-  color: var(--color-text);
-  font-weight: 700;
-}
 .all {
   background: linear-gradient(180deg, rgba(74, 210, 149, 0.3), rgba(74, 210, 149, 0.16));
   border-color: rgba(74, 210, 149, 0.55);
