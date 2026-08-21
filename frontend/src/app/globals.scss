@@ -1818,6 +1818,24 @@ a.app-card:hover {
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 .app-code-box:disabled { opacity: 0.5; }
+/* 6칸과 붙여넣기 버튼을 세로로 */
+.app-code-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  width: 100%;
+}
+/* 모바일은 사용자가 눌러야 클립보드를 읽을 수 있다 — 그래서 버튼으로 노출한다 */
+.app-code-paste {
+  border: none;
+  background: none;
+  padding: var(--space-1, 0.25rem);
+  color: var(--color-muted);
+  font-size: 0.86rem;
+  text-decoration: underline;
+}
+.app-code-paste:hover { color: var(--color-text); }
 @media (max-width: 400px) {
   .app-code-boxes { gap: 0.4rem; }
   .app-code-box { width: 3.5rem; height: 4.4rem; font-size: 1.7rem; }
