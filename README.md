@@ -4,7 +4,6 @@
 
 - **frontend/** — Next.js(App Router, 정적 export) + TypeScript + SCSS
 - **worker/** — Cloudflare Workers(API) + D1(SQLite), Google OAuth + JWT
-- **backend/** — (구) Node + Express + MongoDB — 이관 완료(2026-08-13, Atlas 삭제)로 **실행 불가능한 보관물**. 수정 금지, 삭제 대기
 
 > 작업 규칙은 [CLAUDE.md](CLAUDE.md), 기능 로드맵·현재 상태·데이터 모델은 [docs/PLAN.md](docs/PLAN.md), 셋업·트러블슈팅은 [docs/ONBOARDING.md](docs/ONBOARDING.md) 참조.
 
@@ -124,7 +123,6 @@ Moim/
 │  ├─ events·friends·calendar·tiers·rooms·requests·admin.js
 │  └─ schema.sql        # D1 13테이블 (users·events·friendships·tiers·rooms·time_requests·login_codes·mail_rate + 조인 5)
 ├─ scripts/             # verify-api.mjs(통합 검증 57항목) · mongo-to-d1-seed.mjs(데이터 이전)
-├─ backend/             # ⚠ 구 Express+Mongo — 데이터 이전용으로만 존치(삭제 예정)
 └─ frontend/
    └─ src/
       ├─ app/           # home · dashboard · friends · tiers · rooms(+rooms/detail?id=) · requests · tools/leave · admin · u?id= · auth/callback

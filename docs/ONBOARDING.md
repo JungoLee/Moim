@@ -8,7 +8,6 @@
 **단일 Cloudflare Workers 배포** — https://moim.opnae.com. `/api/*` 는 워커(`worker/`), 그 외 경로는 Next.js 정적 export 산출물(`frontend/out`)을 같은 워커가 서빙한다. DB 는 **D1**(바인딩 `env.DB`).
 인증은 **Google OAuth 또는 이메일 코드**(영문 대소문자+숫자 **6자** OTP, 대소문자 구분) → 워커가 JWT 발급 → 프론트가 `localStorage` 에 담아 `Authorization: Bearer` 로 호출.
 
-> `backend/`(구 Express + MongoDB)는 **삭제 예정 잔재**다 — 데이터 이전·Atlas 삭제까지 끝나 실행 자체가 불가능하다. 고치지 말 것.
 
 ---
 
@@ -122,7 +121,6 @@ frontend/  Next.js App Router (정적 export → out/)
   src/lib/        api.ts(fetch+토큰) · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense · seo(메타·OG·noindex)
   public/         ads.txt(애드센스 게시자 확인)
 scripts/   verify-api.mjs(API 통합 검증 57항목) · mongo-to-d1-seed.mjs(백업 JSON → seed.sql) · open-browser.mjs(dev 서버 뜨면 브라우저 오픈)
-backend/   ⚠️ 구 Express+Mongo — 삭제 예정 잔재(수정 금지, PLAN.md "다음 작업" 참조)
 docs/      PLAN.md(로드맵·할 일) · operating-notes.md(운영 규칙) · refactoring-guide.md · UPGRADE-IDEAS.md(아이디어 목록) · rem-convention.md(치수 규칙) · workers-auto-deploy.md(자동 배포 절차) · ONBOARDING.md(이 문서)
            역사·인계 기록: cf-migration.md(이관 당시 기록) · handoff-no-mongo.md(Atlas 접속 금지 인계) · gilo-porting-prompt.md·PLAN_others.md(타 저장소용 — PLAN.md '저장소 위생' 항목)
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)

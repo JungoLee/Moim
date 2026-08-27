@@ -29,3 +29,4 @@ backup/
 .dev.vars
 .wrangler/
 worker/seed.sql
+weekly-report/
