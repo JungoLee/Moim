@@ -20,7 +20,7 @@
  */
 export type ReleaseKind = 'feature' | 'improve' | 'fix';
 
-export interface ReleaseItem {
+interface ReleaseItem {
   kind: ReleaseKind;
   text: string;
 }
