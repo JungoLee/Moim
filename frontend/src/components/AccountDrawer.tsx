@@ -8,6 +8,7 @@ import { toast } from '@/lib/toast';
 import { displayName } from '@/lib/format';
 import CopyButton from '@/components/CopyButton';
 import LegalModal from '@/components/LegalModal';
+import ReleaseModal from '@/release/ReleaseModal';
 import type { User } from '@/lib/types';
 
 export default function AccountDrawer({ onClose }: { onClose: () => void }) {
@@ -15,6 +16,7 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
   const [nick, setNick] = useState('');
   const [saved, setSaved] = useState(false);
   const [legal, setLegal] = useState<'terms' | 'privacy' | null>(null);
+  const [releaseOpen, setReleaseOpen] = useState(false); // 업데이트 내역
 
   useEffect(() => {
     api<{ user: User }>('/api/auth/me')
@@ -144,6 +146,9 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
 
         <span className="app-spacer" />
         <div className="app-row">
+          <button className="app-btn app-btn--ghost" onClick={() => setReleaseOpen(true)}>
+            업데이트 내역
+          </button>
           <button className="app-btn app-btn--ghost" onClick={() => setLegal('terms')}>
             이용약관
           </button>
@@ -153,6 +158,7 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
         </div>
 
         {legal && <LegalModal type={legal} onClose={() => setLegal(null)} />}
+        {releaseOpen && <ReleaseModal onClose={() => setReleaseOpen(false)} />}
       </aside>
     </div>
   );
