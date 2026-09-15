@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Modal from '@/components/Modal';
 import { RELEASES, type Release, type ReleaseKind } from '@/release/releases';
+import styles from './ReleaseModal.module.scss';
 
 const KIND_LABEL: Record<ReleaseKind, string> = {
   feature: '새 기능',
@@ -10,13 +11,11 @@ const KIND_LABEL: Record<ReleaseKind, string> = {
   fix: '고침',
 };
 
-const KIND_BG: Record<ReleaseKind, string> = {
-  feature: 'rgba(88, 140, 255, 0.18)',
-  improve: 'rgba(72, 187, 120, 0.18)',
-  fix: 'rgba(128, 128, 128, 0.2)',
+const KIND_CLASS: Record<ReleaseKind, string> = {
+  feature: styles.kindFeature,
+  improve: styles.kindImprove,
+  fix: styles.kindFix,
 };
-
-const LINE = '1px solid var(--color-border, rgba(128,128,128,.25))';
 
 /**
  * 업데이트 내역 — 목록에서 고른 뒤 상세를 본다(2단).
@@ -28,7 +27,7 @@ export default function ReleaseModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal onClose={onClose} maxWidth={560}>
       <div className="app-row">
-        <h3 style={{ margin: 0 }}>
+        <h3 className="app-modal-title">
           {picked ? `v${picked.version}${picked.title ? ` · ${picked.title}` : ''}` : '업데이트 내역'}
         </h3>
         <span className="app-spacer" />
@@ -39,70 +38,36 @@ export default function ReleaseModal({ onClose }: { onClose: () => void }) {
 
       {picked ? (
         <>
-          <button
-            className="app-btn app-btn--ghost"
-            style={{ marginTop: '1rem' }}
-            onClick={() => setPicked(null)}
-          >
+          <button className={`app-btn app-btn--ghost ${styles.back}`} onClick={() => setPicked(null)}>
             ← 목록
           </button>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '.6rem', marginTop: '1rem', paddingBottom: '.8rem', borderBottom: LINE }}>
-            <strong style={{ fontSize: '1.8rem', letterSpacing: '-.01em' }}>v{picked.version}</strong>
-            <span className="app-muted" style={{ fontSize: '.8rem' }}>{picked.date}</span>
+          <div className={styles.head}>
+            <strong className={styles.version}>v{picked.version}</strong>
+            <span className={`app-muted ${styles.date}`}>{picked.date}</span>
           </div>
-          <ul style={{ listStyle: 'none', margin: '1rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '.6rem' }}>
+          <ul className={styles.lines}>
             {picked.items.map((it, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '.5rem', fontSize: '.95rem', lineHeight: 1.6 }}>
-                <span
-                  style={{
-                    flexShrink: 0,
-                    minWidth: '3rem',
-                    padding: '.1rem .4rem',
-                    borderRadius: '99px',
-                    fontSize: '.7rem',
-                    fontWeight: 700,
-                    textAlign: 'center',
-                    background: KIND_BG[it.kind],
-                  }}
-                >
-                  {KIND_LABEL[it.kind]}
-                </span>
+              <li key={i} className={styles.line}>
+                <span className={`${styles.kind} ${KIND_CLASS[it.kind]}`}>{KIND_LABEL[it.kind]}</span>
                 <span>{it.text}</span>
               </li>
             ))}
           </ul>
         </>
       ) : (
-        <ul style={{ listStyle: 'none', margin: '1rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
+        <ul className={styles.index}>
           {RELEASES.map((r) => (
             <li key={r.date}>
-              <button
-                onClick={() => setPicked(r)}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'auto 1fr auto auto',
-                  alignItems: 'center',
-                  gap: '.8rem',
-                  width: '100%',
-                  padding: '.9rem 1rem',
-                  border: LINE,
-                  borderRadius: '.6rem',
-                  background: 'transparent',
-                  color: 'inherit',
-                  font: 'inherit',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                }}
-              >
-                <span style={{ flexShrink: 0, padding: '.2rem .6rem', borderRadius: '.4rem', background: 'rgba(88,140,255,.14)', fontSize: '.8rem', fontWeight: 700 }}>
-                  v{r.version}
+              <button className={styles.entry} onClick={() => setPicked(r)}>
+                <span className={styles.tag}>v{r.version}</span>
+                <span className={styles.entryBody}>
+                  <strong className={styles.entryTitle}>{r.title ?? ''}</strong>
+                  <span className={`app-muted ${styles.entryMeta}`}>{r.date}</span>
                 </span>
-                <span style={{ display: 'flex', flexDirection: 'column', gap: '.1rem', minWidth: 0 }}>
-                  <strong style={{ fontSize: '.95rem' }}>{r.title ?? ''}</strong>
-                  <span className="app-muted" style={{ fontSize: '.75rem' }}>{r.date}</span>
+                <span className={`app-muted ${styles.entryMeta}`}>{r.items.length}</span>
+                <span className="app-muted" aria-hidden>
+                  ›
                 </span>
-                <span className="app-muted" style={{ fontSize: '.75rem' }}>{r.items.length}</span>
-                <span className="app-muted" aria-hidden>›</span>
               </button>
             </li>
           ))}

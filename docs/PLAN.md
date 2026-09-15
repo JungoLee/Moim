@@ -67,7 +67,6 @@
   - [ ] **Gmail 앱 비밀번호**(`backend/.env` 의 `SMTP_PASS`, 2026-07-08 발급) — Workers 는 SMTP 를 못 써 영영 안 쓴다. [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) 에서 삭제
   - [ ] (판단) Google OAuth 클라이언트 시크릿 회전 — 이관 중 여러 곳을 거쳤으니 찜찜하면 콘솔에서 새로 발급 후 `wrangler secret bulk` 로 교체
 - [ ] **D1 정기 백업** — Time Travel 은 30일까지만이고 DB 삭제는 못 되돌린다. 이관 전 스냅샷(`backup/`)은 있지만 **이관 후 새로 쌓이는 데이터는 D1 에만 있다**. `npx wrangler d1 export moim --remote --output backup/d1-YYYYMMDD.sql` 를 가끔 떠 둘 것
-- [ ] **저장소 위생** — `docs/PLAN_others.md`(Moim 무관 프로젝트 계획)·`docs/gilo-porting-prompt.md`(Gilo 용)를 해당 저장소로 옮기거나 제거
 - [ ] **에러 알림** — 지금은 사용자가 말해주기 전엔 장애를 모른다. Cloudflare 대시보드 알림 또는 Logpush 검토
 - [ ] **커스텀 404 페이지** — 현재 Next 기본 404. `frontend/src/app/not-found.tsx` 로 브랜드 404 만들기(사소하지만 검색 유입 이탈을 줄인다)
 - [ ] **Workers Builds 자동 배포 켜기** — GitHub 연결 시 push 만으로 배포된다. 대시보드 설정 절차·형제 프로젝트용 프롬프트는 [workers-auto-deploy.md](workers-auto-deploy.md)

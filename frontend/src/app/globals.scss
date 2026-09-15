@@ -357,6 +357,11 @@ h3 {
 .app-btn--danger:hover {
   filter: brightness(1.06);
 }
+/* 테두리만 있는 위험 동작 버튼(회원 탈퇴 등) */
+.app-btn--ghost-danger {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
 
 /* 구글 공식 화이트 로그인 버튼 (Google 브랜드 가이드) */
 .app-btn--google {
@@ -390,6 +395,10 @@ h3 {
   margin-bottom: var(--space-4);
   box-shadow: var(--edge-highlight), var(--shadow-sm);
   transition: border-color var(--transition), box-shadow var(--transition);
+}
+/* 드로어·모달처럼 카드가 이미 여백 있는 그릇 안에 있을 때 */
+.app-card--flush {
+  margin: 0;
 }
 .app-card:hover {
   border-color: var(--color-border);
@@ -863,6 +872,13 @@ input[type='radio'] {
   align-items: center;
   gap: var(--space-3);
 }
+.app-drawer-label {
+  margin-bottom: var(--space-2);
+}
+.app-drawer-code {
+  word-break: break-all;
+  font-family: inherit;
+}
 .app-avatar-sm {
   width: 1.75rem;
   height: 1.75rem;
@@ -1000,6 +1016,8 @@ input[type='radio'] {
 .app-avatar-lg {
   width: 3.25rem;
   height: 3.25rem;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 /* 커스텀 확인 다이얼로그 (네이티브 confirm/alert 대체) — 최상단 */
@@ -1132,11 +1150,31 @@ a.app-card:hover {
   align-items: center;
   flex-wrap: wrap;
 }
+.app-row--nowrap {
+  flex-wrap: nowrap;
+}
+.app-row--nowrap > .app-btn {
+  flex-shrink: 0;
+}
 .app-spacer {
   margin-left: auto;
 }
 .app-muted {
   color: var(--color-muted);
+}
+.app-small {
+  font-size: 0.8rem;
+}
+.app-success {
+  color: var(--color-success);
+}
+/* 본문 글(약관 등) — 줄간격 넉넉히 */
+.app-prose {
+  line-height: 1.7;
+}
+/* 모달 머리행(.app-row) 안의 제목 — 기본 h3 여백 제거 */
+.app-modal-title {
+  margin: 0;
 }
 .app-error {
   color: var(--color-danger);

@@ -122,7 +122,7 @@ frontend/  Next.js App Router (정적 export → out/)
   public/         ads.txt(애드센스 게시자 확인)
 scripts/   verify-api.mjs(API 통합 검증 57항목) · mongo-to-d1-seed.mjs(백업 JSON → seed.sql) · open-browser.mjs(dev 서버 뜨면 브라우저 오픈)
 docs/      PLAN.md(로드맵·할 일) · operating-notes.md(운영 규칙) · refactoring-guide.md · UPGRADE-IDEAS.md(아이디어 목록) · rem-convention.md(치수 규칙) · workers-auto-deploy.md(자동 배포 절차) · ONBOARDING.md(이 문서)
-           역사·인계 기록: cf-migration.md(이관 당시 기록) · handoff-no-mongo.md(Atlas 접속 금지 인계) · gilo-porting-prompt.md·PLAN_others.md(타 저장소용 — PLAN.md '저장소 위생' 항목)
+           역사·인계 기록: cf-migration.md(이관 당시 기록) · handoff-no-mongo.md(Atlas 접속 금지 인계)
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 루트        wrangler.toml(도메인·assets·D1 바인딩) · .dev.vars(로컬 시크릿, gitignore) · package.json
 ```

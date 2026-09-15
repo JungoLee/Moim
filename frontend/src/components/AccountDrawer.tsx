@@ -88,39 +88,38 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
             <div className="app-drawer-profile">
               {user.picture && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.picture} alt="" width={56} height={56} style={{ borderRadius: '50%' }} />
+                <img src={user.picture} alt="" width={56} height={56} className="app-avatar-lg" />
               )}
               <div>
                 <div>
                   <strong>{displayName(user)}</strong>
-                  {user.isAdmin && <span style={{ color: 'var(--color-success)' }}> · 관리자</span>}
+                  {user.isAdmin && <span className="app-success"> · 관리자</span>}
                 </div>
                 <div className="app-muted">{user.email}</div>
               </div>
             </div>
 
-            <div className="app-card" style={{ margin: 0 }}>
-              <div className="app-muted" style={{ fontSize: '0.8rem', marginBottom: 'var(--space-2)' }}>
+            <div className="app-card app-card--flush">
+              <div className="app-muted app-small app-drawer-label">
                 닉네임 (비우면 구글 이름 사용)
               </div>
-              <div className="app-row" style={{ flexWrap: 'nowrap' }}>
+              <div className="app-row app-row--nowrap">
                 <input
                   className="app-input"
-                  style={{ flex: 1, minWidth: 0 }}
                   placeholder={user.name}
                   value={nick}
                   onChange={(e) => setNick(e.target.value)}
                 />
-                <button className="app-btn" style={{ flexShrink: 0 }} onClick={saveNick}>
+                <button className="app-btn" onClick={saveNick}>
                   {saved ? '✓' : '저장'}
                 </button>
               </div>
             </div>
 
-            <div className="app-card" style={{ margin: 0 }}>
-              <div className="app-muted" style={{ fontSize: '0.8rem' }}>내 고유 번호</div>
+            <div className="app-card app-card--flush">
+              <div className="app-muted app-small">내 고유 번호</div>
               <div className="app-row">
-                <code style={{ wordBreak: 'break-all', fontFamily: 'inherit' }}>{user._id}</code>
+                <code className="app-drawer-code">{user._id}</code>
                 <span className="app-spacer" />
                 <CopyButton text={user._id} label="복사" />
               </div>
@@ -135,8 +134,7 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
               로그아웃
             </button>
             <button
-              className="app-btn app-btn--ghost"
-              style={{ color: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
+              className="app-btn app-btn--ghost app-btn--ghost-danger"
               onClick={deleteAccount}
             >
               회원 탈퇴

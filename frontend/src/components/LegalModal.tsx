@@ -9,13 +9,13 @@ export default function LegalModal({ type, onClose }: Props) {
   return (
     <Modal onClose={onClose} maxWidth={640}>
       <div className="app-row">
-        <h3 style={{ margin: 0 }}>{type === 'terms' ? '이용약관' : '개인정보 처리방침'}</h3>
+        <h3 className="app-modal-title">{type === 'terms' ? '이용약관' : '개인정보 처리방침'}</h3>
         <span className="app-spacer" />
         <button className="app-btn app-btn--ghost" onClick={onClose}>
           닫기
         </button>
       </div>
-      <p className="app-muted" style={{ fontSize: '0.8rem' }}>
+      <p className="app-muted app-small">
         ⚠️ 표준 템플릿입니다. 정식 출시 전 사업자 정보·연락처를 채우고 법률 검토를 받으세요.
       </p>
       {type === 'terms' ? <Terms /> : <Privacy />}
@@ -25,7 +25,7 @@ export default function LegalModal({ type, onClose }: Props) {
 
 function Terms() {
   return (
-    <div style={{ lineHeight: 1.7 }}>
+    <div className="app-prose">
       <h4>제1조 (목적)</h4>
       <p className="app-muted">본 약관은 {BRAND_NAME}(이하 “서비스”)의 이용 조건·절차와 회원·서비스의 권리·의무를 규정합니다.</p>
       <h4>제2조 (서비스 내용)</h4>
@@ -44,7 +44,7 @@ function Terms() {
 
 function Privacy() {
   return (
-    <div style={{ lineHeight: 1.7 }}>
+    <div className="app-prose">
       <h4>1. 수집 항목</h4>
       <p className="app-muted">
         구글 로그인 시 이메일·이름·프로필 사진·구글 식별자(sub)를 수집합니다. 이용 중 작성한 일정·그룹·모임 정보가 저장됩니다.
