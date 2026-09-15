@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Modal from '@/components/Modal';
-import { RELEASES, type ReleaseKind } from '@/release/releases';
+import { RELEASES, type Release, type ReleaseKind } from '@/release/releases';
 
 const KIND_LABEL: Record<ReleaseKind, string> = {
   feature: '새 기능',
@@ -15,52 +16,89 @@ const KIND_BG: Record<ReleaseKind, string> = {
   fix: 'rgba(128, 128, 128, 0.2)',
 };
 
-/** 업데이트 내역 — 약관·개인정보 처리방침과 같은 자리(계정 드로어 하단)에서 연다. */
+const LINE = '1px solid var(--color-border, rgba(128,128,128,.25))';
+
+/**
+ * 업데이트 내역 — 목록에서 고른 뒤 상세를 본다(2단).
+ * 한 화면에 전부 펼치면 릴리즈가 쌓일수록 무엇이 최신인지 읽기 어려워진다.
+ */
 export default function ReleaseModal({ onClose }: { onClose: () => void }) {
+  const [picked, setPicked] = useState<Release | null>(null);
+
   return (
-    <Modal onClose={onClose} maxWidth={640}>
+    <Modal onClose={onClose} maxWidth={560}>
       <div className="app-row">
-        <h3 style={{ margin: 0 }}>업데이트 내역</h3>
+        <h3 style={{ margin: 0 }}>
+          {picked ? `${picked.date}${picked.title ? ` · ${picked.title}` : ''}` : '업데이트 내역'}
+        </h3>
         <span className="app-spacer" />
         <button className="app-btn app-btn--ghost" onClick={onClose}>
           닫기
         </button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1rem' }}>
-        {RELEASES.map((r) => (
-          <section key={r.date}>
-            <div
-              className="app-row"
-              style={{ gap: '0.5rem', paddingBottom: '0.4rem', borderBottom: '1px solid var(--color-border, rgba(128,128,128,.25))' }}
-            >
-              <span className="app-muted" style={{ fontSize: '0.8rem', fontWeight: 700 }}>{r.date}</span>
-              {r.title && <strong style={{ fontSize: '0.95rem' }}>{r.title}</strong>}
-            </div>
-            <ul style={{ listStyle: 'none', margin: '0.6rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {r.items.map((it, i) => (
-                <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.9rem', lineHeight: 1.6 }}>
-                  <span
-                    style={{
-                      flexShrink: 0,
-                      minWidth: '3rem',
-                      padding: '0.1rem 0.4rem',
-                      borderRadius: '99px',
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      textAlign: 'center',
-                      background: KIND_BG[it.kind],
-                    }}
-                  >
-                    {KIND_LABEL[it.kind]}
-                  </span>
-                  <span>{it.text}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-      </div>
+      {picked ? (
+        <>
+          <button
+            className="app-btn app-btn--ghost"
+            style={{ marginTop: '1rem' }}
+            onClick={() => setPicked(null)}
+          >
+            ← 목록
+          </button>
+          <ul style={{ listStyle: 'none', margin: '1rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '.6rem' }}>
+            {picked.items.map((it, i) => (
+              <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '.5rem', fontSize: '.95rem', lineHeight: 1.6 }}>
+                <span
+                  style={{
+                    flexShrink: 0,
+                    minWidth: '3rem',
+                    padding: '.1rem .4rem',
+                    borderRadius: '99px',
+                    fontSize: '.7rem',
+                    fontWeight: 700,
+                    textAlign: 'center',
+                    background: KIND_BG[it.kind],
+                  }}
+                >
+                  {KIND_LABEL[it.kind]}
+                </span>
+                <span>{it.text}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <ul style={{ listStyle: 'none', margin: '1rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
+          {RELEASES.map((r) => (
+            <li key={r.date}>
+              <button
+                onClick={() => setPicked(r)}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'auto 1fr auto auto',
+                  alignItems: 'center',
+                  gap: '.8rem',
+                  width: '100%',
+                  padding: '.9rem 1rem',
+                  border: LINE,
+                  borderRadius: '.6rem',
+                  background: 'transparent',
+                  color: 'inherit',
+                  font: 'inherit',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
+              >
+                <span className="app-muted" style={{ fontSize: '.8rem', fontWeight: 700 }}>{r.date}</span>
+                <strong style={{ fontSize: '.95rem' }}>{r.title ?? ''}</strong>
+                <span className="app-muted" style={{ fontSize: '.75rem' }}>{r.items.length}</span>
+                <span className="app-muted" aria-hidden>›</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </Modal>
   );
 }
