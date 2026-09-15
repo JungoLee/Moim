@@ -11,6 +11,12 @@
  *  - 내부 용어·파일명·함수명 금지.
  *    (X) "AvailabilityCalendar 리렌더 최적화"  (O) "빈 시간 찾기가 빨라졌어요"
  *  - 한 항목은 한 줄. kind: feature(새 기능)·improve(개선)·fix(고침)
+ *
+ * **버전 매기는 법 (major.minor.patch)** — 그 릴리즈에서 가장 큰 변화를 기준으로 한 칸만 올린다.
+ *  - major : 전면 개편·디자인 변경처럼 화면이 달라 보이는 수준
+ *  - minor : 기능 추가 (feature 가 하나라도 있으면 보통 여기)
+ *  - patch : 버그 수정·다듬기만 있을 때
+ * 올린 자리보다 아래 자리는 0 으로 되돌린다 (1.2.3 에 기능 추가 → 1.3.0).
  */
 export type ReleaseKind = 'feature' | 'improve' | 'fix';
 
@@ -20,6 +26,8 @@ export interface ReleaseItem {
 }
 
 export interface Release {
+  /** major.minor.patch — 위 규칙 참고 */
+  version: string;
   /** YYYY-MM-DD */
   date: string;
   title?: string;
@@ -28,11 +36,13 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.1',
     date: '2026-09-15',
     title: '업데이트 내역 공개',
     items: [{ kind: 'feature', text: '무엇이 바뀌었는지 이 화면에서 확인할 수 있습니다.' }],
   },
   {
+    version: '1.1.0',
     date: '2026-08-21',
     title: '로그인 정돈',
     items: [
@@ -42,6 +52,7 @@ export const RELEASES: Release[] = [
     ],
   },
   {
+    version: '1.0.1',
     date: '2026-08-18',
     title: '메일이 잘 도착하게',
     items: [
@@ -49,6 +60,7 @@ export const RELEASES: Release[] = [
     ],
   },
   {
+    version: '1.0.0',
     date: '2026-07-08',
     title: '일정 정리',
     items: [

@@ -29,7 +29,7 @@ export default function ReleaseModal({ onClose }: { onClose: () => void }) {
     <Modal onClose={onClose} maxWidth={560}>
       <div className="app-row">
         <h3 style={{ margin: 0 }}>
-          {picked ? `${picked.date}${picked.title ? ` · ${picked.title}` : ''}` : '업데이트 내역'}
+          {picked ? `v${picked.version}${picked.title ? ` · ${picked.title}` : ''}` : '업데이트 내역'}
         </h3>
         <span className="app-spacer" />
         <button className="app-btn app-btn--ghost" onClick={onClose}>
@@ -46,6 +46,10 @@ export default function ReleaseModal({ onClose }: { onClose: () => void }) {
           >
             ← 목록
           </button>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '.6rem', marginTop: '1rem', paddingBottom: '.8rem', borderBottom: LINE }}>
+            <strong style={{ fontSize: '1.8rem', letterSpacing: '-.01em' }}>v{picked.version}</strong>
+            <span className="app-muted" style={{ fontSize: '.8rem' }}>{picked.date}</span>
+          </div>
           <ul style={{ listStyle: 'none', margin: '1rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '.6rem' }}>
             {picked.items.map((it, i) => (
               <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '.5rem', fontSize: '.95rem', lineHeight: 1.6 }}>
@@ -90,8 +94,13 @@ export default function ReleaseModal({ onClose }: { onClose: () => void }) {
                   cursor: 'pointer',
                 }}
               >
-                <span className="app-muted" style={{ fontSize: '.8rem', fontWeight: 700 }}>{r.date}</span>
-                <strong style={{ fontSize: '.95rem' }}>{r.title ?? ''}</strong>
+                <span style={{ flexShrink: 0, padding: '.2rem .6rem', borderRadius: '.4rem', background: 'rgba(88,140,255,.14)', fontSize: '.8rem', fontWeight: 700 }}>
+                  v{r.version}
+                </span>
+                <span style={{ display: 'flex', flexDirection: 'column', gap: '.1rem', minWidth: 0 }}>
+                  <strong style={{ fontSize: '.95rem' }}>{r.title ?? ''}</strong>
+                  <span className="app-muted" style={{ fontSize: '.75rem' }}>{r.date}</span>
+                </span>
                 <span className="app-muted" style={{ fontSize: '.75rem' }}>{r.items.length}</span>
                 <span className="app-muted" aria-hidden>›</span>
               </button>
