@@ -64,7 +64,7 @@
 ### 다음 작업 (남은 것)
 - [ ] **운영 verify-api 대안** — Resend 활성화(2026-08-18) 이후 운영에선 로그인 코드가 로그에 안 찍혀(실메일 발송) `verify-api.mjs` 를 운영에 돌릴 수 없다(가짜 주소 실발송 + IP 일 10통 제한과도 충돌). 당분간 **검증은 로컬 `wrangler dev`(키 없는 환경) 전용** — 운영 스모크가 필요해지면 별도 방안(health 확장 등) 검토
 - [ ] **안 쓰는 크리덴셜 폐기** 🔐 — 이관으로 안 쓰이게 됐지만 **아직 살아 있는** 값들이다. 유출 시 그대로 악용된다
-  - [ ] **Gmail 앱 비밀번호**(`backend/.env` 의 `SMTP_PASS`, 2026-07-08 발급) — Workers 는 SMTP 를 못 써 영영 안 쓴다. [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) 에서 삭제
+  - [ ] **Gmail 앱 비밀번호**(구 Express `backend/.env` 의 `SMTP_PASS`, 2026-07-08 발급 — **그 폴더는 이관 때 삭제됐지만 구글 계정의 앱 비밀번호는 아직 살아 있다**) — Workers 는 SMTP 를 못 써 영영 안 쓴다. [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) 에서 삭제
   - [ ] (판단) Google OAuth 클라이언트 시크릿 회전 — 이관 중 여러 곳을 거쳤으니 찜찜하면 콘솔에서 새로 발급 후 `wrangler secret bulk` 로 교체
 - [ ] **D1 정기 백업** — Time Travel 은 30일까지만이고 DB 삭제는 못 되돌린다. 이관 전 스냅샷(`backup/`)은 있지만 **이관 후 새로 쌓이는 데이터는 D1 에만 있다**. `npx wrangler d1 export moim --remote --output backup/d1-YYYYMMDD.sql` 를 가끔 떠 둘 것
 - [ ] **에러 알림** — 지금은 사용자가 말해주기 전엔 장애를 모른다. Cloudflare 대시보드 알림 또는 Logpush 검토
@@ -156,7 +156,7 @@
 - 데이터: Mongo 220행 전량 이전(유실 0), 기존 사용자 JWT 유지 확인. Render 서비스·Blueprint·Atlas 클러스터 삭제 완료(2026-08-13)
 - 상세 배경·설계 판단은 **[cf-migration.md](cf-migration.md)**, 운영 규칙은 **[operating-notes.md](operating-notes.md)** 참조
 
-### Moim 이관에서 배운 것 (다음 프로젝트 = Gilo 용)
+### Moim 이관에서 배운 것 (형제 프로젝트 이관에 실제로 쓰였다)
 - **ObjectId 를 TEXT PK 로 그대로 승계**하면 매핑 테이블도, 재로그인도 필요 없다(JWT `sub` 가 그대로 유효). MyBudget 처럼 `_id` 를 버리는 건 참조 관계가 없을 때만 가능.
 - 프론트 계약을 지키는 가장 싼 방법은 **행 → 문서 변환 계층**(`worker/db.js`) 하나를 두는 것. 라우트마다 형태를 맞추지 않는다.
 - **정적 export 는 동적 세그먼트를 못 만든다** — 런타임 id 경로(`/rooms/[id]`)는 쿼리스트링으로 옮기고, 구 경로는 워커에서 301. `run_worker_first` 에 그 경로들을 넣어야 SPA 폴백보다 먼저 잡힌다.
@@ -169,5 +169,6 @@
 - 데이터 이전 검증은 API 스모크만으론 부족하다 — **원본 백업의 실제 id 로 토큰을 만들어** 목록·상세·가시성까지 훑어야 매핑 오류가 잡힌다.
 - 로컬 DNS 가 새 커스텀 도메인을 늦게 잡을 수 있다(negative cache). `curl --resolve` 로 먼저 확인하면 배포 문제와 구분된다.
 
-**남은 순서: Gilo** (`C:\workspace\Gilo`, 별도 Atlas 클러스터 `cluster0.0bxwd0q` 사용 중).
-참고: `C:\workspace\HOSTING-PLAN.md` · 선례 = `MyBudget`(완료) · `youtubePlaylist`(DB 없던 케이스) · `MenuManager`(처음부터 Workers + D1).
+**형제 프로젝트 이관은 전부 끝났다** — Gilo 도 2026-08-13 에 Workers + D1 로 넘어갔고(`gilo.opnae.com`), Atlas 클러스터는 정리됐다.
+현재 `*.opnae.com` 7개(gilo·moim·budget·evergreench·tabl·task·playlist)가 모두 Workers + D1 이다.
+참고: `C:\workspace\HOSTING-PLAN.md` · 선례 = `MyBudget` · `youtubePlaylist`(DB 없던 케이스) · `tabl`(구 MenuManager, 처음부터 Workers + D1).
