@@ -10,6 +10,7 @@ import { BRAND_NAME } from '@/lib/brand';
 import Notice from '@/components/Notice';
 import LandingContent from '@/components/LandingContent';
 import CodeBoxes, { CODE_LEN } from '@/components/CodeBoxes';
+import { webmailOf } from '@/lib/webmail';
 
 // 로그인 후 돌아갈 곳: 기억해둔 경로(예: 공유받은 모임 URL) 우선, 없으면 /home
 function consumePostLoginDest(): string {
@@ -31,6 +32,7 @@ export default function Home() {
   const [emailOpen, setEmailOpen] = useState(false);
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
+  const webmail = webmailOf(email); // 코드 입력 단계에서 메일함 바로가기 버튼
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
@@ -189,6 +191,11 @@ export default function Home() {
                 {busy ? '확인 중…' : '코드로 로그인'}
               </button>
               <div className="app-hero-links">
+                {webmail && (
+                  <a href={webmail.url} target="_blank" rel="noopener noreferrer">
+                    {webmail.name} 열기 ↗
+                  </a>
+                )}
                 <button type="button" onClick={() => requestCode()} disabled={busy}>
                   코드 재전송
                 </button>
