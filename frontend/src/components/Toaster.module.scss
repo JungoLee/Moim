@@ -25,7 +25,7 @@
 }
 .error {
   border-color: var(--color-danger);
-  color: #ffd9d9;
+  color: var(--color-danger-text);
 }
 
 @keyframes toast-in {
