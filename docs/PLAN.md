@@ -3,6 +3,8 @@
 > 이 문서는 **단일 출처**다. 새 세션(사람·Claude Code)은 여기 "현재 상태"와 "다음 작업"부터 읽고 시작한다.
 > 작업이 끝나면 해당 항목을 정리하고(완료 표시 또는 삭제), 새 요청은 백로그에 추가한다.
 > 완료 작업의 상세 이력은 **git log** 가 출처 — 여기엔 요약만 남긴다.
+>
+> _마지막 정리: 2026-10-02 — 코드와 대조(13테이블·53라우트 일치, "다음 작업" 모두 유효). 정리·디자인 패스 반영(바깥 클릭 닫기 훅·달력 칸 계산 공용화, 모바일 상단 메뉴·홈 목록·연차 계산기 입력칸 다듬기)._
 
 ---
 
@@ -57,7 +59,7 @@
 - **연차 계산기**(`/tools/leave`): 브릿지 알고리즘(공휴일 낀 구간 우선 + 연중 고른 분산), 공휴일 **2026–2031** 내장(음력·대체공휴일 자동, `lib/holidays.ts`), 설정 DB 저장(`User.leave`, 갱신일 자동 이월), 홈 **추천 연차 카드**(`computeLeavePlan` 공용)
 - **홈**(`/home`): 친구요청 알림 · 다가오는 일정(D-day) · 내 모임 요약 · 추천 연차 (로그인 후 랜딩)
 - **관리자**(`/admin`): 통계 개요 · 회원 권한/탈퇴(cascade) · 모임/그룹 모더레이션. 기본 관리자는 env `ADMIN_EMAILS`
-- **공통 UI**: 디자인 토큰(globals.scss) + rem 반응형(clamp), PageHero(전 탭), Nav(활성 강조·중앙 스크롤) + 우하단 FAB(`lib/quickActions`), 공용 컴포넌트(Modal·Select·TimeSelect·DatePicker·ColorPalette+휠·Avatar·MemberRow·Notice·Accordion·Tooltip), 커스텀 confirm(`lib/confirm`)·토스트, 랜딩 글래스 리디자인
+- **공통 UI**: 디자인 토큰(globals.scss) + rem 반응형(clamp), PageHero(전 탭), Nav(활성 강조·중앙 스크롤) + 우하단 FAB(`lib/quickActions`), 공용 컴포넌트(Modal·Select·TimeSelect·DatePicker·ColorPalette+휠·Avatar·MemberRow·Notice·Accordion·Tooltip), 공용 훅·유틸(`lib/useOutsideClose` 팝업 바깥 클릭 닫기 · `lib/datetime` `monthGridDays` 달력 칸), 커스텀 confirm(`lib/confirm`)·토스트, 랜딩 글래스 리디자인
 - **사용 가이드(스포트라이트 투어)**: FAB '📖 사용 가이드' → 대상 요소를 `box-shadow` 컷아웃으로 강조 + 스텝 설명 카드(`lib/guide` 라우트별 정의 + `GuideHost`, 대상은 각 페이지 `data-guide` 속성). 7개 탭 + **모임 방 내부**(`/rooms/detail?id=`, 멤버·모드·드래그 표시·집계·채팅/공유 5스텝) 지원, 조건부 섹션 자동 스킵, 설명 카드는 실제 높이 측정 후 화면 안 클램프
 - **배포·수익화**: **Cloudflare Workers + D1 단일 배포**(2026-08-13, https://moim.opnae.com) — 잠들지 않아 콜드스타트 없음, **AdSense 코드 연동**(Auto ads 스크립트 + `AdUnit` 수동 슬롯 + `ads.txt` — 승인 절차만 남음, Phase 8 참조)
 
@@ -170,5 +172,5 @@
 - 로컬 DNS 가 새 커스텀 도메인을 늦게 잡을 수 있다(negative cache). `curl --resolve` 로 먼저 확인하면 배포 문제와 구분된다.
 
 **형제 프로젝트 이관은 전부 끝났다** — Gilo 도 2026-08-13 에 Workers + D1 로 넘어갔고(`gilo.opnae.com`), Atlas 클러스터는 정리됐다.
-현재 `*.opnae.com` 7개(gilo·moim·budget·evergreench·tabl·task·playlist)가 모두 Workers + D1 이다.
+`*.opnae.com` 의 앱(gilo·moim·budget·evergreench·tabl·task·playlist, 2026-09 의 gallery 까지)은 모두 Workers + D1 이다.
 참고: `C:\workspace\HOSTING-PLAN.md` · 선례 = `MyBudget` · `youtubePlaylist`(DB 없던 케이스) · `tabl`(구 MenuManager, 처음부터 Workers + D1).
