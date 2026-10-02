@@ -11,7 +11,8 @@
   color: var(--color-muted);
 }
 /* 필드 안 입력칸·날짜 picker 는 라벨 폭을 꽉 채움 (DatePicker 내부 ‹›/날짜 버튼은 제외) */
-.field .app-input {
+/* app-input 은 전역 클래스 — :global 로 집어야 모듈 해시가 안 붙는다(전엔 해시 때문에 이 규칙이 아예 안 먹었다) */
+.field :global(.app-input) {
   width: 100%;
   font-weight: 400;
 }
