@@ -6,7 +6,7 @@
  * 표에 없는 도메인(회사 메일 등)은 갈 곳을 알 수 없으므로 `null` — 버튼을 숨긴다.
  */
 
-export interface Webmail {
+interface Webmail {
   name: string;
   url: string;
 }
