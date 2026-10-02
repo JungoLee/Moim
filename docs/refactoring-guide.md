@@ -25,6 +25,7 @@
 | 컴포넌트 내 직접 `fetch` | 금지 — `lib/api.ts` 의 `api<T>()` 만 사용 |
 | 프론트/백 검증 중복 | 워커 핸들러를 **최종 검증 출처**로, 프론트는 UX 검증만 |
 | 반복되는 폼 입력 블록 | 공용 컴포넌트로 추출 |
+| 팝업 바깥 클릭 닫기·달력 칸 계산 | ✅ 2026-10-02 공용화 — `lib/useOutsideClose`(Select·DatePicker·ColorPalette·QuickActions), `lib/datetime` `monthGridDays`(DatePicker·AvailabilityCalendar). 새 팝업도 이 훅을 쓴다 |
 
 ---
 
@@ -62,7 +63,7 @@
 ## 5. 가독성 · 죽은 코드
 | 항목 | 체크 |
 |------|------|
-| 미사용 코드 | 호출 안 되는 함수·미사용 변수/import 삭제 |
+| 미사용 코드 | 호출 안 되는 함수·미사용 변수/import 삭제. **2026-10-02 패스**: 전 소스(92개) 재스캔 — 파일 밖 미사용 export 1건(`webmail.ts` `Webmail`) 내부화, 미호출 함수·미참조 파일 0건. CSS Module 안에서 전역 클래스를 `.app-input` 처럼 그냥 쓰면 해시가 붙어 **조용히 안 먹는다** — `:global(.app-input)` 로 쓸 것(연차 계산기에서 실제로 그랬다) |
 | 디버그 로그 | 임시 `console.log` 제거 (의도적 에러 로그는 유지) |
 | 역할 주석 | 비자명한 함수/모듈에 한 줄 주석 (왜 그렇게 하는지) |
 
