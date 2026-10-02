@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import ColorWheel from '@/components/ColorWheel';
+import { useOutsideClose } from '@/lib/useOutsideClose';
 import { TIER_PALETTE } from '@/lib/colors';
 
 type Props = {
@@ -22,14 +23,7 @@ export default function ColorPalette({ value, onChange, immediate = false }: Pro
   const [preview, setPreview] = useState(value);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    function onDoc(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
+  useOutsideClose(ref, open, () => setOpen(false));
 
   function toggle() {
     setPreview(value);

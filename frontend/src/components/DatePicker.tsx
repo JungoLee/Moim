@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import styles from './DatePicker.module.scss';
-import { pad2, dateKey, parseDateKey, addDays } from '@/lib/datetime';
+import { pad2, dateKey, parseDateKey, monthGridDays } from '@/lib/datetime';
+import { useOutsideClose } from '@/lib/useOutsideClose';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -21,30 +22,14 @@ export default function DatePicker({ value, onChange, markedDates, block }: Prop
   const [view, setView] = useState<Date>(() => parseDateKey(value) || new Date());
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    function onDoc(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
+  useOutsideClose(ref, open, () => setOpen(false));
 
   function toggle() {
     setView(parseDateKey(value) || new Date());
     setOpen((o) => !o);
   }
 
-  const monthStart = new Date(view.getFullYear(), view.getMonth(), 1);
-  const monthEnd = new Date(view.getFullYear(), view.getMonth() + 1, 0);
-  const gridStart = addDays(monthStart, -monthStart.getDay());
-  const gridEnd = addDays(monthEnd, 6 - monthEnd.getDay());
-  const days: Date[] = [];
-  let cur = gridStart;
-  while (cur.getTime() <= gridEnd.getTime()) {
-    days.push(cur);
-    cur = addDays(cur, 1);
-  }
+  const days = monthGridDays(view);
 
   return (
     <div className={block ? `${styles.wrap} ${styles.wrapBlock}` : styles.wrap} ref={ref}>

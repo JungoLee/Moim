@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Mark } from '@/lib/types';
 import styles from './AvailabilityCalendar.module.scss';
-import { pad2, dateKey as toKey, addDays, startOfDay } from '@/lib/datetime';
+import { pad2, dateKey as toKey, addDays, startOfDay, monthGridDays } from '@/lib/datetime';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -45,16 +45,7 @@ export default function AvailabilityCalendar({ myMarks, summary, total, onApply 
     return () => window.removeEventListener('mouseup', onUp);
   }, [dragging, anchor, focusDay, today, onApply]);
 
-  const monthStart = new Date(view.getFullYear(), view.getMonth(), 1);
-  const monthEnd = new Date(view.getFullYear(), view.getMonth() + 1, 0);
-  const gridStart = addDays(monthStart, -monthStart.getDay());
-  const gridEnd = addDays(monthEnd, 6 - monthEnd.getDay());
-  const days: Date[] = [];
-  let cur = gridStart;
-  while (cur.getTime() <= gridEnd.getTime()) {
-    days.push(cur);
-    cur = addDays(cur, 1);
-  }
+  const days = monthGridDays(view);
 
   function inSelection(day: Date): boolean {
     if (!anchor || !focusDay) return false;

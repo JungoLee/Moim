@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useOutsideClose } from '@/lib/useOutsideClose';
 
 type SelectOption = { value: string; label: string };
 
@@ -17,14 +18,7 @@ export default function Select({ value, onChange, options, placeholder = '선택
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    function onDoc(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
+  useOutsideClose(ref, open, () => setOpen(false));
 
   const selected = options.find((o) => o.value === value);
 

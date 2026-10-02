@@ -7,6 +7,7 @@ import { api, getToken } from '@/lib/api';
 import { copyToClipboard } from '@/lib/clipboard';
 import { subscribeQuickActions, type QuickAction } from '@/lib/quickActions';
 import { guideForPath, startGuide } from '@/lib/guide';
+import { useOutsideClose } from '@/lib/useOutsideClose';
 import Notice from '@/components/Notice';
 import Modal from '@/components/Modal';
 import RoomChat from '@/components/RoomChat';
@@ -92,14 +93,7 @@ export default function QuickActions() {
   }, [pathname]);
 
   // 메뉴 바깥 클릭 시 닫기 (화면을 가리지 않고 클릭은 그대로 통과)
-  useEffect(() => {
-    if (!menuOpen) return;
-    function onDown(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setMenuOpen(false);
-    }
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, [menuOpen]);
+  useOutsideClose(wrapRef, menuOpen, () => setMenuOpen(false));
 
   function openAddFriend() {
     setMenuOpen(false);

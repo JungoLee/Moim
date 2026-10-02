@@ -43,6 +43,21 @@ export function addDays(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
+/** 달력 한 달 칸 — 그 달 1일이 든 주의 일요일부터 말일이 든 주의 토요일까지(DatePicker·AvailabilityCalendar 공용) */
+export function monthGridDays(view: Date): Date[] {
+  const monthStart = new Date(view.getFullYear(), view.getMonth(), 1);
+  const monthEnd = new Date(view.getFullYear(), view.getMonth() + 1, 0);
+  const gridStart = addDays(monthStart, -monthStart.getDay());
+  const gridEnd = addDays(monthEnd, 6 - monthEnd.getDay());
+  const days: Date[] = [];
+  let cur = gridStart;
+  while (cur.getTime() <= gridEnd.getTime()) {
+    days.push(cur);
+    cur = addDays(cur, 1);
+  }
+  return days;
+}
+
 export function startOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
