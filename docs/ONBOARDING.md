@@ -52,6 +52,9 @@ JWT_SECRET=<운영과 동일한 고정 문자열>
 GOOGLE_CLIENT_SECRET=<구글 클라이언트 비밀번호>
 ```
 
+다른 PC 로 옮길 때 git 으로 안 넘어가는 파일은 루트 `.dev.vars` 와 `frontend/.env.local` 둘이다 — 실제 값은 노션 자료실
+[🔐 Moim Environment Variables](https://app.notion.com/p/3974c4005827814fbee2c52edffef5c1) 에 있다(저장소에 적지 않는다).
+
 ---
 
 ## 3. 트러블슈팅 — "에러나면 여기부터 의심"
@@ -118,11 +121,11 @@ frontend/  Next.js App Router (정적 export → out/)
                   RoomChat(모임 플로팅 채팅·폴링) · UserProfileModal · Modal · ConfirmHost · Toaster · Accordion · GuideHost(사용 가이드 투어)
                   Select · TimeSelect · ColorPalette+ColorWheel · Avatar · MemberRow · Notice · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · AdUnit
                   CodeBoxes(인증코드 6칸 입력) · LandingContent(랜딩 공개 소개) · JsonLd(구조화 데이터)
-  src/lib/        api.ts(fetch+토큰) · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense · seo(메타·OG·noindex)
+  src/lib/        api.ts(fetch+토큰) · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense · seo(메타·OG·noindex) · webmail(메일함 바로가기) · useOutsideClose(팝업 바깥 클릭 닫기 훅)
   public/         ads.txt(애드센스 게시자 확인)
 scripts/   verify-api.mjs(API 통합 검증 57항목) · mongo-to-d1-seed.mjs(백업 JSON → seed.sql) · open-browser.mjs(dev 서버 뜨면 브라우저 오픈)
 docs/      PLAN.md(로드맵·할 일) · operating-notes.md(운영 규칙) · refactoring-guide.md · UPGRADE-IDEAS.md(아이디어 목록) · rem-convention.md(치수 규칙) · workers-auto-deploy.md(자동 배포 절차) · ONBOARDING.md(이 문서)
-           역사·인계 기록: cf-migration.md(이관 당시 기록) · handoff-no-mongo.md(Atlas 접속 금지 인계)
+           역사 기록: cf-migration.md(이관 당시 기록)
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 루트        wrangler.toml(도메인·assets·D1 바인딩) · .dev.vars(로컬 시크릿, gitignore) · package.json
 ```
