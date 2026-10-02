@@ -179,7 +179,14 @@ h3 {
     margin-right: var(--space-2);
   }
   .app-nav a {
-    padding: var(--space-1) var(--space-2);
+    padding: var(--space-2); /* 손가락 터치 높이 확보 */
+  }
+  /* 가로로 밀리는 메뉴 — 양 끝을 흐리게 해 더 있다는 걸 알리고, 잘린 글자가 깨져 보이지 않게 */
+  .app-nav-links {
+    padding-inline: var(--space-3);
+    scroll-padding-inline: var(--space-4);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--space-4), #000 calc(100% - var(--space-4)), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--space-4), #000 calc(100% - var(--space-4)), transparent 100%);
   }
   .app-modal,
   .app-confirm {
@@ -317,6 +324,7 @@ h3 {
   padding: 0 var(--space-4);
   height: 2.5rem;
   font-weight: 600;
+  white-space: nowrap; /* 좁은 화면에서 '+ 새 일정' 같은 라벨이 두 줄로 접히지 않게 */
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 }

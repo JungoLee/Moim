@@ -92,3 +92,14 @@
   padding: var(--space-2) 0;
   border-top: 1px solid var(--color-border-soft);
 }
+/* 좁은 화면 — 한 줄에 다 넣으면 제목이 한 글자씩 접힌다('치/과').
+   제목·D-day 를 윗줄에, 날짜·연차 설명은 아랫줄 전체로 */
+@media (max-width: 600px) {
+  .row {
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+  }
+  .row > :global(.app-muted) {
+    flex-basis: 100%;
+  }
+}
