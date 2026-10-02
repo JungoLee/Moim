@@ -1146,9 +1146,16 @@ a.app-card:hover {
   .app-modal,
   .app-drawer,
   .app-modal-backdrop,
-  .app-drawer-backdrop {
+  .app-drawer-backdrop,
+  .app-nav a.app-nav-feature::after {
     animation: none;
   }
+}
+
+/* 키보드 포커스 — 링크·요약 등 따로 정하지 않은 것에 같은 링(마우스 클릭엔 안 보임). :where 라 점수 0 */
+:where(a, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* 유틸 */
@@ -1860,8 +1867,8 @@ a.app-card:hover {
 }
 .app-code-box:focus {
   outline: none;
-  border-color: var(--color-primary, #4f46e5);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow); /* 다른 입력칸과 같은 빛 */
 }
 .app-code-box:disabled { opacity: 0.5; }
 /* 6칸과 붙여넣기 버튼을 세로로 */
