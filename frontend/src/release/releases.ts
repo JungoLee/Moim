@@ -36,6 +36,19 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.2.0',
+    date: '2026-10-06',
+    title: '메일함 바로가기와 화면 다듬기',
+    items: [
+      { kind: 'feature', text: '인증 코드를 보낸 뒤 메일함으로 바로 가는 버튼이 생겼습니다(Gmail·네이버 등 자주 쓰는 메일).' },
+      { kind: 'fix', text: '창을 겹쳐 연 상태에서 ESC 를 누르면 아래 창까지 함께 닫히던 문제를 고쳤습니다.' },
+      { kind: 'fix', text: '연차 계산기 입력칸 너비가 제각각이던 문제를 고쳤습니다.' },
+      { kind: 'improve', text: '휴대폰에서 상단 메뉴가 잘리지 않고 옆으로 밀어 볼 수 있으며, 버튼 글자가 한 줄로 보입니다.' },
+      { kind: 'improve', text: '홈 목록에서 제목이 좁게 눌리지 않도록 두 줄로 배치했습니다.' },
+      { kind: 'improve', text: '‘동작 줄이기’ 설정을 켜면 반짝이는 효과가 멈추고, 키보드로 이동할 때 선택한 곳이 잘 보입니다.' },
+    ],
+  },
+  {
     version: '1.1.1',
     date: '2026-09-15',
     title: '업데이트 내역 공개',
