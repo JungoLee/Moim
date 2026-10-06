@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { subscribe, resolveConfirm, type ConfirmState } from '@/lib/confirm';
+import { useEscClose } from '@/lib/useEscClose';
 
 /** 전역 커스텀 확인 다이얼로그 호스트 (layout 에 1회 마운트). */
 export default function ConfirmHost() {
@@ -9,12 +10,14 @@ export default function ConfirmHost() {
 
   useEffect(() => subscribe(setC), []);
 
-  // ESC=취소 / Enter=확인
+  // ESC=취소 — 확인창이 맨 위 층이라 아래 창(모달·서랍)은 닫히지 않는다
+  useEscClose(() => resolveConfirm(false), !!c);
+
+  // Enter=확인
   useEffect(() => {
     if (!c) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') resolveConfirm(false);
-      else if (e.key === 'Enter') resolveConfirm(true);
+      if (e.key === 'Enter') resolveConfirm(true);
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);

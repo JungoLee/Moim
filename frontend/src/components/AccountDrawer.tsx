@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, clearToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
+import { useEscClose } from '@/lib/useEscClose';
 import { toast } from '@/lib/toast';
 import { displayName } from '@/lib/format';
 import CopyButton from '@/components/CopyButton';
@@ -27,14 +28,8 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
       .catch(() => {});
   }, []);
 
-  // ESC 로 닫기
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  // ESC 로 닫기 — 위에 뜬 약관·업데이트 창이나 확인창이 먼저 받는다(층 스택)
+  useEscClose(onClose);
 
   function logout() {
     clearToken();

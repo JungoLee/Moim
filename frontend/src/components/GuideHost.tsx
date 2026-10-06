@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { subscribeGuide, stopGuide, type GuideStep } from '@/lib/guide';
+import { useEscClose } from '@/lib/useEscClose';
 
 const PAD = 8; // 스포트라이트가 대상보다 살짝 크게 (px)
 const TIP_W = 340; // 설명 카드 폭 (px, CSS 와 동일)
@@ -72,15 +73,8 @@ export default function GuideHost() {
     };
   }, [step, measure]);
 
-  // ESC 로 닫기
-  useEffect(() => {
-    if (!steps) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') stopGuide();
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [steps]);
+  // ESC 로 닫기 (층 스택 — 가이드 중 열린 창이 있으면 그 창이 먼저)
+  useEscClose(stopGuide, !!steps);
 
   // 카드 위치 계산 — paint 전(useLayoutEffect)에 실제 높이 측정: 아래 → 위 → 그래도 안 되면 화면 안 클램프
   useLayoutEffect(() => {
