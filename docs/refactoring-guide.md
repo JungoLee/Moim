@@ -25,7 +25,7 @@
 | 컴포넌트 내 직접 `fetch` | 금지 — `lib/api.ts` 의 `api<T>()` 만 사용 |
 | 프론트/백 검증 중복 | 워커 핸들러를 **최종 검증 출처**로, 프론트는 UX 검증만 |
 | 반복되는 폼 입력 블록 | 공용 컴포넌트로 추출 |
-| 팝업 바깥 클릭 닫기·달력 칸 계산 | ✅ 2026-10-02 공용화 — `lib/useOutsideClose`(Select·DatePicker·ColorPalette·QuickActions), `lib/datetime` `monthGridDays`(DatePicker·AvailabilityCalendar). 새 팝업도 이 훅을 쓴다 |
+| 팝업 바깥 클릭 닫기·달력 칸 계산 | ✅ 2026-10-02 공용화 — `lib/useOutsideClose`(Select·DatePicker·ColorPalette·QuickActions), `lib/datetime` `monthGridDays`(DatePicker·AvailabilityCalendar). 새 팝업도 이 훅을 쓴다. ESC 닫기는 `lib/useEscClose`(2026-10-06 — Modal·AccountDrawer·ConfirmHost·GuideHost) — 층 스택이라 겹쳐 열린 창은 맨 위 하나만 닫힌다. 컴포넌트에 keydown 리스너를 새로 달지 않는다 |
 
 ---
 

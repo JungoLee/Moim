@@ -121,7 +121,7 @@ frontend/  Next.js App Router (정적 export → out/)
                   RoomChat(모임 플로팅 채팅·폴링) · UserProfileModal · Modal · ConfirmHost · Toaster · Accordion · GuideHost(사용 가이드 투어)
                   Select · TimeSelect · ColorPalette+ColorWheel · Avatar · MemberRow · Notice · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · AdUnit
                   CodeBoxes(인증코드 6칸 입력) · LandingContent(랜딩 공개 소개) · JsonLd(구조화 데이터)
-  src/lib/        api.ts(fetch+토큰) · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense · seo(메타·OG·noindex) · webmail(메일함 바로가기) · useOutsideClose(팝업 바깥 클릭 닫기 훅)
+  src/lib/        api.ts(fetch+토큰) · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense · seo(메타·OG·noindex) · webmail(메일함 바로가기) · useOutsideClose(팝업 바깥 클릭 닫기 훅) · useEscClose(ESC 닫기 — 겹친 창은 맨 위 하나만)
   public/         ads.txt(애드센스 게시자 확인)
 scripts/   verify-api.mjs(API 통합 검증 57항목) · mongo-to-d1-seed.mjs(백업 JSON → seed.sql) · open-browser.mjs(dev 서버 뜨면 브라우저 오픈)
 docs/      PLAN.md(로드맵·할 일) · operating-notes.md(운영 규칙) · refactoring-guide.md · UPGRADE-IDEAS.md(아이디어 목록) · rem-convention.md(치수 규칙) · workers-auto-deploy.md(자동 배포 절차) · ONBOARDING.md(이 문서)
