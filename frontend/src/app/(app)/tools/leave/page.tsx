@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import type { EventInput } from '@fullcalendar/core';
-import { fmtDayRange } from '@/lib/datetime';
+import { fmtDay, fmtDayRange } from '@/lib/datetime';
 import { addDays, computeLeavePlan, toKey, metricLabel, type Bridge, type LeaveStyle } from '@/lib/leave';
 import { getHolidays } from '@/lib/holidays';
 import { api, getToken } from '@/lib/api';
@@ -74,7 +74,6 @@ function BridgeRow({ p, style }: { p: Bridge; style: LeaveStyle }) {
 
 export default function LeavePlanner() {
   const [remaining, setRemaining] = useState('15');
-  const [start, setStart] = useState(() => toKey(todayMidnight()));
   const [renewal, setRenewal] = useState(() => toKey(addDays(todayMidnight(), 365)));
   const [maxConsec, setMaxConsec] = useState('5');
   const [style, setStyle] = useState<LeaveStyle>('balanced');
@@ -92,7 +91,6 @@ export default function LeavePlanner() {
         const v = r.leave;
         if (!v) return;
         if (typeof v.remaining === 'number') setRemaining(String(v.remaining));
-        if (v.start) setStart(v.start);
         if (v.renewal) setRenewal(v.renewal);
         if (typeof v.maxConsec === 'number') setMaxConsec(String(v.maxConsec));
         if (v.style) setStyle(v.style);
@@ -102,10 +100,10 @@ export default function LeavePlanner() {
 
   function calculate() {
     setError('');
-    const from = parseDate(start) || todayMidnight();
+    const from = todayMidnight(); // 시작은 늘 오늘 (사용자 요청 2026-10-08)
     const to = parseDate(renewal) || addDays(todayMidnight(), 365);
     if (from.getTime() >= to.getTime()) {
-      setError('시작일이 갱신일보다 빨라야 해요.');
+      setError('갱신일은 오늘보다 뒤여야 해요.');
       return;
     }
     const rem = parseFloat(remaining) || 0;
@@ -155,7 +153,7 @@ export default function LeavePlanner() {
     if (getToken()) {
       api('/api/auth/leave', {
         method: 'PUT',
-        body: { remaining: rem, start, renewal, maxConsec: maxC, style },
+        body: { remaining: rem, start: toKey(from), renewal, maxConsec: maxC, style },
       }).catch(() => {});
     }
   }
@@ -195,7 +193,7 @@ export default function LeavePlanner() {
             </div>
             <div className="ui-field">
               <span className="ui-label">시작일</span>
-              <DatePicker value={start} onChange={setStart} block ariaLabel="시작일" />
+              <p className={`ui-input ${s.fixed}`}>오늘 · {fmtDay(todayMidnight())}</p>
             </div>
             <div className="ui-field">
               <span className="ui-label">연차 갱신일 (까지)</span>

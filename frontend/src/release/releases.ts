@@ -36,6 +36,12 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '2.0.1',
+    date: '2026-10-08',
+    title: '연차 계산은 오늘부터',
+    items: [{ kind: 'improve', text: '연차 계산기와 홈의 추천 연차가 늘 오늘부터 계산합니다. 시작일을 따로 고르지 않아도 돼요.' }],
+  },
+  {
     version: '2.0.0',
     date: '2026-10-08',
     title: '새 화면 — 보드와 표',
