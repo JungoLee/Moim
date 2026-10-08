@@ -106,11 +106,13 @@ export async function accept(request, env, params, body, userId) {
         tr.id, label(tr.from_user), label(tr.to_user), tr.created_at, ts, ts
       );
 
-  await db.batch([
-    db.prepare(`UPDATE time_requests SET status = 'accepted', updated_at = ? WHERE id = ?`).bind(ts, tr.id),
-    mkEvent(tr.to_user),
-    mkEvent(tr.from_user),
-  ]);
+  // 먼저 상태를 바꾸고(대기 중일 때만), 바뀐 경우에만 일정을 만든다 — 빠르게 두 번 눌러도 일정이 한 쌍만 생긴다
+  const r = await db
+    .prepare(`UPDATE time_requests SET status = 'accepted', updated_at = ? WHERE id = ? AND status = 'pending'`)
+    .bind(ts, tr.id)
+    .run();
+  if (!r.meta.changes) return fail('이미 처리된 요청입니다.', 409);
+  await db.batch([mkEvent(tr.to_user), mkEvent(tr.from_user)]);
   return json({ ok: true });
 }
 

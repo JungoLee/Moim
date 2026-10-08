@@ -1,6 +1,6 @@
 // 모임 방 — 코드로 초대된 멤버들이 가능한 날짜를 등록하면 모두 되는 날을 집계한다.
 import { json, fail } from './http.js';
-import { newId, nowIso, isId, userBrief } from './db.js';
+import { newId, nowIso, toIso, isId, userBrief } from './db.js';
 import { generateUniqueCode } from './tiers.js';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -31,17 +31,46 @@ async function isMember(db, roomId, ownerId, userId) {
   return !!row;
 }
 
-// 내 방 목록 (소유 + 참여)
+// 한국(KST) 기준 오늘 'YYYY-MM-DD' (서버가 UTC 여도 같다)
+function kstToday() {
+  const k = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  return k.toISOString().slice(0, 10);
+}
+
+/** 확정 상태 — 비어 있으면 null */
+function confirmedOf(row) {
+  return row.confirmed_start ? { start: row.confirmed_start, end: row.confirmed_end, at: row.confirmed_at } : null;
+}
+
+// 내 방 목록 (소유 + 참여) + 진행 상태(찍은 사람 수·내가 찍었는지·오늘 이후 모두 되는 날 수·확정)
 export async function list(request, env, params, body, userId) {
-  const { results } = await env.DB.prepare(
-    `SELECT r.id, r.name, r.code, r.owner,
-            (SELECT COUNT(*) FROM room_members m WHERE m.room_id = r.id) AS member_count
-     FROM rooms r
-     WHERE r.owner = ? OR EXISTS (SELECT 1 FROM room_members m WHERE m.room_id = r.id AND m.user_id = ?)
-     ORDER BY r.created_at DESC`
-  )
-    .bind(userId, userId)
-    .all();
+  const db = env.DB;
+  const mine = `SELECT room_id FROM room_members WHERE user_id = ? UNION SELECT id FROM rooms WHERE owner = ?`;
+  const [{ results }, { results: yesDays }] = await db.batch([
+    db
+      .prepare(
+        `SELECT r.id, r.name, r.code, r.owner, r.confirmed_start, r.confirmed_end, r.confirmed_at,
+                (SELECT COUNT(*) FROM room_members m WHERE m.room_id = r.id) AS member_count,
+                (SELECT COUNT(DISTINCT a.user_id) FROM room_availability_marks a WHERE a.room_id = r.id) AS marked_count,
+                EXISTS (SELECT 1 FROM room_availability_marks a WHERE a.room_id = r.id AND a.user_id = ?) AS my_marked
+         FROM rooms r
+         WHERE r.id IN (${mine})
+         ORDER BY r.created_at DESC`
+      )
+      .bind(userId, userId, userId),
+    db
+      .prepare(
+        `SELECT room_id, date, COUNT(*) AS yes_count FROM room_availability_marks
+         WHERE status = 'yes' AND date >= ? AND room_id IN (${mine})
+         GROUP BY room_id, date`
+      )
+      .bind(kstToday(), userId, userId),
+  ]);
+  const memberCount = Object.fromEntries(results.map((r) => [r.id, r.member_count]));
+  const fullDays = {};
+  for (const d of yesDays) {
+    if (memberCount[d.room_id] > 0 && d.yes_count >= memberCount[d.room_id]) fullDays[d.room_id] = (fullDays[d.room_id] || 0) + 1;
+  }
   return json({
     ok: true,
     rooms: results.map((r) => ({
@@ -49,6 +78,10 @@ export async function list(request, env, params, body, userId) {
       name: r.name,
       code: r.code,
       memberCount: r.member_count,
+      markedCount: r.marked_count,
+      myMarked: !!r.my_marked,
+      fullDayCount: fullDays[r.id] || 0,
+      confirmed: confirmedOf(r),
       isOwner: r.owner === userId,
     })),
   });
@@ -122,6 +155,7 @@ export async function detail(request, env, params, body, userId) {
       joinByUrl: !!room.join_by_url,
       owner: room.owner,
       members: members.map(userBrief),
+      confirmed: confirmedOf(room),
     },
     availabilities,
     comments: comments.map((c) => ({
@@ -261,5 +295,68 @@ export async function remove(request, env, params, body, userId) {
   if (!isId(params.id)) return fail('잘못된 id 입니다.');
   const r = await env.DB.prepare('DELETE FROM rooms WHERE id = ? AND owner = ?').bind(params.id, userId).run();
   if (!r.meta.changes) return fail('방을 찾을 수 없거나 권한이 없습니다.', 404);
+  return json({ ok: true });
+}
+
+// 날짜 확정 (방장만) — 이전 확정 일정을 지우고 멤버 모두의 캘린더에 비공개 종일 일정을 만든다.
+// start·end 는 브라우저가 만든 ISO(첫날 00:00 · 끝날 23:59 로컬) — 일정 화면의 종일 규칙과 같게 하려고 받는다.
+export async function confirm(request, env, params, body, userId) {
+  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  const b = body || {};
+  const startDate = typeof b.startDate === 'string' ? b.startDate : '';
+  const endDate = typeof b.endDate === 'string' ? b.endDate : '';
+  if (!DATE_RE.test(startDate) || !DATE_RE.test(endDate) || startDate > endDate) return fail('날짜가 올바르지 않습니다.');
+  const startIso = toIso(b.start);
+  const endIso = toIso(b.end);
+  if (!startIso || !endIso || startIso > endIso) return fail('시각이 올바르지 않습니다.');
+  if (Date.parse(endIso) - Date.parse(startIso) > 31 * 86_400_000) return fail('확정 기간은 31일까지입니다.');
+
+  const db = env.DB;
+  const room = await db.prepare('SELECT id, name, owner FROM rooms WHERE id = ?').bind(params.id).first();
+  if (!room) return fail('방을 찾을 수 없습니다.', 404);
+  if (room.owner !== userId) return fail('방장만 날짜를 확정할 수 있습니다.', 403);
+
+  const [{ results: members }, { results: ownerRows }] = await db.batch([
+    db.prepare('SELECT user_id FROM room_members WHERE room_id = ?').bind(room.id),
+    db.prepare('SELECT name, nickname, email FROM users WHERE id = ?').bind(room.owner),
+  ]);
+  const ownerRow = ownerRows[0];
+  const ownerName = (ownerRow && (ownerRow.nickname || ownerRow.name || ownerRow.email)) || '';
+  const memberIds = new Set(members.map((m) => m.user_id));
+  memberIds.add(room.owner);
+
+  const ts = nowIso();
+  await db.batch([
+    db.prepare(`DELETE FROM events WHERE origin_kind = 'room' AND origin_request_id = ?`).bind(room.id),
+    ...[...memberIds].map((owner) =>
+      db
+        .prepare(
+          `INSERT INTO events (id, owner, title, start, end, all_day, location, memo, visibility,
+             origin_kind, origin_request_id, origin_from_name, origin_to_name, origin_requested_at, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, 1, '', '', 'private', 'room', ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(newId(), owner, room.name, startIso, endIso, room.id, ownerName, room.name, ts, ts, ts)
+    ),
+    db
+      .prepare('UPDATE rooms SET confirmed_start = ?, confirmed_end = ?, confirmed_at = ?, updated_at = ? WHERE id = ?')
+      .bind(startDate, endDate, ts, ts, room.id),
+  ]);
+  return json({ ok: true, confirmed: { start: startDate, end: endDate, at: ts }, eventCount: memberIds.size });
+}
+
+// 확정 취소 (방장만) — 그 방에서 만든 일정을 지운다
+export async function unconfirm(request, env, params, body, userId) {
+  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  const db = env.DB;
+  const room = await db.prepare('SELECT id, owner FROM rooms WHERE id = ?').bind(params.id).first();
+  if (!room) return fail('방을 찾을 수 없습니다.', 404);
+  if (room.owner !== userId) return fail('방장만 확정을 취소할 수 있습니다.', 403);
+  const ts = nowIso();
+  await db.batch([
+    db.prepare(`DELETE FROM events WHERE origin_kind = 'room' AND origin_request_id = ?`).bind(room.id),
+    db
+      .prepare(`UPDATE rooms SET confirmed_start = '', confirmed_end = '', confirmed_at = '', updated_at = ? WHERE id = ?`)
+      .bind(ts, room.id),
+  ]);
   return json({ ok: true });
 }

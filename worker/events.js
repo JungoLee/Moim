@@ -2,12 +2,15 @@
 import { json, fail } from './http.js';
 import { newId, nowIso, toIso, isId, placeholders, groupBy, eventDoc } from './db.js';
 
-/** 여러 일정의 audienceTiers 를 한 번에 조회 → { [eventId]: [tierId] } */
-async function loadAudience(db, ids) {
-  if (!ids.length) return {};
+/** 한 사람의 일정 audienceTiers 를 한 번에 조회 → { [eventId]: [tierId] }
+ *  (일정 id 를 IN (?, …) 로 나열하면 D1 바인딩 100개 한도에 걸린다 — 소유자 조건 JOIN 으로) */
+async function loadAudience(db, ownerId) {
   const { results } = await db
-    .prepare(`SELECT event_id, tier_id FROM event_audience_tiers WHERE event_id IN (${placeholders(ids.length)})`)
-    .bind(...ids)
+    .prepare(
+      `SELECT a.event_id, a.tier_id FROM event_audience_tiers a
+       JOIN events e ON e.id = a.event_id WHERE e.owner = ?`
+    )
+    .bind(ownerId)
     .all();
   return groupBy(results, 'event_id', 'tier_id');
 }
@@ -38,18 +41,19 @@ export async function list(request, env, params, body, userId) {
     .bind(userId, ...args)
     .all();
 
-  const audience = await loadAudience(db, results.map((r) => r.id));
+  const audience = await loadAudience(db, userId);
 
   // 시간 요청 일정: 상대방 사본이 아직 살아있는지 표시 (삭제됐으면 클릭 시 안내용)
-  const reqIds = [...new Set(results.filter((r) => r.origin_kind === 'timeRequest' && r.origin_request_id).map((r) => r.origin_request_id))];
   let alive = new Set();
-  if (reqIds.length) {
+  if (results.some((r) => r.origin_kind === 'timeRequest' && r.origin_request_id)) {
     const { results: partners } = await db
       .prepare(
-        `SELECT DISTINCT origin_request_id AS rid FROM events
-         WHERE origin_request_id IN (${placeholders(reqIds.length)}) AND owner != ?`
+        `SELECT DISTINCT p.origin_request_id AS rid FROM events p
+         WHERE p.owner != ? AND p.origin_kind = 'timeRequest' AND p.origin_request_id IN (
+           SELECT origin_request_id FROM events
+           WHERE owner = ? AND origin_kind = 'timeRequest' AND origin_request_id IS NOT NULL)`
       )
-      .bind(...reqIds, userId)
+      .bind(userId, userId)
       .all();
     alive = new Set(partners.map((p) => p.rid));
   }
@@ -67,7 +71,7 @@ export async function list(request, env, params, body, userId) {
 // 비공개 일정의 audienceTiers 입력 정규화 (유효한 id 배열만)
 function normalizeAudience(audienceTiers) {
   if (!Array.isArray(audienceTiers)) return [];
-  return [...new Set(audienceTiers.filter(isId))];
+  return [...new Set(audienceTiers.filter(isId))].slice(0, 50); // 바인딩 100개 한도 안쪽
 }
 
 /** audienceTiers 재작성 statement 목록 (batch 용). 존재하지 않는 그룹은 FK 가 막으므로 사전 필터 */
@@ -148,8 +152,11 @@ export async function update(request, env, params, body, userId) {
   await db.batch(stmts);
 
   const updated = await db.prepare('SELECT * FROM events WHERE id = ?').bind(params.id).first();
-  const audience = await loadAudience(db, [params.id]);
-  return json({ ok: true, event: eventDoc(updated, audience[params.id] || []) });
+  const { results: at } = await db
+    .prepare('SELECT tier_id FROM event_audience_tiers WHERE event_id = ?')
+    .bind(params.id)
+    .all();
+  return json({ ok: true, event: eventDoc(updated, at.map((t) => t.tier_id)) });
 }
 
 // 일정 삭제

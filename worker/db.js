@@ -40,6 +40,7 @@ export function userDoc(row) {
     nickname: row.nickname,
     picture: row.picture,
     isAdmin: !!row.is_admin,
+    uiTheme: row.ui_theme || '',
     leave: {
       remaining: row.leave_remaining,
       start: row.leave_start,

@@ -1,6 +1,6 @@
 // 그룹(Tier) — 일정 비공개 시 상세를 볼 수 있는 사용자 묶음
 import { json, fail } from './http.js';
-import { newId, nowIso, isId, placeholders, userBrief, tierDoc } from './db.js';
+import { newId, nowIso, isId, userBrief, tierDoc } from './db.js';
 
 const COLOR_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -27,14 +27,14 @@ export async function list(request, env, params, body, userId) {
     .all();
   if (!tiers.length) return json({ ok: true, tiers: [] });
 
-  const ids = tiers.map((t) => t.id);
+  // 그룹 id 를 IN (?, …) 로 나열하지 않는다(D1 바인딩 100개 한도) — 소유자 조건 JOIN
   const { results: members } = await db
     .prepare(
       `SELECT m.tier_id, u.id, u.name, u.nickname, u.email, u.picture
-       FROM tier_members m JOIN users u ON u.id = m.user_id
-       WHERE m.tier_id IN (${placeholders(ids.length)})`
+       FROM tier_members m JOIN tiers t ON t.id = m.tier_id JOIN users u ON u.id = m.user_id
+       WHERE t.owner = ?`
     )
-    .bind(...ids)
+    .bind(userId)
     .all();
   const byTier = {};
   for (const m of members) (byTier[m.tier_id] ||= []).push(userBrief(m));

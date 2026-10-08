@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
   leave_renewal    TEXT NOT NULL DEFAULT '',
   leave_max_consec INTEGER NOT NULL DEFAULT 5,
   leave_style      TEXT NOT NULL DEFAULT 'balanced',
+  ui_theme         TEXT NOT NULL DEFAULT '',   -- 화면 테마: board | table | ''(기본=board)
   created_at       TEXT NOT NULL,
   updated_at       TEXT NOT NULL
 );
@@ -94,6 +95,10 @@ CREATE TABLE IF NOT EXISTS rooms (
   name        TEXT NOT NULL,
   code        TEXT NOT NULL UNIQUE,
   join_by_url INTEGER NOT NULL DEFAULT 0,
+  -- 확정한 날짜(YYYY-MM-DD, 끝 포함). 비어 있으면 미확정. 확정 시 멤버 모두에게 origin_kind='room' 일정 생성
+  confirmed_start TEXT NOT NULL DEFAULT '',
+  confirmed_end   TEXT NOT NULL DEFAULT '',
+  confirmed_at    TEXT NOT NULL DEFAULT '',
   created_at  TEXT NOT NULL,
   updated_at  TEXT NOT NULL
 );

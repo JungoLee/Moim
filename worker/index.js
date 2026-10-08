@@ -39,6 +39,7 @@ const ROUTES = [
   ['POST', '/api/friends/requests/:id/decline', friends.decline, true],
 
   // 캘린더(타인)
+  ['GET', '/api/calendar/friends', calendar.friendsBusy, true], // :userId 보다 먼저 — 'friends' 도 id 모양이라
   ['GET', '/api/calendar/:userId', calendar.get, true],
 
   // 그룹
@@ -63,6 +64,8 @@ const ROUTES = [
   ['POST', '/api/rooms/:id/code', rooms.regenerateCode, true],
   ['DELETE', '/api/rooms/:id/members/:userId', rooms.removeMember, true],
   ['POST', '/api/rooms/:id/join-url', rooms.joinByUrl, true],
+  ['POST', '/api/rooms/:id/confirm', rooms.confirm, true],
+  ['DELETE', '/api/rooms/:id/confirm', rooms.unconfirm, true],
 
   // 시간 요청
   ['GET', '/api/requests/received', requests.received, true],

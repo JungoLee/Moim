@@ -250,10 +250,24 @@ export async function getMe(request, env, params, body, userId) {
   return json({ ok: true, user: userDoc(row) });
 }
 
+const UI_THEMES = new Set(['board', 'table']);
+
+// 보낸 칸만 바꾼다 — 닉네임만 / 화면 테마만 따로 보내도 다른 칸을 지우지 않는다
 export async function patchMe(request, env, params, body, userId) {
-  const nickname = typeof body?.nickname === 'string' ? body.nickname.trim().slice(0, 30) : '';
-  await env.DB.prepare('UPDATE users SET nickname = ?, updated_at = ? WHERE id = ?')
-    .bind(nickname, nowIso(), userId)
+  const sets = [];
+  const args = [];
+  if (typeof body?.nickname === 'string') {
+    sets.push('nickname = ?');
+    args.push(body.nickname.trim().slice(0, 30));
+  }
+  if (body?.uiTheme !== undefined) {
+    if (!UI_THEMES.has(body.uiTheme)) return fail('알 수 없는 화면 테마입니다.');
+    sets.push('ui_theme = ?');
+    args.push(body.uiTheme);
+  }
+  if (!sets.length) return fail('변경할 내용이 없습니다.');
+  await env.DB.prepare(`UPDATE users SET ${sets.join(', ')}, updated_at = ? WHERE id = ?`)
+    .bind(...args, nowIso(), userId)
     .run();
   const row = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
   if (!row) return fail('사용자를 찾을 수 없습니다.', 404);

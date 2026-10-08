@@ -1,4 +1,4 @@
-// Moim Workers API 검증 — 로그인(이메일 코드) → 주요 CRUD → 권한 → 탈퇴 cascade (57 항목)
+// Moim Workers API 검증 — 로그인(이메일 코드) → 주요 CRUD → 권한 → 탈퇴 cascade (2.0 항목 포함)
 // 사용: node scripts/verify-api.mjs <base-url> <로그파일>
 //   npx wrangler dev  실행 후 로그를 파일로 남기고 그 경로를 넘긴다
 // 로그인 코드는 RESEND_API_KEY 미설정 시 워커 콘솔에 출력되므로 로그에서 회수한다.
@@ -110,6 +110,12 @@ const run = async () => {
   const nick = await call('/api/auth/me', { method: 'PATCH', body: { nickname: '검증봇' }, token: tokenA });
   log(nick.status === 200 && nick.data.user.nickname === '검증봇', '닉네임 변경');
 
+  // 5-b. 화면 테마 저장 — 닉네임을 지우지 않는다 (2.0)
+  const theme = await call('/api/auth/me', { method: 'PATCH', body: { uiTheme: 'table' }, token: tokenA });
+  log(theme.status === 200 && theme.data.user.uiTheme === 'table' && theme.data.user.nickname === '검증봇', '화면 테마 저장(닉네임 유지)');
+  const badTheme = await call('/api/auth/me', { method: 'PATCH', body: { uiTheme: 'neon' }, token: tokenA });
+  log(badTheme.status === 400, '알 수 없는 테마 거절', `status=${badTheme.status}`);
+
   // 6. 연차 설정 저장 → 조회
   await call('/api/auth/leave', { method: 'PUT', body: { remaining: 12, start: '2026-01-01', renewal: '2027-01-01', maxConsec: 4, style: 'long' }, token: tokenA });
   const leave = await call('/api/auth/leave', { token: tokenA });
@@ -180,6 +186,14 @@ const run = async () => {
   const busy = cal2.data?.events?.filter((e) => e.busy);
   log(busy?.length === 1 && busy[0]._id === evPId && busy[0].title === undefined, '비공개 일정 → 바쁨 마스킹(제목 미노출)');
 
+  // 16-b. 친구 전원의 바쁜 시간 — 시간만, 제목 없음 (2.0 홈 표 테마)
+  const fb = await call('/api/calendar/friends?from=2026-08-01T00:00:00.000Z&to=2026-10-01T00:00:00.000Z', { token: tokenB });
+  log(
+    fb.status === 200 && fb.data.friends?.some((f) => f._id === idA) && fb.data.busy?.length === 2 && fb.data.busy.every((b) => b.userId === idA && b.title === undefined),
+    '친구 바쁜 시간 조회(시간만)',
+    `${fb.data?.busy?.length}건`
+  );
+
   // 17. 시간 요청 → 수락 → 양쪽 일정 생성
   const tr = await call('/api/requests', {
     method: 'POST',
@@ -204,6 +218,39 @@ const run = async () => {
   const evA2 = await call('/api/events', { token: tokenA });
   log(evA2.data.events.find((e) => e._id === originA._id)?.originPartnerGone === true, '상대 삭제 후 originPartnerGone=true');
 
+  // 18-b. 같은 요청을 두 번 수락 → 두 번째는 409, 일정은 한 쌍만 (2.0 버그 수정)
+  const tr2 = await call('/api/requests', {
+    method: 'POST',
+    body: { to: idB, start: '2026-09-11T05:00:00.000Z', end: '2026-09-11T07:00:00.000Z', title: '점심' },
+    token: tokenA,
+  });
+  const tr2Id = tr2.data?.request?._id;
+  const [acc1, acc2] = await Promise.all([
+    call(`/api/requests/${tr2Id}/accept`, { method: 'POST', token: tokenB }),
+    call(`/api/requests/${tr2Id}/accept`, { method: 'POST', token: tokenB }),
+  ]);
+  const evB3 = await call('/api/events', { token: tokenB });
+  const lunch = evB3.data.events.filter((e) => e.origin?.requestId === tr2Id);
+  log([acc1.status, acc2.status].sort().join(',') !== '200,200' && lunch.length === 1, '두 번 수락해도 일정 한 쌍', `${acc1.status}/${acc2.status}, B 사본 ${lunch.length}개`);
+
+  // 18-c. 일정 100개가 넘어도 목록이 된다 (2.0 — D1 바인딩 100개 한도)
+  const many = Array.from({ length: 105 }, (_, i) => i);
+  for (let i = 0; i < many.length; i += 15) {
+    await Promise.all(
+      many.slice(i, i + 15).map((n) =>
+        call('/api/events', {
+          method: 'POST',
+          body: { title: `대량 ${n}`, start: `2026-11-${String((n % 28) + 1).padStart(2, '0')}T01:00:00.000Z`, end: `2026-11-${String((n % 28) + 1).padStart(2, '0')}T02:00:00.000Z` },
+          token: tokenA,
+        })
+      )
+    );
+  }
+  const bigList = await call('/api/events', { token: tokenA });
+  log(bigList.status === 200 && bigList.data.events.length >= 107, '일정 100개 넘어도 목록 조회', `status=${bigList.status} ${bigList.data?.events?.length}건`);
+  const bigCal = await call(`/api/calendar/${idA}`, { token: tokenB });
+  log(bigCal.status === 200 && bigCal.data.events.length >= 107, '일정 100개 넘어도 친구 캘린더 조회', `status=${bigCal.status}`);
+
   // 19. 모임 방 생성 → 코드 입장 → 상세
   const room = await call('/api/rooms', { method: 'POST', body: { name: '검증모임' }, token: tokenA });
   const roomId = room.data?.room?._id;
@@ -221,6 +268,30 @@ const run = async () => {
   const av = roomD2.data?.availabilities;
   log(av?.[idA]?.length === 2 && av?.[idB]?.length === 1, '가용성 저장·조회');
   log(av[idA].find((m) => m.date === '2026-09-21')?.time === '19:00', '가용성 after 시각 유지');
+
+  // 20-b. 방 목록 진행 상태 — 찍은 사람·내가 찍었나·오늘 이후 모두 되는 날 (2.0)
+  await call(`/api/rooms/${roomId}/availability`, { method: 'PUT', body: { marks: [{ date: '2026-09-20', status: 'yes' }, { date: '2099-12-20', status: 'yes' }] }, token: tokenB });
+  await call(`/api/rooms/${roomId}/availability`, { method: 'PUT', body: { marks: [{ date: '2099-12-20', status: 'yes' }, { date: '2099-12-21', status: 'no' }] }, token: tokenA });
+  const stat = (await call('/api/rooms', { token: tokenA })).data?.rooms?.find((r) => r._id === roomId);
+  log(stat?.markedCount === 2 && stat.myMarked === true && stat.fullDayCount === 1 && stat.confirmed === null, '방 목록 진행 상태', JSON.stringify(stat && { m: stat.markedCount, f: stat.fullDayCount }));
+
+  // 20-c. 날짜 확정 — 방장만, 멤버 모두에게 비공개 종일 일정 (2.0)
+  const confirmBody = { startDate: '2099-12-20', endDate: '2099-12-21', start: '2099-12-19T15:00:00.000Z', end: '2099-12-21T14:59:00.000Z' };
+  const cfByB = await call(`/api/rooms/${roomId}/confirm`, { method: 'POST', body: confirmBody, token: tokenB });
+  log(cfByB.status === 403, '비방장 확정 차단', `status=${cfByB.status}`);
+  const cf = await call(`/api/rooms/${roomId}/confirm`, { method: 'POST', body: confirmBody, token: tokenA });
+  log(cf.status === 200 && cf.data.eventCount === 2, '날짜 확정', `status=${cf.status} 일정 ${cf.data?.eventCount}개`);
+  const cfEvB = (await call('/api/events', { token: tokenB })).data.events.filter((e) => e.origin?.kind === 'room' && e.origin.requestId === roomId);
+  log(cfEvB.length === 1 && cfEvB[0].allDay === true && cfEvB[0].visibility === 'private', '확정 일정이 멤버 캘린더에(비공개 종일)');
+  const cfAgain = await call(`/api/rooms/${roomId}/confirm`, { method: 'POST', body: { ...confirmBody, startDate: '2099-12-21' }, token: tokenA });
+  const cfEvA = (await call('/api/events', { token: tokenA })).data.events.filter((e) => e.origin?.kind === 'room');
+  log(cfAgain.status === 200 && cfEvA.length === 1, '다시 확정하면 이전 일정 교체');
+  const cfDetail = await call(`/api/rooms/${roomId}`, { token: tokenB });
+  log(cfDetail.data?.room?.confirmed?.start === '2099-12-21' && cfDetail.data.room.confirmed.end === '2099-12-21', '방 상세 확정 상태');
+  const uncf = await call(`/api/rooms/${roomId}/confirm`, { method: 'DELETE', token: tokenA });
+  const uncfEv = (await call('/api/events', { token: tokenB })).data.events.filter((e) => e.origin?.kind === 'room');
+  const uncfDetail = await call(`/api/rooms/${roomId}`, { token: tokenA });
+  log(uncf.status === 200 && uncfEv.length === 0 && uncfDetail.data.room.confirmed === null, '확정 취소(일정 정리)');
 
   // 21. 가용성 전체 교체(덮어쓰기)
   await call(`/api/rooms/${roomId}/availability`, { method: 'PUT', body: { marks: [{ date: '2026-09-25', status: 'no' }] }, token: tokenA });
