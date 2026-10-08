@@ -2,33 +2,41 @@
 
 import { useEffect, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
+import styles from './CodeBoxes.module.scss';
 
-// 인증코드 6칸 입력 — 한 칸에 한 글자(영문 대소문자·숫자).
+// 인증코드 6칸 입력(길이는 length 로 바꿀 수 있다 — 모임 초대 코드는 8칸·대문자) — 한 칸에 한 글자(영문·숫자).
 // 붙여넣기·OS 자동완성은 한 번에 여러 글자가 들어오므로 put() 이 칸에 나눠 담는다.
 // ⚠️ maxLength=1 을 주면 안 된다 — OS 자동완성이 첫 글자만 남고 잘린다. 길이는 put() 이 자른다.
 export const CODE_LEN = 6;
-const CODE_RE = /^[A-Za-z0-9]{6}$/;
 
 type Props = {
   value: string;
   onChange: (v: string) => void;
   onComplete?: (v: string) => void;
   disabled?: boolean;
+  /** 칸 수 (기본 6) */
+  length?: number;
+  /** 입력을 대문자로 바꿔 담는다 (기본: 그대로) */
+  uppercase?: boolean;
+  /** 읽기 프로그램용 이름 (기본: '인증 코드 N자리') */
+  label?: string;
 };
 
-export default function CodeBoxes({ value, onChange, onComplete, disabled }: Props) {
+export default function CodeBoxes({ value, onChange, onComplete, disabled, length = CODE_LEN, uppercase = false, label }: Props) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
-  const focusAt = (i: number) => refs.current[Math.max(0, Math.min(CODE_LEN - 1, i))]?.focus();
+  const focusAt = (i: number) => refs.current[Math.max(0, Math.min(length - 1, i))]?.focus();
+  const codeRe = new RegExp(`^[A-Za-z0-9]{${length}}$`);
 
   const put = (from: number, text: string) => {
-    const add = text.replace(/[^A-Za-z0-9]/g, '');
+    let add = text.replace(/[^A-Za-z0-9]/g, '');
+    if (uppercase) add = add.toUpperCase();
     if (!add) return;
     const arr = value.split('');
-    for (let k = 0; k < add.length && from + k < CODE_LEN; k++) arr[from + k] = add[k];
-    const next = arr.join('').slice(0, CODE_LEN);
+    for (let k = 0; k < add.length && from + k < length; k++) arr[from + k] = add[k];
+    const next = arr.join('').slice(0, length);
     onChange(next);
     focusAt(from + add.length);
-    if (next.length === CODE_LEN) onComplete?.(next);
+    if (next.length === length) onComplete?.(next);
   };
 
   const onKeyDown = (i: number) => (e: KeyboardEvent<HTMLInputElement>) => {
@@ -53,9 +61,10 @@ export default function CodeBoxes({ value, onChange, onComplete, disabled }: Pro
       if (value) return;
       try {
         const text = (await navigator.clipboard.readText()).trim();
-        if (CODE_RE.test(text)) {
-          onChange(text);
-          onComplete?.(text);
+        if (codeRe.test(text)) {
+          const v = uppercase ? text.toUpperCase() : text;
+          onChange(v);
+          onComplete?.(v);
         }
       } catch {
         // 읽기 권한이 없으면 그냥 넘어간다
@@ -82,18 +91,18 @@ export default function CodeBoxes({ value, onChange, onComplete, disabled }: Pro
   };
 
   return (
-    <div className="app-code-wrap">
+    <div className={styles.wrap}>
       <div
-        className="app-code-boxes"
+        className={length > CODE_LEN ? `${styles.boxes} ${styles.dense}` : styles.boxes}
         role="group"
-        aria-label="인증 코드 6자리"
+        aria-label={label || `인증 코드 ${length}자리`}
         onPaste={(e) => { e.preventDefault(); put(0, e.clipboardData.getData('text')); }}
       >
-        {Array.from({ length: CODE_LEN }, (_, i) => (
+        {Array.from({ length }, (_, i) => (
           <input
             key={i}
             ref={(el) => { refs.current[i] = el; }}
-            className="app-code-box"
+            className={styles.box}
             value={value[i] || ''}
             onChange={(e) => put(i, e.target.value)}
             onKeyDown={onKeyDown(i)}
@@ -102,13 +111,13 @@ export default function CodeBoxes({ value, onChange, onComplete, disabled }: Pro
             autoComplete={i === 0 ? 'one-time-code' : 'off'}
             autoCapitalize="off"
             spellCheck={false}
-            aria-label={`${i + 1} / ${CODE_LEN}`}
+            aria-label={`${i + 1} / ${length}`}
             autoFocus={i === 0}
           />
         ))}
       </div>
       {!value && (
-        <button type="button" className="app-code-paste" onClick={() => void pasteFromClipboard()}>
+        <button type="button" className={styles.paste} onClick={() => void pasteFromClipboard()}>
           복사한 코드 붙여넣기
         </button>
       )}

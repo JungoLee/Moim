@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import type { CSSProperties } from 'react';
 import { ADSENSE_CLIENT } from '@/lib/adsense';
+import styles from './AdUnit.module.scss';
 
 declare global {
   interface Window {
@@ -36,8 +37,8 @@ export default function AdUnit({ slot, format = 'auto', responsive = true, style
 
   return (
     <ins
-      className={['adsbygoogle', className].filter(Boolean).join(' ')}
-      style={{ display: 'block', ...style }}
+      className={['adsbygoogle', styles.ad, className].filter(Boolean).join(' ')}
+      style={style}
       data-ad-client={ADSENSE_CLIENT}
       data-ad-slot={slot}
       data-ad-format={format}

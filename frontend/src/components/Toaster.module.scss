@@ -1,40 +1,65 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
 .wrap {
   position: fixed;
-  bottom: var(--space-6);
   left: 50%;
-  transform: translateX(-50%);
-  z-index: 200;
+  bottom: var(--sp-6);
+  z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--sp-2);
+  transform: translateX(-50%);
   pointer-events: none;
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--sp-4));
+
+  // 모바일은 아래 탭 위로
+  @include mobile {
+    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--sp-3));
+  }
 }
+
 .toast {
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-3);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
-  font-size: 0.9rem;
-  animation: toast-in 180ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: rem(10) rem(16);
+  border-radius: var(--r-pill);
+  background: var(--c-text);
+  color: var(--c-bg);
+  box-shadow: var(--shadow-pop);
+  font-size: rem(14);
+  font-weight: 500;
+  animation: toast-in 180ms var(--ease);
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c-text-3);
+    flex-shrink: 0;
+  }
 }
-.success {
-  border-color: var(--color-success);
+
+.success::before {
+  background: var(--c-accent);
 }
-.error {
-  border-color: var(--color-danger);
-  color: var(--color-danger-text);
+
+.error::before {
+  background: var(--c-danger);
 }
 
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
+
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }

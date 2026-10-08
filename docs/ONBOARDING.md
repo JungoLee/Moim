@@ -117,7 +117,7 @@ worker/    Cloudflare Workers (API)
 frontend/  Next.js App Router (정적 export → out/)
   src/app/        라우트 (로그인 / home / dashboard / friends / tiers(그룹) / rooms · rooms/detail?id= / requests / tools/leave / admin / u?id= / auth/callback)
   src/components/ 공용:
-                  Nav(현재탭 강조+우하단 FAB=QuickActions, FAB는 페이지가 lib/quickActions 로 액션 등록) · PageHero · Calendar=FullCalendar(월 뷰) · AvailabilityCalendar · DatePicker
+                  shell/AppShell(로그인 뒤 틀 — app/(app)/layout.tsx 가 한 번 그림: 보드=왼쪽 메뉴·표=위 메뉴·모바일=아래 탭, useShell()) · PageHeader · room/*(모임 방 두 보기) · home/* · Calendar=FullCalendar(월 뷰) · DatePicker
                   RoomChat(모임 플로팅 채팅·폴링) · UserProfileModal · Modal · ConfirmHost · Toaster · Accordion · GuideHost(사용 가이드 투어)
                   Select · TimeSelect · ColorPalette+ColorWheel · Avatar · MemberRow · Notice · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · AdUnit
                   CodeBoxes(인증코드 6칸 입력) · LandingContent(랜딩 공개 소개) · JsonLd(구조화 데이터)
@@ -153,7 +153,7 @@ npm run worker:deploy                           # = npm run build && wrangler de
 
 - **커스텀 도메인**: `wrangler.toml` 의 `routes = [{ pattern = "moim.opnae.com", custom_domain = true }]` — wrangler 가 **DNS 레코드와 인증서를 자동 생성**한다(수동 CNAME 불필요).
 - **`run_worker_first`**: `/api/*`·`/rooms/*`·`/u/*` 는 SPA 폴백보다 워커가 먼저 받아야 한다. 빠지면 API 요청에 `index.html` 이 돌아오고 구 경로 301 이 안 먹는다.
-- **배포 후 검증**: ⚠️ 운영은 `RESEND_API_KEY` 가 등록돼 있어 **로그인 코드가 로그에 안 찍힌다**(실메일 발송) — `verify-api.mjs` 를 운영에 돌리면 코드 회수가 안 되고, 가짜 주소로 실발송까지 나간다. **검증은 로컬 `wrangler dev`(키 없는 환경)에서 돌릴 것**: `node scripts/verify-api.mjs http://127.0.0.1:8790 <로그파일>` → 57 항목 전부 PASS 확인. (검증 계정·데이터는 스크립트가 스스로 지운다)
+- **배포 후 검증**: ⚠️ 운영은 `RESEND_API_KEY` 가 등록돼 있어 **로그인 코드가 로그에 안 찍힌다**(실메일 발송) — `verify-api.mjs` 를 운영에 돌리면 코드 회수가 안 되고, 가짜 주소로 실발송까지 나간다. **검증은 로컬 `wrangler dev`(키 없는 환경)에서 돌릴 것**: `node scripts/verify-api.mjs http://127.0.0.1:8790 <로그파일>` → 70 항목 전부 PASS 확인(⚠️ 로컬 `.dev.vars` 에 메일 키가 있으면 CLAUDE.md '빌드 · 검증'의 키 없는 설정으로). (검증 계정·데이터는 스크립트가 스스로 지운다)
 - **D1 직접 조회**: `npx wrangler d1 execute moim --remote --command "SELECT COUNT(*) FROM users"`
 - **AdSense**(선택): `frontend/.env.local` 의 `NEXT_PUBLIC_ADSENSE_CLIENT`(`ca-pub-…`) 설정 후 재빌드·재배포. 빌드 타임에 인라인되므로 값 변경 시 반드시 다시 빌드.
 - **콜드스타트 없음** — Workers 는 잠들지 않는다(Render free 의 ~50s 지연이 사라진 이유).

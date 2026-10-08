@@ -8,10 +8,11 @@ import type { EventInput, DateSelectArg } from '@fullcalendar/core';
 import type { MoimEvent } from '@/lib/types';
 import { eventColor, readableText } from '@/lib/colors';
 import { addDays, dateKey } from '@/lib/datetime';
+import { getHolidays } from '@/lib/holidays';
+import styles from './Calendar.module.scss';
 
-// 모든 달력 제목을 "YYYY-MM" 으로 (월 0-based)
-const ymTitle = (arg: { date: { year: number; month: number } }) =>
-  `${arg.date.year}-${String(arg.date.month + 1).padStart(2, '0')}`;
+// 달력 제목 '2026년 11월' (월 0-based) — docs/design-system.md 5장
+const ymTitle = (arg: { date: { year: number; month: number } }) => `${arg.date.year}년 ${arg.date.month + 1}월`;
 
 // FullCalendar 의 종일(allDay) end 는 '배타적'(다음 날)이라, 우리 데이터의 포함 끝(마지막 날 23:59)을
 // +1일 날짜로 바꿔야 마지막 날까지 칠해진다. 종일은 날짜 문자열로 넘겨 타임존 영향도 제거.
@@ -37,6 +38,12 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  // 공휴일 이름을 칸 안에 작게 — 달력에 보이는 해와 다음 해까지
+  const holidays = useMemo(() => {
+    const y = new Date().getFullYear();
+    return getHolidays([y - 1, y, y + 1]);
+  }, []);
+
   const today = useMemo(() => {
     const t = new Date();
     t.setHours(0, 0, 0, 0);
@@ -52,7 +59,7 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
           title: '비공개 일정',
           ...fcRange(ev.start, ev.end, true),
           allDay: true,
-          classNames: ['evt-busy'],
+          classNames: ['fc-ev--busy'],
         };
       }
       // 그 외: 공개=초록 / 비공개=주황 / 비공개+그룹지정=그룹색
@@ -70,11 +77,11 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
     // 내가 보낸 대기 중 시간 요청 — 연한 점선 블록으로 표시 (클릭/수정 대상 아님)
     const reqs: EventInput[] = (requests || []).map((r) => ({
       id: `req-${r._id}`,
-      title: `🕖 ${r.title}`,
+      title: `대기 · ${r.title}`,
       ...fcRange(r.start, r.end, r.allDay),
       allDay: r.allDay,
       display: 'block',
-      classNames: ['evt-request'],
+      classNames: ['fc-ev--request'],
     }));
     return [...evs, ...reqs];
   }, [events, tierColors, requests]);
@@ -89,11 +96,11 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
   }
 
   if (!mounted) {
-    return <div className="app-card" style={{ minHeight: 420 }} aria-hidden />;
+    return <div className={`ui-card ${styles.placeholder}`} aria-hidden />;
   }
 
   return (
-    <div className="app-card">
+    <div className="ui-card">
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -112,6 +119,17 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
         select={onSelectRange ? handleSelect : undefined}
         eventClick={onSelectEvent ? (info) => onSelectEvent(info.event.id) : undefined}
         dayMaxEvents={3}
+        moreLinkContent={(arg) => `+${arg.num}개`}
+        dayCellContent={(arg) => {
+          const name = holidays[dateKey(arg.date)];
+          return (
+            <span className={styles.dayTop}>
+              {name && <span className={styles.holiday}>{name}</span>}
+              <span>{arg.date.getDate()}</span>
+            </span>
+          );
+        }}
+        dayCellClassNames={(arg) => (holidays[dateKey(arg.date)] ? ['fc-day-holiday'] : [])}
         firstDay={0}
         fixedWeekCount={false}
       />

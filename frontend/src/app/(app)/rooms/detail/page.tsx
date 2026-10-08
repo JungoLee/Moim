@@ -1,463 +1,63 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import type { FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import Nav from '@/components/Nav';
-import AvailabilityCalendar, { type DaySummary } from '@/components/AvailabilityCalendar';
-import CopyButton from '@/components/CopyButton';
-import Avatar from '@/components/Avatar';
-import { api, getToken } from '@/lib/api';
-import { confirmDialog } from '@/lib/confirm';
-import { parseDateKey, startOfDay } from '@/lib/datetime';
-import { displayName } from '@/lib/format';
-import TimeSelect from '@/components/TimeSelect';
-import Modal from '@/components/Modal';
-import MemberRow from '@/components/MemberRow';
-import UserProfileModal from '@/components/UserProfileModal';
-import type { RoomDetail, User, Mark, AvailStatus } from '@/lib/types';
-
-const MODES: Array<[AvailStatus, string]> = [
-  ['yes', '되는 날'],
-  ['no', '안 되는 날'],
-  ['after', '시간 이후'],
-];
-
-const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-
-// 결과 날짜 타일 — 월/일/요일 + D-day(전원 가능) 또는 가능 시각(시간 조율)
-function dayTile(key: string, kind: 'full' | 'partial', time?: string) {
-  const d = parseDateKey(key);
-  if (!d) return null;
-  const diff = Math.round((d.getTime() - startOfDay(new Date()).getTime()) / 86_400_000);
-  const dday = diff === 0 ? 'D-DAY' : diff > 0 ? `D-${diff}` : `D+${-diff}`;
-  const dow = d.getDay();
-  return (
-    <div key={key} className={kind === 'full' ? 'room-day room-day--full' : 'room-day room-day--partial'}>
-      <span className="room-day-month">{d.getMonth() + 1}월</span>
-      <strong className="room-day-num">{d.getDate()}</strong>
-      <span className={`room-day-dow${dow === 0 ? ' room-day-dow--sun' : dow === 6 ? ' room-day-dow--sat' : ''}`}>
-        {DAY_NAMES[dow]}요일
-      </span>
-      <span className="room-day-meta">{kind === 'partial' && time ? `${time}~` : dday}</span>
-    </div>
-  );
-}
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import Icon from '@/components/Icon';
+import RoomBoardView from '@/components/room/RoomBoardView';
+import RoomTableView from '@/components/room/RoomTableView';
+import { useRoom } from '@/components/room/useRoom';
+import { useTheme } from '@/lib/theme';
+import styles from './page.module.scss';
 
 export default function RoomPage() {
-  const router = useRouter();
   // 정적 export 는 동적 세그먼트를 만들 수 없어 ?id= 로 받는다 (구 /rooms/<id> 는 워커가 301)
-  const [roomId, setRoomId] = useState('');
-
-  const [room, setRoom] = useState<RoomDetail | null>(null);
-  const [availabilities, setAvailabilities] = useState<Record<string, Mark[]>>({});
-  const [meId, setMeId] = useState('');
-  const [error, setError] = useState('');
-  const [mode, setMode] = useState<AvailStatus>('yes');
-  const [afterTime, setAfterTime] = useState('18:00');
-  const [profileUser, setProfileUser] = useState<User | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [renameVal, setRenameVal] = useState('');
-
-  const load = useCallback(async () => {
-    try {
-      const me = await api<{ user: User }>('/api/auth/me');
-      setMeId(me.user._id);
-    } catch {
-      return; // 인증 실패는 api() 가 처리(토큰 정리 후 랜딩 이동)
-    }
-    type RoomRes = { room: RoomDetail; availabilities: Record<string, Mark[]> };
-    try {
-      const res = await api<RoomRes>(`/api/rooms/${roomId}`);
-      setRoom(res.room);
-      setAvailabilities(res.availabilities || {});
-      return;
-    } catch {
-      /* 멤버가 아닐 수 있음 → 아래에서 URL 가입 시도 */
-    }
-    try {
-      // 방장이 'URL 가입'을 켜둔 방이면 자동 입장, 아니면 needCode 로 거절
-      await api(`/api/rooms/${roomId}/join-url`, { method: 'POST' });
-      const res = await api<RoomRes>(`/api/rooms/${roomId}`);
-      setRoom(res.room);
-      setAvailabilities(res.availabilities || {});
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '이 방의 멤버가 아닙니다.');
-    }
-  }, [roomId]);
-
+  const [roomId, setRoomId] = useState<string | null>(null);
   useEffect(() => {
     setRoomId(new URLSearchParams(window.location.search).get('id') || '');
   }, []);
 
-  useEffect(() => {
-    if (!roomId) return;
-    if (!getToken()) {
-      // 로그인 후 이 방으로 돌아오도록 경로 기억 (URL 가입 링크 공유 대응)
-      try {
-        sessionStorage.setItem('postLoginRedirect', `/rooms/detail?id=${roomId}`);
-      } catch {
-        /* 무시 */
-      }
-      router.replace('/');
-      return;
-    }
-    load();
-  }, [router, load, roomId]);
+  if (roomId === null) return <Loading />;
+  if (!roomId) return <NotFound text="모임 주소가 올바르지 않아요." />;
+  return <RoomScreen roomId={roomId} />;
+}
 
-  const total = room?.members.length || 0;
+function RoomScreen({ roomId }: { roomId: string }) {
+  const r = useRoom(roomId);
+  const theme = useTheme();
 
-  const myMarks = useMemo(() => {
-    const map: Record<string, Mark> = {};
-    for (const m of availabilities[meId] || []) map[m.date] = m;
-    return map;
-  }, [availabilities, meId]);
-
-  const summary = useMemo(() => {
-    const sum: Record<string, DaySummary> = {};
-    for (const marks of Object.values(availabilities)) {
-      for (const m of marks) {
-        const s = sum[m.date] || (sum[m.date] = { yes: 0, after: 0, no: 0, afterMax: '' });
-        if (m.status === 'yes') s.yes++;
-        else if (m.status === 'no') s.no++;
-        else {
-          s.after++;
-          if (m.time && m.time > s.afterMax) s.afterMax = m.time;
-        }
-      }
-    }
-    return sum;
-  }, [availabilities]);
-
-  const fullDays = useMemo(
-    () => Object.keys(summary).filter((d) => total > 0 && summary[d].yes === total).sort(),
-    [summary, total]
-  );
-  const partialDays = useMemo(
-    () =>
-      Object.keys(summary)
-        .filter((d) => {
-          const s = summary[d];
-          return total > 0 && s.no === 0 && s.yes + s.after === total && s.after > 0;
-        })
-        .sort(),
-    [summary, total]
-  );
-
-  async function onApply(dates: string[], isDrag: boolean) {
-    if (!meId) return;
-    const map: Record<string, Mark> = {};
-    for (const m of availabilities[meId] || []) map[m.date] = m;
-    const setOne = (d: string): Mark => (mode === 'after' ? { date: d, status: 'after', time: afterTime } : { date: d, status: mode });
-    if (!isDrag && dates.length === 1) {
-      const d = dates[0];
-      if (map[d] && map[d].status === mode) delete map[d];
-      else map[d] = setOne(d);
-    } else {
-      for (const d of dates) map[d] = setOne(d);
-    }
-    const arr = Object.values(map);
-    setAvailabilities((prev) => ({ ...prev, [meId]: arr })); // 즉시 반영
-    try {
-      await api(`/api/rooms/${roomId}/availability`, { method: 'PUT', body: { marks: arr } });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '저장 실패');
-    }
+  if (r.phase === 'denied') {
+    return <NotFound text={r.error || '이 모임에는 들어갈 수 없어요.'} />;
   }
+  if (r.phase === 'loading' || !r.room) return <Loading />;
 
-  // 내가 표시한 날짜(되는날/안되는날/시간이후) 전부 해제
-  async function resetMine() {
-    if (!(availabilities[meId]?.length)) return;
-    if (!(await confirmDialog({ message: '내가 표시한 날짜를 모두 해제할까요?', confirmText: '전체 해제', danger: true }))) return;
-    setAvailabilities((prev) => ({ ...prev, [meId]: [] }));
-    try {
-      await api(`/api/rooms/${roomId}/availability`, { method: 'PUT', body: { marks: [] } });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '초기화 실패');
-    }
-  }
+  // 테마 분기는 여기 한 곳뿐 — 데이터·동작은 useRoom 이 한 번만 가진다
+  return theme === 'table' ? <RoomTableView r={r} /> : <RoomBoardView r={r} />;
+}
 
-  async function deleteRoom() {
-    if (!(await confirmDialog({ message: '이 모임을 삭제할까요? 되돌릴 수 없습니다.', confirmText: '삭제', danger: true }))) return;
-    try {
-      await api(`/api/rooms/${roomId}`, { method: 'DELETE' });
-      router.push('/rooms');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '모임 삭제 실패');
-    }
-  }
-
-  function openSettings() {
-    setRenameVal(room?.name || '');
-    setSettingsOpen(true);
-  }
-
-  // 방장 설정 변경 (이름 / URL 가입 허용)
-  async function patchRoom(body: { name?: string; joinByUrl?: boolean }) {
-    try {
-      await api(`/api/rooms/${roomId}`, { method: 'PATCH', body });
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '설정 변경 실패');
-    }
-  }
-
-  async function renameRoom(e: FormEvent) {
-    e.preventDefault();
-    const name = renameVal.trim();
-    if (!name || name === room?.name) return;
-    await patchRoom({ name });
-  }
-
-  async function regenCode() {
-    if (!(await confirmDialog({ message: '초대 코드를 새로 발급할까요? 기존 코드·링크는 더 이상 쓸 수 없게 됩니다.', confirmText: '재발급', danger: true }))) return;
-    try {
-      await api(`/api/rooms/${roomId}/code`, { method: 'POST' });
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '코드 재발급 실패');
-    }
-  }
-
-  async function kickMember(userId: string) {
-    if (!(await confirmDialog({ message: '이 멤버를 강퇴할까요?', confirmText: '강퇴', danger: true }))) return;
-    try {
-      await api(`/api/rooms/${roomId}/members/${userId}`, { method: 'DELETE' });
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '강퇴 실패');
-    }
-  }
-
-  if (error) {
-    return (
-      <>
-        <Nav />
-        <main className="app-container">
-          <div className="app-empty">
-            <div className="app-empty-icon">🔒</div>
-            <h2>{error}</h2>
-            <p>모임에 참여하려면 방장에게 받은 초대 코드로 입장하세요.</p>
-            <a className="app-btn" href="/rooms">모임 목록으로</a>
-          </div>
-        </main>
-      </>
-    );
-  }
-  if (!room) {
-    return (
-      <>
-        <Nav />
-        <main className="app-container">
-          <div className="app-empty">
-            <p>불러오는 중…</p>
-          </div>
-        </main>
-      </>
-    );
-  }
-
+function Loading() {
   return (
-    <>
-      <Nav />
-      <main className="app-container">
-        <div className="app-card room-head" data-guide="room-head">
-          <div className="room-head-top">
-            <h2>{room.name}</h2>
-            <span className="app-pill">멤버 {total}명</span>
-            <span className="app-spacer" />
-            <button className="app-btn app-btn--ghost" onClick={openSettings} aria-label="모임 설정">
-              ⚙ 설정
-            </button>
-          </div>
-          <div className="room-members">
-            {room.members.map((m) =>
-              m._id === meId ? (
-                <span key={m._id} className="room-member">
-                  <Avatar src={m.picture} alt={displayName(m)} />
-                  <span>{displayName(m)}</span>
-                </span>
-              ) : (
-                <button
-                  key={m._id}
-                  type="button"
-                  className="room-member room-member--btn"
-                  onClick={() => setProfileUser(m)}
-                  title={`${displayName(m)} 프로필`}
-                >
-                  <Avatar src={m.picture} alt={displayName(m)} />
-                  <span>{displayName(m)}</span>
-                </button>
-              )
-            )}
-          </div>
-        </div>
+    <div className="ui-page" aria-busy="true" aria-label="모임을 불러오는 중">
+      <span className={`ui-skeleton ${styles.skTitle}`} />
+      <span className={`ui-skeleton ${styles.skLine}`} />
+      <span className={`ui-skeleton ${styles.skBlock}`} />
+    </div>
+  );
+}
 
-        <div className="app-card">
-          <div className="app-row" data-guide="room-modes">
-            {MODES.map(([v, label]) =>
-              v === 'after' ? (
-                <div className="app-after" key={v}>
-                  <button
-                    className={mode === v ? 'app-btn' : 'app-btn app-btn--ghost'}
-                    onClick={() => setMode(v)}
-                  >
-                    {label}
-                  </button>
-                  {mode === 'after' && (
-                    <div className="app-after-pop" role="group" aria-label="기준 시각 선택">
-                      <TimeSelect value={afterTime} onChange={setAfterTime} />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  key={v}
-                  className={mode === v ? 'app-btn' : 'app-btn app-btn--ghost'}
-                  onClick={() => setMode(v)}
-                >
-                  {label}
-                </button>
-              )
-            )}
-            <span className="app-spacer" />
-            <button
-              className="app-btn app-btn--ghost"
-              onClick={resetMine}
-              disabled={!availabilities[meId]?.length}
-            >
-              리셋
-            </button>
-            <button className="app-btn app-btn--ghost" onClick={load}>
-              새로고침
-            </button>
-          </div>
-          <div data-guide="room-cal">
-            <AvailabilityCalendar myMarks={myMarks} summary={summary} total={total} onApply={onApply} />
-          </div>
-          <div className="app-legend">
-            <span><i style={{ background: '#4ad295' }} />가능</span>
-            <span><i style={{ background: '#ff9b9b' }} />안 됨</span>
-            <span><i style={{ background: '#f0a85a' }} />시간 이후</span>
-            <span><i style={{ background: 'rgba(74, 210, 149, 0.5)' }} />모두 가능</span>
-          </div>
-        </div>
-
-        <div className="app-card" data-guide="room-result">
-          <h3>
-            🎉 모두 되는 날 <span className="app-pill">{fullDays.length}</span>
-          </h3>
-          {fullDays.length === 0 ? (
-            <p className="app-muted">아직 전원이 종일 가능한 날이 없어요 — 위 달력에 가능한 날을 표시해보세요.</p>
-          ) : (
-            <div className="room-days">{fullDays.map((d) => dayTile(d, 'full'))}</div>
-          )}
-          {partialDays.length > 0 && (
-            <>
-              <h3 className="room-days-sub">
-                🕖 시간 조율하면 가능 <span className="app-pill">{partialDays.length}</span>
-              </h3>
-              <div className="room-days">{partialDays.map((d) => dayTile(d, 'partial', summary[d].afterMax))}</div>
-            </>
-          )}
-        </div>
-      </main>
-
-      {settingsOpen && room && (
-        <Modal onClose={() => setSettingsOpen(false)}>
-          <div className="app-contents">
-            <h3>모임 설정</h3>
-
-            <div className="room-code">
-              <span className="app-muted">초대 코드</span>
-              <code className="room-code-val">{room.code}</code>
-              <CopyButton text={room.code} label="코드 복사" />
-              <CopyButton text={`${window.location.origin}/rooms/detail?id=${room._id}`} icon title="초대 링크 복사" />
-            </div>
-
-            {room.owner === meId ? (
-              <>
-                <form className="app-form" onSubmit={renameRoom}>
-                  <span className="app-form-label">모임 이름</span>
-                  <div className="app-row">
-                    <input
-                      className="app-input app-field"
-                      value={renameVal}
-                      onChange={(e) => setRenameVal(e.target.value)}
-                      placeholder="모임 이름"
-                    />
-                    <button
-                      className="app-btn"
-                      type="submit"
-                      disabled={!renameVal.trim() || renameVal.trim() === room.name}
-                    >
-                      저장
-                    </button>
-                  </div>
-                </form>
-
-                <label className="app-switch">
-                  <input
-                    type="checkbox"
-                    checked={!!room.joinByUrl}
-                    onChange={(e) => patchRoom({ joinByUrl: e.target.checked })}
-                  />
-                  <span className="app-switch-track" aria-hidden />
-                  <span>
-                    URL로 바로 가입 허용 <span className="app-muted">(링크만 있으면 코드 없이 입장)</span>
-                  </span>
-                </label>
-
-                <div className="app-row">
-                  <span className="app-muted">초대 코드 재발급 (기존 링크 무효화)</span>
-                  <span className="app-spacer" />
-                  <button type="button" className="app-btn app-btn--ghost" onClick={regenCode}>
-                    재발급
-                  </button>
-                </div>
-
-                {room.members.some((m) => m._id !== room.owner) && (
-                  <div>
-                    <span className="app-form-label">멤버 강퇴</span>
-                    <div className="app-member-list">
-                      {room.members
-                        .filter((m) => m._id !== room.owner)
-                        .map((m) => (
-                          <MemberRow
-                            key={m._id}
-                            user={m}
-                            action={
-                              <button className="app-btn app-btn--ghost" onClick={() => kickMember(m._id)}>
-                                강퇴
-                              </button>
-                            }
-                          />
-                        ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="app-actions">
-                  <button type="button" className="app-btn app-btn--ghost" onClick={() => setSettingsOpen(false)}>
-                    닫기
-                  </button>
-                  <button type="button" className="app-btn app-btn--danger" onClick={deleteRoom}>
-                    모임 삭제
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="app-actions">
-                <button type="button" className="app-btn app-btn--ghost" onClick={() => setSettingsOpen(false)}>
-                  닫기
-                </button>
-              </div>
-            )}
-          </div>
-        </Modal>
-      )}
-
-      {profileUser && <UserProfileModal user={profileUser} onClose={() => setProfileUser(null)} />}
-    </>
+function NotFound({ text }: { text: string }) {
+  return (
+    <div className="ui-page">
+      <div className="ui-empty" role="alert">
+        <span className="ui-empty__icon">
+          <Icon name="lock" size={24} />
+        </span>
+        <strong className="ui-empty__title">이 모임의 멤버가 아니에요</strong>
+        <span className="ui-empty__text">{text}</span>
+        <span className="ui-empty__text">방장에게 받은 초대 코드로 들어갈 수 있어요.</span>
+        <Link href="/rooms" className="ui-btn ui-btn--primary">
+          모임 목록으로
+        </Link>
+      </div>
+    </div>
   );
 }

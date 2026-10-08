@@ -1,0 +1,269 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+// ── 답할 것 카드 줄 ────────────────────────────────────
+.inbox {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(rem(260), 1fr));
+  gap: var(--sp-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  // 모바일: 세로로 길게 쌓지 않고 옆으로 넘기는 카드
+  @include mobile {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: var(--sp-1);
+
+    > * {
+      flex: 0 0 86%;
+      scroll-snap-align: start;
+    }
+  }
+}
+
+.qCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.qHead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.qText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.qKind {
+  font-size: rem(12);
+  font-weight: 700;
+  color: var(--c-accent-text);
+
+  &[data-kind='time'] {
+    color: var(--c-req);
+  }
+}
+
+.qTitle {
+  font-size: rem(15);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.qWhen {
+  font-size: rem(14);
+  color: var(--c-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.nothing {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: rem(14);
+  color: var(--c-text-3);
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(2);
+  font-size: rem(14);
+}
+
+// ── 이번 주 7칸 ───────────────────────────────────────
+.week {
+  align-self: flex-start;
+}
+
+.weekScroll {
+  overflow-x: auto;
+  // 좁은 화면에서 칸을 찌그러뜨리지 않고 상자 안에서만 가로로 민다
+  padding-bottom: var(--sp-1);
+}
+
+.weekGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--sp-2);
+  min-width: rem(560);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-height: rem(210);
+  min-width: 0;
+  padding: rem(10) var(--sp-2);
+
+  @include mobile {
+    min-height: rem(140);
+  }
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+
+  &[aria-current='date'] {
+    background: var(--c-primary-soft);
+    border-color: var(--c-primary);
+  }
+}
+
+.dayHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.25;
+}
+
+.dow {
+  font-size: rem(12);
+  color: var(--c-text-3);
+
+  .day[data-off='sun'] & {
+    color: var(--c-sun);
+  }
+
+  .day[data-off='sat'] & {
+    color: var(--c-sat);
+  }
+}
+
+.num {
+  font-size: rem(18);
+  font-weight: 700;
+  color: var(--c-text-2);
+
+  .day[aria-current='date'] & {
+    color: var(--c-text);
+  }
+}
+
+.holiday {
+  min-height: rem(14);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: rem(11);
+  color: var(--c-sun);
+}
+
+// 일정 작은 블록 — 색은 일정 종류가 정한다(--ev). 바탕은 그 색을 표면에 옅게 섞는다
+.ev {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: rem(6) rem(7);
+  border-left: 3px solid var(--ev);
+  border-radius: rem(7);
+  background: color-mix(in srgb, var(--ev) 22%, var(--c-surface));
+  font-size: rem(12);
+  line-height: 1.35;
+}
+
+.evTime {
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+.evTitle {
+  overflow-wrap: anywhere;
+}
+
+// ── 내 모임 카드 ──────────────────────────────────────
+.rooms {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.roomCard {
+  display: flex;
+  flex-direction: column;
+  gap: rem(10);
+  padding: var(--sp-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  color: var(--c-text);
+
+  &:hover {
+    text-decoration: none;
+    border-color: var(--c-line-strong);
+  }
+}
+
+.roomTop {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.roomName {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: rem(16);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--c-surface-3);
+  overflow: hidden;
+
+  > span {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--c-accent);
+  }
+
+  &[data-tone='warn'] > span {
+    background: var(--c-warn);
+  }
+
+  &[data-tone='primary'] > span {
+    background: var(--c-primary);
+  }
+
+  &[data-tone='muted'] > span {
+    background: var(--c-line-strong);
+  }
+}
+
+.roomDesc {
+  font-size: rem(13);
+  color: var(--c-text-2);
+}
+
+.roomsEmpty {
+  padding: var(--sp-6) var(--sp-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-lg);
+}

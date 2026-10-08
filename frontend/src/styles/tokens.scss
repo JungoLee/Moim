@@ -1,0 +1,161 @@
+// 토큰만 — docs/design-system.md 2장. 이름은 두 테마 같고 값만 다르다.
+// :root = 보드(기본, 어두움), html[data-theme='table'] = 표(밝음).
+@use 'rem' as *;
+
+:root {
+  color-scheme: dark;
+
+  // 색 — 보드
+  --c-bg: #0b0f1c;
+  --c-surface: #121829;
+  --c-surface-2: #182037;
+  --c-surface-3: #1f2844;
+  --c-line: #1f2844;
+  --c-line-strong: #2c3760;
+  --c-text: #e9edf8;
+  --c-text-2: #aeb8d8;
+  --c-text-3: #8f9bc0;
+  --c-link: #aab4ff;
+  --c-primary: #7c8cff;
+  --c-primary-hover: #96a3ff;
+  --c-on-primary: #0b0f1c;
+  --c-primary-soft: #1c2442;
+  --c-accent: #46d6c2;
+  --c-on-accent: #04231f;
+  --c-accent-text: #46d6c2;
+  --c-accent-soft: #143033;
+  --c-warn: #f0a85a;
+  --c-on-warn: #2a1600;
+  --c-warn-text: #f0a85a;
+  --c-warn-soft: #33261a;
+  --c-danger: #ff8a8a;
+  --c-on-danger: #2a0b0b;
+  --c-danger-soft: #3a1c22;
+  --c-req: #b9a6ff;
+  --c-req-soft: #2c2450;
+  --c-sun: #ff9b9b;
+  --c-sat: #9bb6ff;
+  --c-shell: #0f1426;
+  --c-shell-line: #1d2540;
+  --c-shell-text: #aeb8d8;
+  --c-shell-active: #ffffff;
+  --c-shell-active-bg: #1c2442;
+  --c-focus: #aab4ff;
+  --c-scrim: rgba(5, 8, 16, 0.62);
+  --c-input-bg: #0b0f1c;
+  --c-seg-bg: #0b0f1c;
+  --c-tab-line: #46d6c2;
+
+  // 가능 날짜·히트 단계
+  --avail-yes: #46d6c2;
+  --avail-after: #f0a85a;
+  --avail-no: #3a4466;
+  --heat-0: #141b2e;
+  --heat-1: #15293a;
+  --heat-2: #173a48;
+  --heat-3: #195057;
+  --heat-4: #1c6b6c;
+  --heat-5: #46d6c2;
+
+  --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --shadow-card: none;
+
+  // 글꼴
+  --font-sans: 'Pretendard Variable', Pretendard, system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    sans-serif;
+  --font-brand: var(--font-brand-next), sans-serif;
+
+  // 간격·높이·반경
+  --sp-1: #{rem(4)};
+  --sp-2: #{rem(8)};
+  --sp-3: #{rem(12)};
+  --sp-4: #{rem(16)};
+  --sp-5: #{rem(20)};
+  --sp-6: #{rem(24)};
+  --sp-8: #{rem(32)};
+  --sp-10: #{rem(40)};
+  --h-sm: #{rem(32)};
+  --h-md: #{rem(40)};
+  --h-lg: #{rem(48)};
+  --r-sm: #{rem(8)};
+  --r-md: #{rem(10)};
+  --r-lg: #{rem(14)};
+  --r-xl: #{rem(18)};
+  --r-pill: 999px;
+
+  // 층
+  --z-shell: 50;
+  --z-sheet: 80;
+  --z-modal: 100;
+  --z-toast: 120;
+  --z-confirm: 130;
+  --z-guide: 140;
+
+  // 틀
+  --shell-w: #{rem(248)};
+  --topbar-h: #{rem(60)};
+  --mobilebar-h: 56px;
+  --tabbar-h: 64px;
+  --content-max: #{rem(1320)};
+
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --dur: 160ms;
+}
+
+// ── 표 테마 ─────────────────────────────────────────────
+html[data-theme='table'] {
+  color-scheme: light;
+
+  --c-bg: #f3f4f8;
+  --c-surface: #ffffff;
+  --c-surface-2: #f6f7fa;
+  --c-surface-3: #eef0f6;
+  --c-line: #dfe2ec;
+  --c-line-strong: #c9cedf;
+  --c-text: #141a2c;
+  --c-text-2: #3d4560;
+  --c-text-3: #5b6482;
+  --c-link: #3f4bd1;
+  --c-primary: #141a2c;
+  --c-primary-hover: #262f4f;
+  --c-on-primary: #ffffff;
+  --c-primary-soft: #e8eaf3;
+  --c-accent: #46d6c2;
+  --c-on-accent: #062a26;
+  --c-accent-text: #0b6b5e;
+  --c-accent-soft: #d9f6f1;
+  --c-warn: #e8913a;
+  --c-on-warn: #2a1600;
+  --c-warn-text: #9a5a12;
+  --c-warn-soft: #fff1e0;
+  --c-danger: #d64545;
+  --c-on-danger: #ffffff;
+  --c-danger-soft: #fdeaea;
+  --c-req: #6d5be0;
+  --c-req-soft: #f3f1ff;
+  --c-sun: #d64545;
+  --c-sat: #3f6fd8;
+  --c-shell: #141a2c;
+  --c-shell-line: #141a2c;
+  --c-shell-text: #aeb8d8;
+  --c-shell-active: #ffffff;
+  --c-shell-active-bg: #262f4f;
+  --c-focus: #3f4bd1;
+  --c-scrim: rgba(20, 26, 44, 0.42);
+  --c-input-bg: #ffffff;
+  --c-seg-bg: #eef0f6;
+  --c-tab-line: #141a2c;
+
+  --avail-yes: #46d6c2;
+  --avail-after: #f6b26b;
+  --avail-no: #eceef4;
+  --heat-0: #ffffff;
+  --heat-1: #eefaf7;
+  --heat-2: #d6f4ee;
+  --heat-3: #b5ece2;
+  --heat-4: #86e1d2;
+  --heat-5: #46d6c2;
+
+  --shadow-pop: 0 12px 32px rgba(20, 26, 44, 0.16);
+  --shadow-card: 0 1px 2px rgba(20, 26, 44, 0.04);
+}

@@ -1,0 +1,62 @@
+// 친구 화면 — docs/design-system.md 6-6
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+
+  > span {
+    height: rem(36);
+  }
+}
+
+// 행 — 좁은 화면에선 동작 버튼 줄이 아래로 내려간다
+.row {
+  position: relative;
+
+  @include narrow {
+    flex-wrap: wrap;
+  }
+}
+
+.side {
+  @include narrow {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    padding-left: calc(rem(36) + var(--sp-3)); // 아바타 폭만큼 들여 이름 아래에 맞춘다
+  }
+}
+
+.menuWrap {
+  position: relative;
+  display: inline-flex;
+
+  @include narrow {
+    position: static; // 팝오버는 행 폭에 맞춘다
+  }
+}
+
+.pop {
+  top: 100%;
+  right: 0;
+  margin-top: var(--sp-1);
+  width: min(rem(300), 86vw);
+  padding: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+
+  @include narrow {
+    left: var(--sp-4);
+    right: var(--sp-4);
+    width: auto;
+  }
+}
+
+.popTitle {
+  font-size: rem(13);
+  font-weight: 600;
+  color: var(--c-text-2);
+}

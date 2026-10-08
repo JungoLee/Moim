@@ -31,7 +31,7 @@ export default function Accordion({ title, children, defaultOpen = false, aside,
         onClick={() => setOpen((v) => !v)}
       >
         <span className={styles.chevron} data-open={open} aria-hidden>
-          <Icon name="chevron" size={20} />
+          <Icon name="chevron-right" size={18} />
         </span>
         <span className={styles.title}>{title}</span>
         {aside != null && <span className={styles.aside}>{aside}</span>}

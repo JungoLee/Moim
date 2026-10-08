@@ -1,0 +1,14 @@
+@use '@/styles/rem' as *;
+
+// 머리 동작의 '그룹에 추가' 팝오버 기준
+.tierWrap {
+  position: relative;
+}
+
+.pop {
+  top: calc(100% + #{rem(6)});
+  right: 0;
+  width: rem(300);
+  max-width: calc(100vw - #{rem(32)});
+  padding: var(--sp-3);
+}

@@ -1,0 +1,70 @@
+// 사용 가이드(스포트라이트 투어)
+@use '@/styles/rem' as *;
+
+.guide {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-guide);
+}
+
+// 대상 위의 '구멍' — 큰 box-shadow 가 주변 전체를 어둡게
+.spot {
+  position: fixed;
+  border-radius: var(--r-md);
+  box-shadow:
+    0 0 0 2px var(--c-focus),
+    0 0 0 10000px rgba(5, 8, 16, 0.6);
+  pointer-events: none;
+  transition:
+    top 0.32s var(--ease),
+    left 0.32s var(--ease),
+    width 0.32s var(--ease),
+    height 0.32s var(--ease);
+}
+
+.tip {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: min(rem(340), calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  padding: var(--sp-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-pop);
+  transition:
+    top 0.32s var(--ease),
+    left 0.32s var(--ease);
+
+  h3 {
+    font-size: rem(17);
+  }
+
+  p {
+    color: var(--c-text-2);
+    line-height: 1.6;
+  }
+}
+
+// 위치 계산 전 한 프레임 — 높이만 재고 숨김
+.measuring {
+  visibility: hidden;
+  transition: none;
+}
+
+.count {
+  font-size: rem(12);
+  font-weight: 700;
+  color: var(--c-accent-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}

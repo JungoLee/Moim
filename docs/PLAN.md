@@ -4,7 +4,7 @@
 > 작업이 끝나면 해당 항목을 정리하고(완료 표시 또는 삭제), 새 요청은 백로그에 추가한다.
 > 완료 작업의 상세 이력은 **git log** 가 출처 — 여기엔 요약만 남긴다.
 >
-> _마지막 정리: 2026-10-02 — 코드와 대조(13테이블·53라우트 일치, "다음 작업" 모두 유효). 정리·디자인 패스 반영(바깥 클릭 닫기 훅·달력 칸 계산 공용화, 모바일 상단 메뉴·홈 목록·연차 계산기 입력칸 다듬기)._
+> _마지막 정리: 2026-10-08 — **2.0 전면 개편**(보드/표 두 테마·메뉴 4개·모임 날짜 확정·버그 4건) 로컬 완료, 배포·운영 DB 변경은 사용자 확인 대기. 13테이블(칸 4개 추가)·56라우트._
 
 ---
 
@@ -35,10 +35,10 @@
 > 기존 Mongo 문서를 분해한 결과. 응답 형태(`_id`·중첩 객체)는 `worker/db.js` 가 되조립해 프론트 계약을 유지한다.
 > **id 는 TEXT** — 기존 행은 Mongo ObjectId(24-hex) 승계, 신규는 `crypto.randomUUID()`. 시각은 TEXT ISO8601 UTC, 불리언은 INTEGER 0/1.
 
-- **users**: `google_id`(unique, 이메일 가입자는 `email:<주소>` 자리표시자 → 구글 로그인 시 실제 id 로 교체 = 계정 통합), `email`, `name`, `nickname`(표시명 우선), `picture`, `is_admin`, `leave_*`(연차 설정 5필드 평탄화 — 갱신일 지나면 조회 시 자동 이월)
+- **users**: `ui_theme`(2.0 — board|table|'') · `google_id`(unique, 이메일 가입자는 `email:<주소>` 자리표시자 → 구글 로그인 시 실제 id 로 교체 = 계정 통합), `email`, `name`, `nickname`(표시명 우선), `picture`, `is_admin`, `leave_*`(연차 설정 5필드 평탄화 — 갱신일 지나면 조회 시 자동 이월)
 - **friendships**: `requester`, `recipient`, `status`(pending|accepted), `UNIQUE(requester,recipient)` — 친구 그래프 = 캘린더 열람 권한
 - **tiers** + **tier_members**: 그룹(`owner`·`name`·`code` 고유·`color`) + 멤버 조인 테이블
-- **rooms** + **room_members** + **room_availability_marks**(`PK(room_id,user_id,date)` — 날짜당 1행을 DB 제약으로 승격) + **room_comments**(`author_name` = 작성 시점 표시명 스냅샷)
+- **rooms**(2.0 — `confirmed_start`·`confirmed_end`·`confirmed_at` 확정 날짜) + **room_members** + **room_availability_marks**(`PK(room_id,user_id,date)` — 날짜당 1행을 DB 제약으로 승격) + **room_comments**(`author_name` = 작성 시점 표시명 스냅샷)
 - **events** + **event_audience_tiers**: 일정(`visibility` public|private|default) + 비공개 상세 열람 그룹. `origin_*` 는 시간요청 출신 일정의 출처 스냅샷(`origin_request_id` 로 양쪽 사본 연결)
 - **time_requests**: `from_user`·`to_user`(SQL 예약어 회피), `status`(pending|accepted|declined) — 수락 시 양쪽 일정 생성
 - **login_codes**: `email`(PK), `code_hash`(sha256 — 코드는 영문 대소문자+숫자 6자, 대소문자 구분), `expires_at`(발송 가능 시 10분 / 로그 폴백 30분), `attempts`(최대 5회), `sent_at`(60초 쿨다운). **D1 엔 TTL 이 없어** 코드 요청 시 만료행을 함께 DELETE
@@ -48,6 +48,8 @@
 ---
 
 ## 현재 상태 — Phase 1·1.5·2(모임)·3(시간요청) 동작 + **Cloudflare Workers + D1 배포** ✅
+
+- **2.0 전면 개편 (2026-10-08, 배포 전)** — 기준 문서 [design-system.md](design-system.md). 화면 전체를 **보드**(어두움·왼쪽 메뉴·모임 방은 겹침 달력) / **표**(밝음·위 남색 메뉴·모임 방은 사람×날짜 표) 두 벌로, 각자 탭으로 고르고 계정(`users.ui_theme`)에 저장. 메뉴 7→4(홈·캘린더·모임·사람 + 연차 계산), 모바일 아래 탭, 플로팅 + 버튼·떠다니는 채팅 창 제거(채팅은 방 안 패널), **모임 날짜 확정**(`POST/DELETE /api/rooms/:id/confirm` → 멤버 모두에게 비공개 종일 일정 `origin_kind='room'`), 홈 '답할 것'·'이번 주 누가 비나'(`GET /api/calendar/friends`), 로그인 뒤 화면을 route group `app/(app)` + `AppShell` 로 묶어 이동 깜빡임 해소. 버그 수정: 시간 요청 9시간 밀림, 일정 100개 넘으면 목록 실패(IN 목록 → JOIN), 확인창 Enter, 시간 요청 중복 수락(409). 검증: verify-api 70/70(로컬), 두 테마 × PC·모바일 촬영 콘솔 오류 0
 
 구현된 것 (도메인별 요약 — 상세 이력은 git log):
 
@@ -64,6 +66,8 @@
 - **배포·수익화**: **Cloudflare Workers + D1 단일 배포**(2026-08-13, https://moim.opnae.com) — 잠들지 않아 콜드스타트 없음, **AdSense 코드 연동**(Auto ads 스크립트 + `AdUnit` 수동 슬롯 + `ads.txt` — 승인 절차만 남음, Phase 8 참조)
 
 ### 다음 작업 (남은 것)
+- [ ] **2.0 배포** (사용자 확인 후) — ① 운영 D1 백업 `npx wrangler d1 export moim --remote --output backup/d1-YYYYMMDD-before-renewal.sql` ② `npx wrangler d1 execute moim --remote --file worker/migrations/2026-10-renewal.sql`(칸 4개 추가, 한 번만) ③ 릴리즈 노트 2.0.0 ④ `npm run worker:deploy` ⑤ 운영 화면 눈 확인(두 테마)
+- [ ] **이미 9시간 밀려 저장된 시간 요청 데이터** — 2.0 전에 보낸 시간 요청(과 수락으로 생긴 일정)은 시각이 9시간 늦게 저장돼 있다. 운영 DB 에서 대상 확인 후 보정할지 사용자 결정
 - [ ] **운영 verify-api 대안** — Resend 활성화(2026-08-18) 이후 운영에선 로그인 코드가 로그에 안 찍혀(실메일 발송) `verify-api.mjs` 를 운영에 돌릴 수 없다(가짜 주소 실발송 + IP 일 10통 제한과도 충돌). 당분간 **검증은 로컬 `wrangler dev`(키 없는 환경) 전용** — 운영 스모크가 필요해지면 별도 방안(health 확장 등) 검토
 - [ ] **안 쓰는 크리덴셜 폐기** 🔐 — 이관으로 안 쓰이게 됐지만 **아직 살아 있는** 값들이다. 유출 시 그대로 악용된다
   - [ ] **Gmail 앱 비밀번호**(구 Express `backend/.env` 의 `SMTP_PASS`, 2026-07-08 발급 — **그 폴더는 이관 때 삭제됐지만 구글 계정의 앱 비밀번호는 아직 살아 있다**) — Workers 는 SMTP 를 못 써 영영 안 쓴다. [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) 에서 삭제
@@ -74,7 +78,6 @@
 - [ ] **Workers Builds 자동 배포 켜기** — GitHub 연결 시 push 만으로 배포된다. 대시보드 설정 절차·형제 프로젝트용 프롬프트는 [workers-auto-deploy.md](workers-auto-deploy.md)
 - [ ] **Cloudflare Web Analytics 붙이기** — 무료·쿠키 없음. SEO 성과(유입·페이지뷰)를 봐야 다음 액션이 정해진다. 대시보드에서 스니펫 받아 `frontend/src/app/layout.tsx` 에 `<Script>` 로 추가
 - [ ] **안 읽음 표시 본격화** — 받은 친구요청 배지 + 모임 채팅 안읽음 카운트(클라 `lastRead`)는 됨. **서버 `lastSeen` 영속**·다른 알림(모임 변경 등)은 추후
-- [ ] **Nav 공통 레이아웃화** — 현재 각 페이지가 `<Nav/>` 렌더 → 이동마다 리마운트(짧은 깜빡임). route group 레이아웃으로 올려 네비/FAB 고정·본문만 교체하면 SPA 체감 향상
 
 ---
 

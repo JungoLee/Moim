@@ -1,0 +1,21 @@
+// 화면 폭 구간 — docs/design-system.md 2장. 미디어 쿼리는 px(rem 은 루트 글자 크기를 따라 움직여 어긋난다).
+$bp-shell: 900px; // 이상 = 데스크톱 틀(보드 사이드바 / 표 위 메뉴), 미만 = 모바일 틀(머리 + 아래 탭)
+$bp-narrow: 600px; // 미만 = 한 줄 배치, 팝업은 아래에서 올라오는 시트
+
+@mixin desktop {
+  @media (min-width: $bp-shell) {
+    @content;
+  }
+}
+
+@mixin mobile {
+  @media (max-width: ($bp-shell - 1px)) {
+    @content;
+  }
+}
+
+@mixin narrow {
+  @media (max-width: ($bp-narrow - 1px)) {
+    @content;
+  }
+}

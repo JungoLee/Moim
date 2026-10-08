@@ -1,0 +1,73 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+.answer {
+  display: flex;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+
+  :global(.ui-btn) {
+    @include mobile {
+      min-height: rem(44);
+      padding: 0 rem(16);
+    }
+  }
+}
+
+.answerBlock {
+  :global(.ui-btn) {
+    flex: 1 1 0;
+  }
+}
+
+.leave {
+  display: flex;
+  flex-direction: column;
+  gap: rem(6);
+}
+
+.leaveHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.leaveLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(6);
+  font-size: rem(13);
+  font-weight: 600;
+  color: var(--c-text-3);
+}
+
+.leaveMain {
+  font-size: rem(15);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.leaveSub {
+  font-size: rem(13);
+  color: var(--c-text-2);
+}
+
+.leaveLink {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(2);
+  align-self: flex-start;
+  margin-top: var(--sp-1);
+  font-size: rem(14);
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+
+  :global(.ui-skeleton) {
+    height: rem(18);
+  }
+}

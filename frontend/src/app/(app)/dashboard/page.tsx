@@ -1,47 +1,68 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import type { FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import Nav from '@/components/Nav';
+import { Suspense, useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Calendar from '@/components/Calendar';
-import DatePicker from '@/components/DatePicker';
 import ColorPalette from '@/components/ColorPalette';
-import TimeSelect from '@/components/TimeSelect';
-import Modal from '@/components/Modal';
-import PageHero from '@/components/PageHero';
+import Icon from '@/components/Icon';
+import PageHeader from '@/components/PageHeader';
+import { useShell } from '@/components/shell/ShellContext';
 import { api, getToken } from '@/lib/api';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import { confirmDialog } from '@/lib/confirm';
-import { dateKey, timeKey, dayLabel } from '@/lib/datetime';
+import { allDayIsoRange, dateKey, timeKey } from '@/lib/datetime';
 import { buildMarkedDates } from '@/lib/marks';
-import { PUBLIC_COLOR, PRIVATE_COLOR, REQUEST_COLOR, DEFAULT_TIER_COLOR } from '@/lib/colors';
-import type { MoimEvent, Tier, User, TimeRequest } from '@/lib/types';
+import { PUBLIC_COLOR, PRIVATE_COLOR, REQUEST_COLOR, ROOM_COLOR, DEFAULT_TIER_COLOR } from '@/lib/colors';
+import { useOutsideClose } from '@/lib/useOutsideClose';
+import { useEscClose } from '@/lib/useEscClose';
+import type { MoimEvent, Tier, TimeRequest } from '@/lib/types';
+import EventModal, { type EventForm } from './EventModal';
+import styles from './dashboard.module.scss';
+
+type ModalState = { mode: 'create' | 'edit'; editId: string; initial: EventForm; origin?: MoimEvent['origin'] };
+
+const BLANK: EventForm = {
+  title: '',
+  startDate: '',
+  startTime: '09:00',
+  endDate: '',
+  endTime: '10:00',
+  allDay: true,
+  location: '',
+  memo: '',
+  visibility: 'public',
+  tierIds: [],
+};
+
+/** ?new=1 로 들어오면(사이드바·홈의 [새 일정]) 새 일정 팝업을 바로 연다. 열고 나면 주소에서 지운다 */
+function OpenOnNew({ onOpen }: { onOpen: () => void }) {
+  const router = useRouter();
+  const flag = useSearchParams().get('new');
+  const openRef = useRef(onOpen);
+  openRef.current = onOpen;
+  useEffect(() => {
+    if (flag !== '1') return;
+    openRef.current();
+    router.replace('/dashboard');
+  }, [flag, router]);
+  return null;
+}
 
 export default function Dashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { me } = useShell();
   const [events, setEvents] = useState<MoimEvent[]>([]);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [sentRequests, setSentRequests] = useState<TimeRequest[]>([]);
   const [error, setError] = useState('');
   // 범례에서 팔레트가 열린 그룹 id (없으면 null)
   const [paletteFor, setPaletteFor] = useState<string | null>(null);
+  const [modal, setModal] = useState<ModalState | null>(null);
 
-  // 일정 생성/수정 공용 모달
-  const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<'create' | 'edit'>('create');
-  const [editId, setEditId] = useState('');
-  const [fTitle, setFTitle] = useState('');
-  const [fStartDate, setFStartDate] = useState('');
-  const [fStartTime, setFStartTime] = useState('09:00');
-  const [fEndDate, setFEndDate] = useState('');
-  const [fEndTime, setFEndTime] = useState('10:00');
-  const [fAllDay, setFAllDay] = useState(false);
-  const [fLocation, setFLocation] = useState('');
-  const [fMemo, setFMemo] = useState('');
-  const [fShare, setFShare] = useState('public');
+  const legendRef = useRef<HTMLDivElement>(null);
+  useOutsideClose(legendRef, paletteFor !== null, () => setPaletteFor(null));
+  useEscClose(() => setPaletteFor(null), paletteFor !== null);
 
   const loadTiers = useCallback(async () => {
     try {
@@ -52,18 +73,21 @@ export default function Dashboard() {
     }
   }, []);
 
+  // 일정·보낸 요청·그룹을 한꺼번에
   const load = useCallback(async () => {
-    try {
-      const meRes = await api<{ user: User }>('/api/auth/me');
-      setUser(meRes.user);
-      const evRes = await api<{ events: MoimEvent[] }>('/api/events');
-      setEvents(evRes.events);
-      const sentRes = await api<{ requests: TimeRequest[] }>('/api/requests/sent');
-      setSentRequests(sentRes.requests.filter((r) => r.status === 'pending'));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '불러오기 실패');
+    const [ev, sent] = await Promise.all([
+      api<{ events: MoimEvent[] }>('/api/events').catch((e: unknown) => {
+        setError(e instanceof Error ? e.message : '불러오기 실패');
+        return null;
+      }),
+      api<{ requests: TimeRequest[] }>('/api/requests/sent').catch(() => null),
+      loadTiers(),
+    ]);
+    if (ev) {
+      setEvents(ev.events);
+      setError('');
     }
-    loadTiers();
+    if (sent) setSentRequests(sent.requests.filter((r) => r.status === 'pending'));
   }, [loadTiers]);
 
   useEffect(() => {
@@ -83,21 +107,21 @@ export default function Dashboard() {
   // 날짜 → 색 (DatePicker 에 내 일정을 점으로 표시)
   const markedDates = useMemo(() => buildMarkedDates({ events, tierColors }), [events, tierColors]);
 
-  // 달력 클릭/드래그 → 생성 모달. allDay=월 뷰(종일 기본), false=주 뷰 시간 선택
+  // 달력 클릭/드래그 → 생성 팝업. allDay=월 뷰(종일 기본), false=시간 선택
   function openCreate(startDay: Date, endDay: Date, allDay = true) {
-    setMode('create');
-    setEditId('');
-    setFTitle('');
-    setFStartDate(dateKey(startDay));
-    setFStartTime(allDay ? '09:00' : timeKey(startDay));
-    setFEndDate(dateKey(endDay));
-    setFEndTime(allDay ? '10:00' : timeKey(endDay));
-    setFAllDay(allDay);
-    setFLocation('');
-    setFMemo('');
-    setFShare('public');
     loadTiers();
-    setOpen(true);
+    setModal({
+      mode: 'create',
+      editId: '',
+      initial: {
+        ...BLANK,
+        startDate: dateKey(startDay),
+        startTime: allDay ? '09:00' : timeKey(startDay),
+        endDate: dateKey(endDay),
+        endTime: allDay ? '10:00' : timeKey(endDay),
+        allDay,
+      },
+    });
   }
 
   function openToday() {
@@ -105,15 +129,15 @@ export default function Dashboard() {
     openCreate(t, t);
   }
 
-  // 일정 클릭 → 수정 모달 (시간 요청 일정은 상대방 삭제 여부 먼저 안내)
+  // 일정 클릭 → 수정 팝업 (시간 요청 일정은 상대가 지웠는지 먼저 안내)
   async function openEdit(id: string) {
     const ev = events.find((e) => e._id === id);
     if (!ev) return;
     if (ev.origin?.kind === 'timeRequest' && ev.originPartnerGone) {
-      const myName = user ? displayName(user) : '';
+      const myName = me ? displayName(me) : '';
       const other = (ev.origin.fromName === myName ? ev.origin.toName : ev.origin.fromName) || '상대방';
       const del = await confirmDialog({
-        message: `${other}님이 이 일정을 자신의 캘린더에서 삭제했어요.\n내 캘린더에서도 삭제할까요? (취소하면 그대로 두고 수정 창을 엽니다)`,
+        message: `${other}님이 이 일정을 자신의 캘린더에서 삭제했어요.\n내 캘린더에서도 삭제할까요? (취소하면 그대로 두고 수정 창을 열어요)`,
         confirmText: '나도 삭제',
         danger: true,
       });
@@ -121,68 +145,75 @@ export default function Dashboard() {
         try {
           await api(`/api/events/${id}`, { method: 'DELETE' });
           load();
-          toast('일정을 삭제했습니다');
+          toast('일정을 삭제했어요');
         } catch (err) {
-          toast(err instanceof Error ? err.message : '삭제 실패', 'error');
+          toast(err instanceof Error ? err.message : '삭제하지 못했어요', 'error');
         }
         return;
       }
     }
     const s = new Date(ev.start);
     const e = new Date(ev.end);
-    setMode('edit');
-    setEditId(id);
-    setFTitle(ev.title || '');
-    setFStartDate(dateKey(s));
-    setFStartTime(timeKey(s));
-    setFEndDate(dateKey(e));
-    setFEndTime(timeKey(e));
-    setFAllDay(!!ev.allDay);
-    setFLocation(ev.location || '');
-    setFMemo(ev.memo || '');
-    setFShare(
-      ev.visibility === 'private'
-        ? ev.audienceTiers && ev.audienceTiers.length
-          ? `tier:${ev.audienceTiers[0]}`
-          : 'private'
-        : 'public'
-    );
     loadTiers();
-    setOpen(true);
+    setModal({
+      mode: 'edit',
+      editId: id,
+      origin: ev.origin,
+      initial: {
+        title: ev.title || '',
+        startDate: dateKey(s),
+        startTime: timeKey(s),
+        endDate: dateKey(e),
+        endTime: timeKey(e),
+        allDay: !!ev.allDay,
+        location: ev.location || '',
+        memo: ev.memo || '',
+        visibility: ev.visibility === 'private' ? 'private' : 'public',
+        tierIds: ev.visibility === 'private' ? ev.audienceTiers || [] : [],
+      },
+    });
   }
 
-  async function saveForm(e: FormEvent) {
-    e.preventDefault();
-    if (!fStartDate || !fEndDate) return;
+  async function save(f: EventForm) {
+    if (!modal) return;
     // 로컬 wall-clock 을 UTC instant(ISO)로 보낸다 — 서버(UTC)·클라(KST) 왕복에서
-    // 무-타임존 문자열이 하루 밀리는(종료일 +1, 시간 9h 밀림) 버그 방지. 종일은 00:00~23:59.
-    const start = new Date(`${fStartDate}T${fAllDay ? '00:00' : fStartTime}`).toISOString();
-    const end = new Date(`${fEndDate}T${fAllDay ? '23:59' : fEndTime}`).toISOString();
-    let visibility: 'public' | 'private' = 'public';
-    let audienceTiers: string[] = [];
-    if (fShare === 'private') visibility = 'private';
-    else if (fShare.startsWith('tier:')) {
-      visibility = 'private';
-      audienceTiers = [fShare.slice(5)];
-    }
+    // 무-타임존 문자열이 하루 밀리는 버그 방지. 종일은 00:00~23:59.
+    const range = f.allDay
+      ? allDayIsoRange(f.startDate, f.endDate)
+      : {
+          start: new Date(`${f.startDate}T${f.startTime}`).toISOString(),
+          end: new Date(`${f.endDate}T${f.endTime}`).toISOString(),
+        };
+    const isPrivate = f.visibility === 'private';
     const body = {
-      title: fTitle.trim() || '새 일정',
-      start,
-      end,
-      allDay: fAllDay,
-      location: fLocation.trim(),
-      memo: fMemo,
-      visibility,
-      audienceTiers,
+      title: f.title.trim() || '새 일정',
+      ...range,
+      allDay: f.allDay,
+      location: f.location.trim(),
+      memo: f.memo,
+      visibility: f.visibility,
+      audienceTiers: isPrivate ? f.tierIds : [],
     };
     try {
-      if (mode === 'edit' && editId) await api(`/api/events/${editId}`, { method: 'PATCH', body });
+      if (modal.mode === 'edit' && modal.editId) await api(`/api/events/${modal.editId}`, { method: 'PATCH', body });
       else await api('/api/events', { method: 'POST', body });
-      setOpen(false);
+      setModal(null);
       load();
-      toast(mode === 'edit' ? '일정을 수정했습니다' : '일정을 추가했습니다', 'success');
+      toast(modal.mode === 'edit' ? '일정을 수정했어요' : '일정을 추가했어요', 'success');
     } catch (err) {
-      toast(err instanceof Error ? err.message : '저장 실패', 'error');
+      toast(err instanceof Error ? err.message : '저장하지 못했어요', 'error');
+    }
+  }
+
+  async function remove() {
+    if (!modal?.editId) return;
+    try {
+      await api(`/api/events/${modal.editId}`, { method: 'DELETE' });
+      setModal(null);
+      load();
+      toast('일정을 삭제했어요');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : '삭제하지 못했어요', 'error');
     }
   }
 
@@ -192,149 +223,98 @@ export default function Dashboard() {
       await api(`/api/tiers/${tierId}`, { method: 'PATCH', body: { color } });
       await loadTiers();
     } catch (err) {
-      toast(err instanceof Error ? err.message : '색상 변경 실패', 'error');
+      toast(err instanceof Error ? err.message : '색을 바꾸지 못했어요', 'error');
     }
   }
 
-  async function deleteEvent() {
-    if (!editId) return;
-    try {
-      await api(`/api/events/${editId}`, { method: 'DELETE' });
-      setOpen(false);
-      load();
-      toast('일정을 삭제했습니다');
-    } catch (err) {
-      toast(err instanceof Error ? err.message : '삭제 실패', 'error');
-    }
-  }
+  const paletteTier = tiers.find((t) => t._id === paletteFor);
 
   return (
-    <>
-      <Nav />
-      <main className="app-container">
-        <PageHero
-          icon="calendar"
-          title={user ? `${displayName(user)} 님의 캘린더` : '내 캘린더'}
-          desc="날짜를 클릭·드래그하면 일정을 추가하고, 일정을 클릭하면 수정·삭제할 수 있어요."
-          action={
-            <button className="app-btn" onClick={openToday} data-guide="cal-new">
-              + 새 일정
-            </button>
-          }
-        />
-        {error && <p className="app-error">{error}</p>}
+    <div className="ui-page">
+      <Suspense fallback={null}>
+        <OpenOnNew onOpen={openToday} />
+      </Suspense>
 
-        <div data-guide="cal">
-          <Calendar events={events} onSelectRange={openCreate} onSelectEvent={openEdit} tierColors={tierColors} requests={sentRequests} />
-        </div>
+      <PageHeader
+        title="내 캘린더"
+        sub="날짜를 누르거나 끌어서 일정을 넣어요"
+        actions={
+          <button type="button" className="ui-btn ui-btn--primary" onClick={openToday} data-guide="cal-new">
+            <Icon name="plus" size={16} stroke={2.4} />새 일정
+          </button>
+        }
+      />
+      {error && (
+        <p className="ui-error" role="alert">
+          {error}
+        </p>
+      )}
 
-        <div className="app-legend" data-guide="cal-legend">
-          <span><i style={{ background: PUBLIC_COLOR }} />공개</span>
-          <span><i style={{ background: PRIVATE_COLOR }} />비공개</span>
-          <span><i style={{ background: REQUEST_COLOR }} />시간 요청</span>
-          {tiers.map((t) => {
-            const cur = t.color || DEFAULT_TIER_COLOR;
-            return (
-              <span className="app-legend-group" key={t._id}>
-                <button
-                  type="button"
-                  className="app-legend-trigger"
-                  onClick={() => setPaletteFor(paletteFor === t._id ? null : t._id)}
-                  aria-label={`${t.name} 색상 변경`}
-                >
-                  <i style={{ background: cur }} />
-                  {t.name}
-                </button>
-                {paletteFor === t._id && (
-                  <>
-                    <button type="button" className="app-fab-catcher" aria-label="닫기" onClick={() => setPaletteFor(null)} />
-                    <div className="app-palette-pop">
-                      <ColorPalette
-                        value={cur}
-                        onChange={(hex) => {
-                          updateTierColor(t._id, hex);
-                          setPaletteFor(null);
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-              </span>
-            );
-          })}
-        </div>
+      <div data-guide="cal">
+        <Calendar events={events} onSelectRange={openCreate} onSelectEvent={openEdit} tierColors={tierColors} requests={sentRequests} />
+      </div>
 
-        {open && (
-          <Modal onClose={() => setOpen(false)}>
-            <form className="app-contents" onSubmit={saveForm}>
-              <h3>{mode === 'edit' ? '일정 수정' : '새 일정'}</h3>
-              {(() => {
-                // 시간 요청 수락으로 생긴 일정이면 출처(누가·언제 요청) 표시
-                const og = mode === 'edit' ? events.find((e) => e._id === editId)?.origin : undefined;
-                if (og?.kind !== 'timeRequest') return null;
-                const req = og.requestedAt ? new Date(og.requestedAt) : null;
-                return (
-                  <p className="app-event-origin">
-                    ⏰ <strong>{og.fromName}</strong> → <strong>{og.toName}</strong> 시간 요청을 수락해 만들어진
-                    일정이에요{req && ` · ${dayLabel(req)} ${timeKey(req)} 요청`}
-                  </p>
-                );
-              })()}
-              <input className="app-input" placeholder="일정 제목" value={fTitle} onChange={(e) => setFTitle(e.target.value)} />
-
-              <label className="app-row">
-                <input type="checkbox" checked={fAllDay} onChange={(e) => setFAllDay(e.target.checked)} />
-                <span>종일</span>
-              </label>
-
-              <label className="app-muted">시작</label>
-              <div className="app-row">
-                <DatePicker value={fStartDate} onChange={setFStartDate} markedDates={markedDates} block />
-                {!fAllDay && <TimeSelect value={fStartTime} onChange={setFStartTime} hourLabel="시작 시" minuteLabel="시작 분" />}
-              </div>
-
-              <label className="app-muted">종료</label>
-              <div className="app-row">
-                <DatePicker value={fEndDate} onChange={setFEndDate} markedDates={markedDates} block />
-                {!fAllDay && <TimeSelect value={fEndTime} onChange={setFEndTime} hourLabel="종료 시" minuteLabel="종료 분" />}
-              </div>
-
-              <input className="app-input" placeholder="위치 (선택)" value={fLocation} onChange={(e) => setFLocation(e.target.value)} />
-
-              <textarea className="app-textarea" placeholder="내용 (메모)" value={fMemo} onChange={(e) => setFMemo(e.target.value)} rows={3} />
-
-              <select className="app-select" value={fShare} onChange={(e) => setFShare(e.target.value)}>
-                <option value="public">공유 (누구나)</option>
-                <option value="private">비공개 (나만)</option>
-                {tiers.length > 0 && (
-                  <optgroup label="이 그룹에만 공개">
-                    {tiers.map((t) => (
-                      <option key={t._id} value={`tier:${t._id}`}>🔒 {t.name}</option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
-
-              <div className="app-actions">
-                {mode === 'edit' && (
-                  <>
-                    <button type="button" className="app-btn app-btn--ghost" onClick={deleteEvent}>
-                      삭제
-                    </button>
-                    <span className="app-spacer" />
-                  </>
-                )}
-                <button type="button" className="app-btn app-btn--ghost" onClick={() => setOpen(false)}>
-                  취소
-                </button>
-                <button className="app-btn" type="submit">
-                  {mode === 'edit' ? '저장' : '추가'}
-                </button>
-              </div>
-            </form>
-          </Modal>
+      <div className={`ui-legend ${styles.legend}`} data-guide="cal-legend" ref={legendRef}>
+        {/* 색 칸은 일정 종류가 정한 값이라 인라인 */}
+        <span>
+          <i className="ui-legend__sw" style={{ background: PUBLIC_COLOR }} />
+          공개
+        </span>
+        <span>
+          <i className="ui-legend__sw" style={{ background: PRIVATE_COLOR }} />
+          비공개
+        </span>
+        <span>
+          <i className="ui-legend__sw" style={{ background: REQUEST_COLOR }} />
+          시간 요청
+        </span>
+        <span>
+          <i className="ui-legend__sw" style={{ background: ROOM_COLOR }} />
+          모임 확정
+        </span>
+        <span>
+          <i className={`ui-legend__sw ${styles.swPending}`} />
+          답 기다리는 요청
+        </span>
+        {tiers.map((t) => (
+          <button
+            key={t._id}
+            type="button"
+            className={styles.legendBtn}
+            aria-expanded={paletteFor === t._id}
+            aria-label={`${t.name} 그룹 색 바꾸기`}
+            onClick={() => setPaletteFor(paletteFor === t._id ? null : t._id)}
+          >
+            <i className="ui-legend__sw" style={{ background: t.color || DEFAULT_TIER_COLOR }} />
+            {t.name}
+          </button>
+        ))}
+        {paletteTier && (
+          <div className={`ui-popover ${styles.palettePop}`}>
+            <p className={styles.paletteTitle}>{paletteTier.name} 그룹 색</p>
+            <ColorPalette
+              value={paletteTier.color || DEFAULT_TIER_COLOR}
+              onChange={(hex) => {
+                updateTierColor(paletteTier._id, hex);
+                setPaletteFor(null);
+              }}
+            />
+          </div>
         )}
-      </main>
-    </>
+      </div>
+
+      {modal && (
+        <EventModal
+          mode={modal.mode}
+          initial={modal.initial}
+          tiers={tiers}
+          markedDates={markedDates}
+          origin={modal.origin}
+          onClose={() => setModal(null)}
+          onSave={save}
+          onDelete={modal.mode === 'edit' ? remove : undefined}
+        />
+      )}
+    </div>
   );
 }

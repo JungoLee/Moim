@@ -1,0 +1,192 @@
+// FullCalendar 덮어쓰기 — 토큰만 쓴다(두 테마 자동). 일정 블록 색은 lib/colors.ts 가 채움색으로 넘긴다.
+// 이벤트 종류 클래스: fc-ev--busy(친구 바쁨) · fc-ev--request(보낸 대기 요청) · fc-ev--holiday · fc-ev--leave
+@use 'rem' as *;
+
+.fc {
+  --fc-border-color: var(--c-line);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: var(--c-surface-2);
+  --fc-today-bg-color: var(--c-primary-soft);
+  --fc-event-bg-color: var(--c-primary);
+  --fc-event-border-color: transparent;
+  --fc-event-text-color: var(--c-on-primary);
+  --fc-highlight-color: color-mix(in srgb, var(--c-primary) 22%, transparent);
+  color: var(--c-text);
+  font-family: inherit;
+}
+
+.fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: var(--sp-4);
+}
+
+.fc .fc-toolbar-title {
+  font-size: rem(18);
+  font-weight: 700;
+}
+
+.fc .fc-button {
+  height: rem(36);
+  padding: 0 rem(12);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-line-strong);
+  color: var(--c-text);
+  box-shadow: none;
+  font-size: rem(14);
+  font-weight: 600;
+  text-transform: none;
+
+  &:hover {
+    background: var(--c-surface-3);
+    border-color: var(--c-line-strong);
+    color: var(--c-text);
+  }
+
+  &:focus-visible,
+  &:focus {
+    outline: 2px solid var(--c-focus);
+    outline-offset: 2px;
+    box-shadow: none !important;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: var(--c-on-primary);
+}
+
+.fc .fc-col-header-cell-cushion {
+  padding: rem(6) rem(4);
+  color: var(--c-text-3);
+  font-size: rem(13);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.fc .fc-daygrid-day-number {
+  padding: rem(6) rem(8);
+  color: var(--c-text);
+  font-size: rem(14);
+  font-weight: 600;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.fc .fc-day-sun .fc-col-header-cell-cushion,
+.fc .fc-day-sun .fc-daygrid-day-number {
+  color: var(--c-sun);
+}
+
+.fc .fc-day-sat .fc-col-header-cell-cushion,
+.fc .fc-day-sat .fc-daygrid-day-number {
+  color: var(--c-sat);
+}
+
+// 공휴일(Calendar.tsx 가 fc-day-holiday 를 붙인다) — 일요일 색
+.fc .fc-day-holiday .fc-daygrid-day-number {
+  color: var(--c-sun);
+}
+
+.fc .fc-daygrid-day-frame {
+  min-height: rem(96);
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background: var(--fc-today-bg-color);
+}
+
+.fc .fc-day-other .fc-daygrid-day-top {
+  opacity: 0.4;
+}
+
+.fc .fc-day-past:not(.fc-day-other) .fc-daygrid-day-number {
+  opacity: 0.55;
+}
+
+.fc.fc-theme-standard .fc-daygrid-day {
+  cursor: pointer;
+}
+
+.fc.fc-theme-standard .fc-scrollgrid {
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.fc .fc-event {
+  border-radius: rem(5);
+  padding: 1px rem(5);
+  font-size: rem(12);
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.fc .fc-daygrid-block-event .fc-event-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fc .fc-event-time {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.fc .fc-daygrid-block-event:hover {
+  filter: brightness(1.08);
+}
+
+.fc .fc-daygrid-dot-event:hover {
+  background: var(--c-surface-2);
+}
+
+.fc .fc-daygrid-more-link {
+  color: var(--c-text-2);
+  font-size: rem(12);
+}
+
+.fc .fc-popover {
+  background: var(--c-surface);
+  border-color: var(--c-line-strong);
+  box-shadow: var(--shadow-pop);
+}
+
+.fc .fc-popover-header {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+
+.fc .fc-event.fc-ev--busy {
+  background-color: var(--c-surface-3) !important;
+  border-color: transparent !important;
+  color: var(--c-text-3) !important;
+}
+
+.fc .fc-event.fc-ev--request {
+  background-color: var(--c-req-soft) !important;
+  border: 1px dashed var(--c-req) !important;
+  color: var(--c-text) !important;
+}
+
+// 종류 블록 안 글자 — FullCalendar 가 .fc-event-main 에 기본 글자색을 따로 줘서 덮는다
+.fc .fc-event:is(.fc-ev--busy, .fc-ev--request, .fc-ev--holiday, .fc-ev--leave) .fc-event-main {
+  color: inherit;
+}
+
+.fc .fc-event.fc-ev--holiday {
+  background-color: var(--c-danger-soft) !important;
+  border-color: transparent !important;
+  color: var(--c-sun) !important;
+  font-weight: 600;
+}
+
+.fc .fc-event.fc-ev--leave {
+  background-color: var(--c-primary) !important;
+  border-color: transparent !important;
+  color: var(--c-on-primary) !important;
+  font-weight: 600;
+}

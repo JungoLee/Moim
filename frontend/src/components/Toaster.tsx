@@ -9,9 +9,9 @@ export default function Toaster() {
   useEffect(() => subscribe(setItems), []);
 
   return (
-    <div className={styles.wrap} aria-live="polite">
+    <div className={styles.wrap} role="status" aria-live="polite">
       {items.map((t) => (
-        <div key={t.id} className={`${styles.toast} ${styles[t.type]}`}>
+        <div key={t.id} className={t.type === 'info' ? styles.toast : `${styles.toast} ${styles[t.type]}`}>
           {t.msg}
         </div>
       ))}

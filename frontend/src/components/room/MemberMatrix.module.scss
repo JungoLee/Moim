@@ -1,0 +1,234 @@
+@use '@/styles/rem' as *;
+
+// 상자 안에서만 가로로 민다. 이름 칸은 왼쪽에 붙어 있다.
+.scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border-radius: var(--r-md);
+}
+
+.table {
+  --who-w: #{rem(132)};
+  --cell-w: #{rem(32)};
+
+  width: 100%;
+  min-width: calc(var(--who-w) + var(--n) * var(--cell-w));
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: rem(3);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+
+  caption {
+    caption-side: top;
+  }
+}
+
+// 이름 칸 · 모서리
+.corner,
+.who {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: var(--who-w);
+  background: var(--c-surface);
+  text-align: left;
+}
+
+.corner {
+  padding: 0 0 rem(4);
+  font-size: rem(12);
+  font-weight: 500;
+  color: var(--c-text-3);
+  vertical-align: bottom;
+}
+
+.who {
+  padding: 0;
+  font-weight: 500;
+  font-size: rem(14);
+}
+
+.whoInner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.whoName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+tr[data-mine] .who {
+  font-weight: 700;
+}
+
+// 머리 — 요일 + 날짜
+.head {
+  padding: rem(4) 0;
+  border-radius: rem(6) rem(6) 0 0;
+  text-align: center;
+  font-weight: 600;
+  color: var(--c-text);
+
+  &[data-dow='sun'] {
+    color: var(--c-sun);
+  }
+
+  &[data-dow='sat'] {
+    color: var(--c-sat);
+  }
+
+  &[data-past] {
+    opacity: 0.55;
+  }
+
+  &[data-today] .dnum {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  // 전원 가능한 날 — 진하게
+  &[data-all] {
+    background: var(--c-primary);
+    color: var(--c-on-primary);
+    opacity: 1;
+  }
+}
+
+.dow {
+  display: block;
+  font-size: rem(10);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.dnum {
+  display: block;
+  font-size: rem(13);
+  font-variant-numeric: tabular-nums;
+}
+
+.td {
+  height: rem(30);
+  padding: 0;
+
+  &[data-past] {
+    opacity: 0.55;
+  }
+
+  // 전원 가능한 날 — 칸에 테두리
+  &[data-all] .cell {
+    box-shadow: inset 0 0 0 2px var(--c-primary);
+  }
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: rem(30);
+  padding: 0;
+  border: 0;
+  border-radius: rem(5);
+  background: var(--avail-no);
+  color: var(--c-text-3);
+  font-size: rem(12);
+  font-weight: 700;
+  touch-action: manipulation;
+
+  &[data-state='yes'] {
+    background: var(--avail-yes);
+    color: var(--c-on-accent);
+  }
+
+  // 저녁 이후 — 아래쪽만 주황 + 시각 글자
+  &[data-state='after'] {
+    align-items: flex-end;
+    padding-bottom: rem(2);
+    background: linear-gradient(0deg, var(--avail-after) 55%, var(--avail-no) 55%);
+    color: var(--c-text);
+  }
+}
+
+.hour {
+  font-size: rem(10);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-on-warn);
+}
+
+// 내 줄 고치기 켜짐 — 눌리는 칸이 보이게
+button.cell {
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:hover:not(:disabled) {
+    outline: 2px solid var(--c-focus);
+    outline-offset: -2px;
+  }
+
+  &[data-selecting] {
+    outline: 2px solid var(--c-focus);
+    outline-offset: -2px;
+    filter: brightness(1.12);
+  }
+}
+
+.table[data-editing] tr[data-mine] .who {
+  color: var(--c-link);
+}
+
+// 합계 줄
+.sum {
+  height: rem(30);
+  padding: 0;
+  border-radius: 0 0 rem(6) rem(6);
+  background: var(--c-surface-2);
+  text-align: center;
+  font-size: rem(13);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-3);
+
+  &[data-past] {
+    opacity: 0.55;
+  }
+
+  &[data-high] {
+    background: var(--c-accent-soft);
+    color: var(--c-accent-text);
+    opacity: 1;
+  }
+
+  &[data-all] {
+    background: var(--c-primary);
+    color: var(--c-on-primary);
+    opacity: 1;
+  }
+}
+
+tfoot .who {
+  border-top: 0;
+  font-size: rem(13);
+  font-weight: 700;
+}
+
+// ── 표 테마 차이 ───────────────────────────────────────
+:global(html[data-theme='table']) {
+  .sum[data-all] {
+    color: var(--c-accent);
+  }
+
+  .cell[data-state='after'] {
+    color: var(--c-on-warn);
+  }
+}

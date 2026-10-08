@@ -1,0 +1,216 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+.page {
+  @include mobile {
+    gap: var(--sp-3);
+  }
+}
+
+.page[data-has-strip] {
+  @include mobile {
+    padding-bottom: calc(var(--sp-8) + rem(88));
+  }
+}
+
+// ── 머리 ───────────────────────────────────────────────
+// 모바일: 남색 머리(가장자리까지) — 뒤로·방 이름·내 줄 고치기 + 거르기 칩
+.mobileTop {
+  display: none;
+
+  @include mobile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    margin: calc(var(--sp-5) * -1) calc(var(--sp-4) * -1) 0;
+    padding: var(--sp-3) var(--sp-4) var(--sp-3);
+    background: var(--c-shell);
+    color: var(--c-shell-active);
+  }
+}
+
+.mobileRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.mobileIcons {
+  display: inline-flex;
+  gap: rem(6);
+
+  button {
+    width: rem(36);
+    height: rem(36);
+  }
+}
+
+.editBtn {
+  flex-shrink: 0;
+  height: rem(40);
+  padding: 0 rem(12);
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--c-accent);
+  color: var(--c-on-accent);
+  font-size: rem(13);
+  font-weight: 700;
+  white-space: nowrap;
+
+  &[aria-pressed='true'] {
+    background: var(--c-shell-active);
+    color: var(--c-shell);
+  }
+}
+
+.deskHead {
+  @include mobile {
+    display: none;
+  }
+}
+
+.deskOnly {
+  min-width: 0;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.monthNav {
+  height: rem(40);
+  padding: 0 rem(4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+}
+
+// ── 고치기 줄 ──────────────────────────────────────────
+.editBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+}
+
+.editHint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: rem(14);
+  color: var(--c-text-2);
+
+  @include mobile {
+    display: none;
+  }
+}
+
+// ── 표 / 날짜 목록 ────────────────────────────────────
+.matrixArea {
+  min-width: 0;
+}
+
+.card {
+  min-width: 0;
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.matrixCard {
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.list {
+  display: none;
+
+  @include mobile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+}
+
+.listNav {
+  align-self: center;
+}
+
+.legend {
+  margin: var(--sp-3) 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: rem(6);
+  }
+}
+
+.swYes {
+  background: var(--avail-yes);
+}
+
+.swAfter {
+  background: linear-gradient(0deg, var(--avail-after) 55%, var(--avail-no) 55%);
+}
+
+.swNo {
+  background: var(--avail-no);
+  border: 1px solid var(--c-line);
+}
+
+.swAll {
+  background: var(--c-primary);
+}
+
+// ── 아래: 후보 · 대화 ─────────────────────────────────
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--sp-4);
+
+  > * {
+    flex: 1 1 rem(420);
+  }
+
+  @include mobile {
+    display: block;
+  }
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+  padding: var(--sp-4) var(--sp-4) 0;
+  font-size: rem(16);
+  font-weight: 700;
+
+  @include mobile {
+    display: none; // 시트 머리에 제목이 있다
+  }
+}
+
+.cardBody {
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+
+  @include mobile {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}

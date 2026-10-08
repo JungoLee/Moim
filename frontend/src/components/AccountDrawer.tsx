@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { api, clearToken } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
@@ -10,23 +10,18 @@ import { displayName } from '@/lib/format';
 import CopyButton from '@/components/CopyButton';
 import LegalModal from '@/components/LegalModal';
 import ReleaseModal from '@/release/ReleaseModal';
-import type { User } from '@/lib/types';
+import Avatar from '@/components/Avatar';
+import Icon from '@/components/Icon';
+import ThemeSwitch from '@/components/shell/ThemeSwitch';
+import { useShell } from '@/components/shell/ShellContext';
+import styles from './AccountDrawer.module.scss';
 
 export default function AccountDrawer({ onClose }: { onClose: () => void }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [nick, setNick] = useState('');
+  const { me, refreshMe } = useShell();
+  const [nick, setNick] = useState(me?.nickname || '');
   const [saved, setSaved] = useState(false);
   const [legal, setLegal] = useState<'terms' | 'privacy' | null>(null);
   const [releaseOpen, setReleaseOpen] = useState(false); // 업데이트 내역
-
-  useEffect(() => {
-    api<{ user: User }>('/api/auth/me')
-      .then((r) => {
-        setUser(r.user);
-        setNick(r.user.nickname || '');
-      })
-      .catch(() => {});
-  }, []);
 
   // ESC 로 닫기 — 위에 뜬 약관·업데이트 창이나 확인창이 먼저 받는다(층 스택)
   useEscClose(onClose);
@@ -58,101 +53,101 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
 
   async function saveNick() {
     try {
-      const r = await api<{ user: User }>('/api/auth/me', { method: 'PATCH', body: { nickname: nick } });
-      setUser(r.user);
+      await api('/api/auth/me', { method: 'PATCH', body: { nickname: nick } });
+      await refreshMe();
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
     } catch {
-      /* 무시 */
+      toast('닉네임을 저장하지 못했어요', 'error');
     }
   }
 
   return (
-    <div className="app-drawer-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <aside className="app-drawer">
-        <div className="app-row">
-          <strong>계정</strong>
-          <span className="app-spacer" />
-          <button className="app-btn app-btn--ghost" onClick={onClose} aria-label="닫기">
-            ✕
+    <>
+      <div className="ui-drawer-scrim" onClick={onClose} aria-hidden />
+      <aside className="ui-drawer" role="dialog" aria-modal="true" aria-label="계정">
+        <div className={styles.top}>
+          <h2 className={styles.heading}>계정</h2>
+          <button type="button" className="ui-btn ui-btn--ghost ui-btn--icon ui-btn--sm" onClick={onClose} aria-label="닫기" autoFocus>
+            <Icon name="x" size={18} />
           </button>
         </div>
 
-        {user && (
+        {me ? (
           <>
-            <div className="app-drawer-profile">
-              {user.picture && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.picture} alt="" width={56} height={56} className="app-avatar-lg" />
-              )}
-              <div>
-                <div>
-                  <strong>{displayName(user)}</strong>
-                  {user.isAdmin && <span className="app-success"> · 관리자</span>}
-                </div>
-                <div className="app-muted">{user.email}</div>
+            <div className={styles.profile}>
+              <Avatar src={me.picture} name={displayName(me)} id={me._id} size="lg" />
+              <div className={styles.who}>
+                <strong>
+                  {displayName(me)}
+                  {me.isAdmin && <span className="ui-chip ui-chip--accent">관리자</span>}
+                </strong>
+                <span>{me.email}</span>
               </div>
             </div>
 
-            <div className="app-card app-card--flush">
-              <div className="app-muted app-small app-drawer-label">
-                닉네임 (비우면 구글 이름 사용)
-              </div>
-              <div className="app-row app-row--nowrap">
-                <input
-                  className="app-input"
-                  placeholder={user.name}
-                  value={nick}
-                  onChange={(e) => setNick(e.target.value)}
-                />
-                <button className="app-btn" onClick={saveNick}>
-                  {saved ? '✓' : '저장'}
+            <section className={styles.block}>
+              <span className="ui-label">화면</span>
+              <ThemeSwitch tone="surface" />
+              <span className="ui-help">보드는 어두운 달력, 표는 밝은 사람×날짜 표예요. 이 계정에 기억돼요.</span>
+            </section>
+
+            <section className={styles.block}>
+              <label className="ui-label" htmlFor="acct-nick">
+                닉네임 <span className="ui-muted">(비우면 구글 이름)</span>
+              </label>
+              <div className="ui-inline">
+                <input id="acct-nick" className="ui-input" placeholder={me.name} value={nick} maxLength={30} onChange={(e) => setNick(e.target.value)} />
+                <button type="button" className="ui-btn" onClick={saveNick}>
+                  {saved ? '저장됨' : '저장'}
                 </button>
               </div>
-            </div>
+            </section>
 
-            <div className="app-card app-card--flush">
-              <div className="app-muted app-small">내 고유 번호</div>
-              <div className="app-row">
-                <code className="app-drawer-code">{user._id}</code>
-                <span className="app-spacer" />
-                <CopyButton text={user._id} label="복사" />
+            <section className={styles.block}>
+              <span className="ui-label">내 고유 번호</span>
+              <div className="ui-inline">
+                <code className={styles.code}>{me._id}</code>
+                <CopyButton text={me._id} label="복사" />
               </div>
-            </div>
+            </section>
 
-            {user.isAdmin && (
-              <Link className="app-btn app-btn--ghost" href="/admin" onClick={onClose}>
-                관리자 페이지 →
-              </Link>
-            )}
-            <button className="app-btn app-btn--ghost" onClick={logout}>
-              로그아웃
-            </button>
-            <button
-              className="app-btn app-btn--ghost app-btn--ghost-danger"
-              onClick={deleteAccount}
-            >
+            <nav className="ui-menu" aria-label="계정 메뉴">
+              {me.isAdmin && (
+                <Link href="/admin" onClick={onClose}>
+                  <Icon name="settings" size={18} />
+                  관리자 화면
+                </Link>
+              )}
+              <button type="button" onClick={() => setReleaseOpen(true)}>
+                <Icon name="refresh" size={18} />
+                업데이트 내역
+              </button>
+              <button type="button" onClick={() => setLegal('terms')}>
+                <Icon name="tag" size={18} />
+                이용약관
+              </button>
+              <button type="button" onClick={() => setLegal('privacy')}>
+                <Icon name="lock" size={18} />
+                개인정보 처리방침
+              </button>
+              <button type="button" onClick={logout}>
+                <Icon name="logout" size={18} />
+                로그아웃
+              </button>
+            </nav>
+
+            <button type="button" className={`ui-btn ui-btn--ghost ui-btn--sm ${styles.leave}`} onClick={deleteAccount}>
               회원 탈퇴
             </button>
           </>
+        ) : (
+          <span className="ui-skeleton" />
         )}
-
-        <span className="app-spacer" />
-        <div className="app-row">
-          <button className="app-btn app-btn--ghost" onClick={() => setReleaseOpen(true)}>
-            업데이트 내역
-          </button>
-          <button className="app-btn app-btn--ghost" onClick={() => setLegal('terms')}>
-            이용약관
-          </button>
-          <button className="app-btn app-btn--ghost" onClick={() => setLegal('privacy')}>
-            개인정보 처리방침
-          </button>
-        </div>
 
         {legal && <LegalModal type={legal} onClose={() => setLegal(null)} />}
         {releaseOpen && <ReleaseModal onClose={() => setReleaseOpen(false)} />}
       </aside>
-    </div>
+    </>
   );
 }

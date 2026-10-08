@@ -1,0 +1,23 @@
+@use '@/styles/rem' as *;
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: rem(10) rem(12);
+  border-radius: var(--r-md);
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+  font-size: rem(14);
+  line-height: 1.5;
+
+  svg {
+    flex-shrink: 0;
+    margin-top: rem(2);
+  }
+}
+
+.ok {
+  background: var(--c-accent-soft);
+  color: var(--c-accent-text);
+}

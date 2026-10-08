@@ -1,16 +1,20 @@
 @use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
 
-/* 랜딩 하단 공개 소개 — 히어로(로그인 카드) 아래로 흐른다 */
+// 랜딩 하단 공개 소개 — 로그인 카드 아래로 흐른다. 빛 원·유리 효과 없이 카드·목록만.
 .wrap {
-  position: relative;
-  z-index: 1;
   width: 100%;
   max-width: rem(880);
   margin: 0 auto;
-  padding: rem(64) 0 rem(32);
+  padding: rem(64) 0 var(--sp-8);
   display: flex;
   flex-direction: column;
   gap: rem(56);
+
+  @include narrow {
+    padding-top: rem(40);
+    gap: rem(40);
+  }
 }
 
 .section {
@@ -18,141 +22,126 @@
 }
 
 .h2 {
+  margin: 0 0 var(--sp-5);
   font-size: clamp(#{rem(22)}, 4.2vw, #{rem(30)});
   font-weight: 700;
-  margin: 0 0 var(--space-5);
-  color: var(--color-text);
-  word-break: keep-all;
+  letter-spacing: -0.015em;
+  color: var(--c-text);
 }
 
 .h3 {
+  margin: 0 0 var(--sp-2);
   font-size: rem(17);
-  font-weight: 650;
-  margin: 0 0 var(--space-3);
-  color: var(--color-text);
-  word-break: keep-all;
+  font-weight: 700;
+  color: var(--c-text);
 }
 
 .lead {
   max-width: rem(620);
   margin: 0 auto;
-  color: var(--color-muted);
   font-size: rem(16);
   line-height: 1.8;
-  word-break: keep-all;
+  color: var(--c-text-2);
 
   strong {
-    color: var(--color-text);
-    font-weight: 650;
+    color: var(--c-text);
+    font-weight: 700;
   }
 }
 
 .body {
   margin: 0;
-  color: var(--color-muted);
   font-size: rem(15);
   line-height: 1.75;
-  word-break: keep-all;
+  color: var(--c-text-2);
 }
 
-/* 기능 카드 */
+// 기능 카드
 .grid {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
+  gap: var(--sp-4);
 
-  @media (max-width: 640px) {
+  @include narrow {
     grid-template-columns: 1fr;
   }
 }
 
-.card {
+.card,
+.step,
+.faqItem {
   text-align: left;
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  background: rgba(20, 26, 44, 0.62);
-  border: 1px solid var(--color-border-soft);
-  backdrop-filter: saturate(140%) blur(12px);
-  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-xl);
+}
+
+.card {
+  padding: var(--sp-6);
 }
 
 .icon {
-  display: block;
-  font-size: rem(26);
-  margin-bottom: var(--space-3);
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(40);
+  height: rem(40);
+  margin-bottom: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--c-primary-soft);
+  color: var(--c-text);
 }
 
-/* 사용법 */
+// 쓰는 법
 .steps {
   list-style: none;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--sp-3);
   max-width: rem(620);
-  margin-inline: auto;
 }
 
 .step {
   display: flex;
-  gap: var(--space-4);
+  gap: var(--sp-4);
   align-items: flex-start;
-  text-align: left;
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  background: rgba(20, 26, 44, 0.62);
-  border: 1px solid var(--color-border-soft);
+  padding: var(--sp-5);
 }
 
 .stepNum {
   flex: 0 0 auto;
+  display: grid;
+  place-items: center;
   width: rem(30);
   height: rem(30);
   border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-weight: 700;
+  background: var(--c-accent);
+  color: var(--c-on-accent);
   font-size: rem(14);
-  color: var(--color-bg);
-  background: var(--color-accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .toolLink {
-  display: inline-block;
-  margin-top: var(--space-5);
-  padding: rem(10) rem(20);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-soft);
-  color: var(--color-accent);
-  font-weight: 600;
-  text-decoration: none;
-
-  &:hover {
-    background: rgba(70, 214, 194, 0.1);
-  }
+  margin-top: var(--sp-5);
 }
 
-/* FAQ */
+// 자주 묻는 질문
 .faq {
-  margin: 0;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--sp-3);
   max-width: rem(680);
-  margin-inline: auto;
 }
 
 .faqItem {
-  text-align: left;
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  background: rgba(20, 26, 44, 0.62);
-  border: 1px solid var(--color-border-soft);
+  padding: var(--sp-5);
 
   dd {
     margin: 0;
@@ -160,14 +149,23 @@
 }
 
 .footer {
-  color: var(--color-muted);
-  font-size: rem(13);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--c-line);
   text-align: center;
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border-soft);
+  font-size: rem(13);
+  color: var(--c-text-3);
 
   p {
     margin: 0;
-    word-break: keep-all;
+  }
+}
+
+// ── 표 테마(밝음) ───────────────────────────────────────
+:global(html[data-theme='table']) {
+  .card,
+  .step,
+  .faqItem {
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
   }
 }

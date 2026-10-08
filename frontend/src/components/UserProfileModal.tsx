@@ -4,55 +4,53 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { toast } from '@/lib/toast';
+import { displayName } from '@/lib/format';
 import Avatar from '@/components/Avatar';
 import CopyButton from '@/components/CopyButton';
+import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
+import TierPicker from '@/components/TierPicker';
 import type { Friend, Tier } from '@/lib/types';
+import styles from './UserProfileModal.module.scss';
 
-type ProfileUser = { _id: string; name: string; email: string; picture?: string };
+type ProfileUser = { _id: string; name: string; nickname?: string; email: string; picture?: string };
 
-/** 타인 프로필 액션 모달 — 캘린더 보기 / 친구 요청·시간 요청 / 그룹에 추가 / 이메일 복사 */
+/** 다른 사람 프로필 — 캘린더 보기 / 친구 요청·시간 요청 / 그룹에 추가 / 이메일 복사 */
 export default function UserProfileModal({ user, onClose }: { user: ProfileUser; onClose: () => void }) {
   const router = useRouter();
   const [isFriend, setIsFriend] = useState<boolean | null>(null);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [busy, setBusy] = useState(false);
+  const name = displayName(user);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const f = await api<{ friends: Friend[] }>('/api/friends');
-        setIsFriend(f.friends.some((fr) => fr.user._id === user._id));
-      } catch {
-        setIsFriend(false);
-      }
-      try {
-        const t = await api<{ tiers: Tier[] }>('/api/tiers');
-        setTiers(t.tiers);
-      } catch {
-        /* 그룹 로드 실패 무시 */
-      }
-    })();
+    let alive = true;
+    Promise.all([
+      api<{ friends: Friend[] }>('/api/friends').catch(() => ({ friends: [] as Friend[] })),
+      api<{ tiers: Tier[] }>('/api/tiers').catch(() => ({ tiers: [] as Tier[] })),
+    ]).then(([f, t]) => {
+      if (!alive) return;
+      setIsFriend(f.friends.some((fr) => fr.user._id === user._id));
+      setTiers(t.tiers);
+    });
+    return () => {
+      alive = false;
+    };
   }, [user._id]);
 
-  function goCalendar() {
+  function go(path: string) {
     onClose();
-    router.push(`/u?id=${user._id}`);
-  }
-
-  function goTimeRequest() {
-    onClose();
-    router.push(`/requests?to=${user._id}`);
+    router.push(path);
   }
 
   async function requestFriend() {
     setBusy(true);
     try {
       await api('/api/friends/requests', { method: 'POST', body: { email: user.email } });
-      toast(`${user.name}님에게 친구 요청을 보냈습니다`, 'success');
+      toast(`${name}님에게 친구 요청을 보냈어요`, 'success');
       setIsFriend(null);
     } catch (e) {
-      toast(e instanceof Error ? e.message : '요청 실패', 'error');
+      toast(e instanceof Error ? e.message : '요청하지 못했어요', 'error');
     }
     setBusy(false);
   }
@@ -60,69 +58,50 @@ export default function UserProfileModal({ user, onClose }: { user: ProfileUser;
   async function addToTier(tierId: string) {
     try {
       await api(`/api/tiers/${tierId}/members`, { method: 'POST', body: { email: user.email } });
-      toast('그룹에 추가했습니다', 'success');
+      toast('그룹에 넣었어요', 'success');
       const t = await api<{ tiers: Tier[] }>('/api/tiers');
       setTiers(t.tiers);
     } catch (e) {
-      toast(e instanceof Error ? e.message : '그룹 추가 실패', 'error');
+      toast(e instanceof Error ? e.message : '그룹에 넣지 못했어요', 'error');
     }
   }
 
   return (
-    <Modal onClose={onClose} className="app-profile">
-      <button type="button" className="app-profile-x" onClick={onClose} aria-label="닫기">
-        ✕
-      </button>
-
-        <div className="app-profile-head">
-          <Avatar src={user.picture} alt={user.name} className="app-avatar-lg" />
-          <div className="app-profile-id">
-            <h3>{user.name}</h3>
-            <span className="app-muted">{user.email}</span>
-          </div>
+    <Modal onClose={onClose} size="sm" title="프로필">
+      <div className={styles.head}>
+        <Avatar src={user.picture} name={name} id={user._id} size="lg" />
+        <div className={styles.id}>
+          <strong>{name}</strong>
+          <span>{user.email}</span>
         </div>
+      </div>
 
-        <div className="app-profile-actions">
-          <button className="app-btn" onClick={goCalendar}>
-            📅 캘린더 보기
+      <div className={styles.actions}>
+        <button type="button" className="ui-btn" onClick={() => go(`/u?id=${user._id}`)}>
+          <Icon name="calendar" size={16} />
+          캘린더 보기
+        </button>
+        {isFriend === false && (
+          <button type="button" className="ui-btn ui-btn--primary" onClick={requestFriend} disabled={busy}>
+            <Icon name="user-plus" size={16} />
+            친구 요청
           </button>
-          {isFriend === false && (
-            <button className="app-btn" onClick={requestFriend} disabled={busy}>
-              ➕ 친구 요청
-            </button>
-          )}
-          {isFriend === true && (
-            <button className="app-btn" onClick={goTimeRequest}>
-              ⏰ 시간 요청
-            </button>
-          )}
-          <CopyButton text={user.email} label="📋 이메일 복사" />
-        </div>
-
-        {tiers.length > 0 && (
-          <div className="app-profile-section">
-            <span className="app-profile-label">그룹에 추가</span>
-            <div className="app-profile-tiers">
-              {tiers.map((t) => {
-                const already = t.members?.some((m) => m._id === user._id);
-                return (
-                  <button
-                    key={t._id}
-                    type="button"
-                    className={already ? 'app-tier-chip is-in' : 'app-tier-chip'}
-                    onClick={() => addToTier(t._id)}
-                    disabled={already}
-                    title={already ? '이미 포함된 그룹' : `${t.name} 그룹에 추가`}
-                  >
-                    <i className="app-dot" style={{ background: t.color || 'var(--color-primary)' }} />
-                    {t.name}
-                    {already && ' ✓'}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         )}
+        {isFriend === true && (
+          <button type="button" className="ui-btn" onClick={() => go(`/requests?to=${user._id}`)}>
+            <Icon name="clock" size={16} />
+            시간 요청
+          </button>
+        )}
+        <CopyButton text={user.email} label="이메일 복사" size="md" />
+      </div>
+
+      {isFriend === true && (
+        <section className={styles.section}>
+          <h3 className="ui-label">그룹에 추가</h3>
+          <TierPicker tiers={tiers} userId={user._id} onAdd={addToTier} />
+        </section>
+      )}
     </Modal>
   );
 }

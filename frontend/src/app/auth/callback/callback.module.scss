@@ -1,0 +1,15 @@
+// 로그인 콜백 — 토큰을 저장하고 넘어가는 동안 보이는 짧은 안내
+@use '@/styles/rem' as *;
+
+.wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--sp-4);
+}
+
+.card {
+  width: 100%;
+  max-width: rem(380);
+}

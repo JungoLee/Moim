@@ -1,0 +1,21 @@
+@use '@/styles/rem' as *;
+
+.placeholder {
+  min-height: rem(440);
+}
+
+.dayTop {
+  display: inline-flex;
+  align-items: baseline;
+  gap: rem(6);
+}
+
+.holiday {
+  max-width: rem(72);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--c-sun);
+  font-size: rem(11);
+  font-weight: 500;
+}

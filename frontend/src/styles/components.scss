@@ -1,0 +1,1023 @@
+// 공용 부품 ui-* — docs/design-system.md 4-1. 화면 전용 모양은 여기 두지 않고 CSS Module 로.
+@use 'rem' as *;
+@use 'bp' as *;
+
+// ── 버튼 ───────────────────────────────────────────────
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  height: var(--h-md);
+  padding: 0 rem(16);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: rem(15);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+
+  &:hover:not(:disabled) {
+    background: var(--c-surface-2);
+    text-decoration: none;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.ui-btn--primary {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: var(--c-on-primary);
+  font-weight: 700;
+
+  &:hover:not(:disabled) {
+    background: var(--c-primary-hover);
+    border-color: var(--c-primary-hover);
+  }
+}
+
+.ui-btn--accent {
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+  color: var(--c-on-accent);
+  font-weight: 700;
+
+  &:hover:not(:disabled) {
+    background: var(--c-accent);
+    filter: brightness(1.06);
+  }
+}
+
+.ui-btn--danger {
+  background: var(--c-danger-soft);
+  border-color: transparent;
+  color: var(--c-danger);
+
+  &:hover:not(:disabled) {
+    background: var(--c-danger-soft);
+    filter: brightness(1.1);
+  }
+}
+
+.ui-btn--danger-solid {
+  background: var(--c-danger);
+  border-color: var(--c-danger);
+  color: var(--c-on-danger);
+  font-weight: 700;
+
+  &:hover:not(:disabled) {
+    background: var(--c-danger);
+    filter: brightness(1.06);
+  }
+}
+
+.ui-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--c-text-2);
+
+  &:hover:not(:disabled) {
+    background: var(--c-surface-2);
+    color: var(--c-text);
+  }
+}
+
+.ui-btn--sm {
+  height: var(--h-sm);
+  padding: 0 rem(12);
+  font-size: rem(14);
+  border-radius: var(--r-sm);
+}
+
+.ui-btn--lg {
+  height: var(--h-lg);
+  padding: 0 rem(20);
+  font-size: rem(16);
+}
+
+.ui-btn--block {
+  width: 100%;
+}
+
+.ui-btn--icon {
+  width: var(--h-md);
+  padding: 0;
+
+  &.ui-btn--sm {
+    width: var(--h-sm);
+  }
+}
+
+// ── 입력 ───────────────────────────────────────────────
+.ui-input,
+.ui-textarea,
+.ui-select {
+  width: 100%;
+  min-width: 0;
+  height: var(--h-md);
+  padding: 0 rem(12);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-md);
+  background: var(--c-input-bg);
+  color: var(--c-text);
+  font-size: rem(15);
+  transition: border-color var(--dur) var(--ease);
+
+  &::placeholder {
+    color: var(--c-text-3);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--c-focus);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.ui-textarea {
+  height: auto;
+  min-height: rem(88);
+  padding: rem(10) rem(12);
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.ui-select {
+  width: auto;
+  padding-right: rem(8);
+  cursor: pointer;
+}
+
+.ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.ui-label {
+  font-size: rem(14);
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+.ui-help {
+  font-size: rem(13);
+  color: var(--c-text-3);
+}
+
+.ui-error {
+  font-size: rem(13);
+  color: var(--c-danger);
+}
+
+.ui-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+// 입력 + 버튼 한 줄 (첫 칸이 남은 폭을 채운다)
+.ui-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+
+  > :first-child {
+    flex: 1 1 rem(160);
+  }
+}
+
+.ui-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--sp-2);
+
+  @include narrow {
+    > .ui-btn {
+      flex: 1 1 0;
+    }
+  }
+}
+
+.ui-spacer {
+  flex: 1 1 auto;
+}
+
+// ── 카드 ───────────────────────────────────────────────
+.ui-card {
+  min-width: 0;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-xl);
+  padding: var(--sp-5);
+  box-shadow: var(--shadow-card);
+
+  @include narrow {
+    padding: var(--sp-4);
+    border-radius: var(--r-lg);
+  }
+}
+
+.ui-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.ui-card__title {
+  flex: 1 1 auto;
+  font-size: rem(17);
+  font-weight: 700;
+}
+
+.ui-card__sub {
+  font-size: rem(13);
+  color: var(--c-text-3);
+}
+
+// ── 분할 버튼 · 탭 ─────────────────────────────────────
+.ui-seg {
+  display: inline-flex;
+  gap: rem(4);
+  padding: rem(4);
+  border-radius: var(--r-lg);
+  background: var(--c-seg-bg);
+  border: 1px solid var(--c-line);
+
+  > button {
+    height: rem(32);
+    padding: 0 rem(14);
+    border: 0;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--c-text-2);
+    font-size: rem(14);
+    font-weight: 500;
+    white-space: nowrap;
+    transition:
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+
+    &:hover {
+      color: var(--c-text);
+    }
+
+    &[aria-pressed='true'] {
+      background: var(--c-surface);
+      color: var(--c-text);
+      font-weight: 700;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+    }
+  }
+}
+
+.ui-seg--block {
+  display: flex;
+  width: 100%;
+
+  > button {
+    flex: 1 1 0;
+  }
+}
+
+.ui-tabs {
+  display: flex;
+  gap: var(--sp-1);
+  border-bottom: 1px solid var(--c-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  > button,
+  > a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    height: rem(44);
+    padding: 0 rem(14);
+    border: 0;
+    background: transparent;
+    color: var(--c-text-2);
+    font-size: rem(15);
+    font-weight: 500;
+    white-space: nowrap;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--c-text);
+      text-decoration: none;
+    }
+
+    &[aria-selected='true'],
+    &[aria-current='page'] {
+      color: var(--c-text);
+      font-weight: 700;
+
+      &::after {
+        content: '';
+        position: absolute;
+        left: rem(8);
+        right: rem(8);
+        bottom: -1px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--c-tab-line);
+      }
+    }
+  }
+}
+
+// ── 칩 · 배지 · 점 ─────────────────────────────────────
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(4);
+  height: rem(24);
+  padding: 0 rem(8);
+  border-radius: var(--r-sm);
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+  font-size: rem(12);
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-chip--accent {
+  background: var(--c-accent-soft);
+  color: var(--c-accent-text);
+}
+
+.ui-chip--warn {
+  background: var(--c-warn-soft);
+  color: var(--c-warn-text);
+}
+
+.ui-chip--req {
+  background: var(--c-req-soft);
+  color: var(--c-req);
+}
+
+.ui-chip--primary {
+  background: var(--c-primary-soft);
+  color: var(--c-text);
+}
+
+.ui-chip--muted {
+  background: var(--c-surface-3);
+  color: var(--c-text-3);
+}
+
+.ui-chip--danger {
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: rem(18);
+  height: rem(18);
+  padding: 0 rem(5);
+  border-radius: var(--r-pill);
+  background: var(--c-danger);
+  color: var(--c-on-danger);
+  font-size: rem(11);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-badge--primary {
+  background: var(--c-primary);
+  color: var(--c-on-primary);
+}
+
+.ui-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-danger);
+  flex-shrink: 0;
+}
+
+// ── 아바타 ─────────────────────────────────────────────
+.ui-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: rem(36);
+  height: rem(36);
+  border-radius: 50%;
+  object-fit: cover;
+  overflow: hidden;
+  color: #141a2c; // 파스텔 바탕 위 첫 글자 — 두 테마 같다
+  font-size: rem(14);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ui-avatar--sm {
+  width: rem(28);
+  height: rem(28);
+  font-size: rem(12);
+}
+
+.ui-avatar--lg {
+  width: rem(56);
+  height: rem(56);
+  font-size: rem(22);
+}
+
+// ── 목록 ───────────────────────────────────────────────
+.ui-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  > * + * {
+    border-top: 1px solid var(--c-line);
+  }
+}
+
+.ui-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3) 0;
+}
+
+.ui-row__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.ui-row__title {
+  font-size: rem(15);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-row__sub {
+  font-size: rem(13);
+  color: var(--c-text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-row__side {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+// ── 빈 상태 · 불러오는 중 ─────────────────────────────
+.ui-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-10) var(--sp-4);
+  text-align: center;
+  color: var(--c-text-2);
+}
+
+.ui-empty__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(52);
+  height: rem(52);
+  border-radius: 50%;
+  background: var(--c-surface-3);
+  color: var(--c-text-3);
+}
+
+.ui-empty__title {
+  font-size: rem(17);
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.ui-empty__text {
+  font-size: rem(14);
+  color: var(--c-text-3);
+}
+
+.ui-skeleton {
+  display: block;
+  height: rem(14);
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, var(--c-surface-2) 0%, var(--c-surface-3) 50%, var(--c-surface-2) 100%);
+  background-size: 200% 100%;
+  animation: ui-skeleton 1.2s ease-in-out infinite;
+}
+
+@keyframes ui-skeleton {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+// ── 진행 막대 · 범례 ───────────────────────────────────
+.ui-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--c-surface-3);
+  overflow: hidden;
+
+  > span {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--c-accent);
+  }
+}
+
+.ui-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-4);
+  font-size: rem(13);
+  color: var(--c-text-3);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: rem(6);
+  }
+}
+
+.ui-legend__sw {
+  display: inline-block;
+  width: rem(14);
+  height: rem(12);
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+// ── 스위치 ─────────────────────────────────────────────
+.ui-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  cursor: pointer;
+  font-size: rem(15);
+
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+}
+
+.ui-switch__track {
+  position: relative;
+  flex-shrink: 0;
+  width: rem(40);
+  height: rem(24);
+  border-radius: var(--r-pill);
+  background: var(--c-line-strong);
+  transition: background var(--dur) var(--ease);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: rem(3);
+    left: rem(3);
+    width: rem(18);
+    height: rem(18);
+    border-radius: 50%;
+    background: #ffffff;
+    transition: transform var(--dur) var(--ease);
+  }
+}
+
+.ui-switch input:checked + .ui-switch__track {
+  background: var(--c-accent);
+
+  &::after {
+    transform: translateX(rem(16));
+  }
+}
+
+.ui-switch input:focus-visible + .ui-switch__track {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+}
+
+// ── 팝업 · 시트 · 서랍 ────────────────────────────────
+.ui-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: var(--c-scrim);
+  animation: ui-fade 140ms var(--ease);
+
+  @include narrow {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
+
+.ui-modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: rem(520);
+  max-height: min(88vh, rem(900));
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-pop);
+  animation: ui-pop 160ms var(--ease);
+
+  @include narrow {
+    max-width: none;
+    max-height: 92vh;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: ui-sheet 200ms var(--ease);
+
+    &::before {
+      content: '';
+      align-self: center;
+      width: rem(40);
+      height: 4px;
+      margin-top: rem(8);
+      border-radius: 2px;
+      background: var(--c-line-strong);
+    }
+  }
+}
+
+.ui-modal--sm {
+  max-width: rem(420);
+}
+
+.ui-modal--lg {
+  max-width: rem(720);
+}
+
+.ui-modal__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-5) 0;
+}
+
+.ui-modal__title {
+  flex: 1 1 auto;
+  font-size: rem(18);
+  font-weight: 700;
+}
+
+.ui-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ui-modal__foot {
+  padding: var(--sp-4) var(--sp-5);
+  border-top: 1px solid var(--c-line);
+}
+
+.ui-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--c-scrim);
+  animation: ui-fade 140ms var(--ease);
+}
+
+.ui-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: min(100%, rem(380));
+  padding: var(--sp-5);
+  padding-bottom: calc(var(--sp-5) + env(safe-area-inset-bottom));
+  background: var(--c-surface);
+  border-left: 1px solid var(--c-line);
+  box-shadow: var(--shadow-pop);
+  overflow-y: auto;
+  animation: ui-drawer 200ms var(--ease);
+}
+
+// 버튼 아래로 뜨는 작은 상자 (그룹에 추가 등)
+.ui-popover {
+  position: absolute;
+  z-index: var(--z-sheet);
+  min-width: rem(200);
+  padding: var(--sp-2);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-pop);
+}
+
+.ui-menu {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  button,
+  a {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    width: 100%;
+    min-height: rem(40);
+    padding: 0 rem(10);
+    border: 0;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--c-text);
+    font-size: rem(14);
+    text-align: left;
+    text-decoration: none;
+
+    &:hover:not(:disabled) {
+      background: var(--c-surface-2);
+      text-decoration: none;
+    }
+
+    &[aria-checked='true'],
+    &[aria-pressed='true'] {
+      color: var(--c-accent-text);
+      font-weight: 700;
+    }
+  }
+}
+
+// ── 확인창 ─────────────────────────────────────────────
+.ui-confirm-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-confirm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: var(--c-scrim);
+  animation: ui-fade 120ms var(--ease);
+}
+
+.ui-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: 100%;
+  max-width: rem(400);
+  padding: var(--sp-6);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-pop);
+  animation: ui-pop 140ms var(--ease);
+}
+
+.ui-confirm__title {
+  font-size: rem(18);
+  font-weight: 700;
+}
+
+.ui-confirm__msg {
+  color: var(--c-text-2);
+  white-space: pre-line;
+}
+
+// ── 화면 그릇 · 머리 ───────────────────────────────────
+.ui-page {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--sp-8) var(--sp-8) var(--sp-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+
+  @include mobile {
+    padding: var(--sp-5) var(--sp-4) var(--sp-8);
+    gap: var(--sp-4);
+  }
+}
+
+.ui-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--sp-3) var(--sp-4);
+}
+
+.ui-page-head__main {
+  display: flex;
+  flex-direction: column;
+  gap: rem(6);
+  flex: 1 1 rem(320);
+  min-width: 0;
+
+  h1 {
+    font-size: rem(30);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+
+    @include mobile {
+      font-size: rem(24);
+    }
+  }
+}
+
+.ui-page-head__eyebrow {
+  font-size: rem(13);
+  color: var(--c-text-3);
+}
+
+.ui-page-head__sub {
+  font-size: rem(14);
+  color: var(--c-text-2);
+}
+
+.ui-page-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+// 본문 + 옆 패널 — 좁으면 자동으로 쌓인다
+.ui-grid-2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--sp-5);
+
+  @include mobile {
+    gap: var(--sp-4);
+  }
+}
+
+.ui-grid-2__main {
+  flex: 999 1 rem(560);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.ui-grid-2__side {
+  flex: 1 1 rem(320);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+// ── 그 밖 ─────────────────────────────────────────────
+.ui-sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ui-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-muted {
+  color: var(--c-text-3);
+}
+
+.ui-prose {
+  line-height: 1.75;
+  color: var(--c-text-2);
+
+  p + p {
+    margin-top: var(--sp-3);
+  }
+}
+
+@keyframes ui-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ui-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ui-sheet {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@keyframes ui-drawer {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+// ── 표 테마 차이 ───────────────────────────────────────
+html[data-theme='table'] {
+  .ui-page-head__main h1 {
+    font-size: rem(26);
+
+    @include mobile {
+      font-size: rem(22);
+    }
+  }
+
+  .ui-seg > button[aria-pressed='true'] {
+    box-shadow: 0 1px 2px rgba(20, 26, 44, 0.12);
+  }
+
+  .ui-card {
+    border-radius: var(--r-lg);
+  }
+}

@@ -126,6 +126,6 @@ Moim/
 └─ frontend/
    └─ src/
       ├─ app/           # home · dashboard · friends · tiers · rooms(+rooms/detail?id=) · requests · tools/leave · admin · u?id= · auth/callback
-      ├─ components/    # Nav(+QuickActions FAB) · PageHero · Calendar(FullCalendar) · AvailabilityCalendar · DatePicker · Modal · Select · TimeSelect · ColorPalette(+ColorWheel) · Avatar · MemberRow · Notice · Accordion · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · RoomChat · UserProfileModal · ConfirmHost · Toaster · GuideHost · AdUnit · CodeBoxes · LandingContent · JsonLd
+      ├─ components/    # shell/(AppShell·Sidebar·TopBar·BottomTabs·ThemeSwitch) · room/(모임 방) · home/ · people/ · PageHeader · Calendar(FullCalendar) · DatePicker · Modal · Select · TimeSelect · ColorPalette(+ColorWheel) · Avatar · MemberRow · TierPicker · Notice · Accordion · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · UserProfileModal · ConfirmHost · Toaster · GuideHost · AdUnit · CodeBoxes · LandingContent · JsonLd
       └─ lib/           # api · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense · seo
 ```

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Modal from '@/components/Modal';
+import Icon from '@/components/Icon';
 import { RELEASES, type Release, type ReleaseKind } from '@/release/releases';
 import styles from './ReleaseModal.module.scss';
 
@@ -25,25 +26,16 @@ export default function ReleaseModal({ onClose }: { onClose: () => void }) {
   const [picked, setPicked] = useState<Release | null>(null);
 
   return (
-    <Modal onClose={onClose} maxWidth={560}>
-      <div className="app-row">
-        <h3 className="app-modal-title">
-          {picked ? `v${picked.version}${picked.title ? ` · ${picked.title}` : ''}` : '업데이트 내역'}
-        </h3>
-        <span className="app-spacer" />
-        <button className="app-btn app-btn--ghost" onClick={onClose}>
-          닫기
-        </button>
-      </div>
-
+    <Modal onClose={onClose} title={picked ? `v${picked.version}${picked.title ? ` · ${picked.title}` : ''}` : '업데이트 내역'}>
       {picked ? (
         <>
-          <button className={`app-btn app-btn--ghost ${styles.back}`} onClick={() => setPicked(null)}>
-            ← 목록
+          <button type="button" className={`ui-btn ui-btn--ghost ui-btn--sm ${styles.back}`} onClick={() => setPicked(null)}>
+            <Icon name="chevron-left" size={16} />
+            목록
           </button>
           <div className={styles.head}>
             <strong className={styles.version}>v{picked.version}</strong>
-            <span className={`app-muted ${styles.date}`}>{picked.date}</span>
+            <span className={styles.date}>{picked.date}</span>
           </div>
           <ul className={styles.lines}>
             {picked.items.map((it, i) => (
@@ -58,16 +50,14 @@ export default function ReleaseModal({ onClose }: { onClose: () => void }) {
         <ul className={styles.index}>
           {RELEASES.map((r) => (
             <li key={r.date}>
-              <button className={styles.entry} onClick={() => setPicked(r)}>
+              <button type="button" className={styles.entry} onClick={() => setPicked(r)}>
                 <span className={styles.tag}>v{r.version}</span>
                 <span className={styles.entryBody}>
                   <strong className={styles.entryTitle}>{r.title ?? ''}</strong>
-                  <span className={`app-muted ${styles.entryMeta}`}>{r.date}</span>
+                  <span className={styles.entryMeta}>{r.date}</span>
                 </span>
-                <span className={`app-muted ${styles.entryMeta}`}>{r.items.length}</span>
-                <span className="app-muted" aria-hidden>
-                  ›
-                </span>
+                <span className={styles.entryMeta}>{r.items.length}</span>
+                <Icon name="chevron-right" size={16} />
               </button>
             </li>
           ))}

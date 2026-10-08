@@ -25,7 +25,7 @@
 | 컴포넌트 내 직접 `fetch` | 금지 — `lib/api.ts` 의 `api<T>()` 만 사용 |
 | 프론트/백 검증 중복 | 워커 핸들러를 **최종 검증 출처**로, 프론트는 UX 검증만 |
 | 반복되는 폼 입력 블록 | 공용 컴포넌트로 추출 |
-| 팝업 바깥 클릭 닫기·달력 칸 계산 | ✅ 2026-10-02 공용화 — `lib/useOutsideClose`(Select·DatePicker·ColorPalette·QuickActions), `lib/datetime` `monthGridDays`(DatePicker·AvailabilityCalendar). 새 팝업도 이 훅을 쓴다. ESC 닫기는 `lib/useEscClose`(2026-10-06 — Modal·AccountDrawer·ConfirmHost·GuideHost) — 층 스택이라 겹쳐 열린 창은 맨 위 하나만 닫힌다. 컴포넌트에 keydown 리스너를 새로 달지 않는다 |
+| 팝업 바깥 클릭 닫기·달력 칸 계산 | ✅ 2026-10-02 공용화 — `lib/useOutsideClose`(Select·DatePicker·ColorPalette), `lib/datetime` `monthGridDays`(DatePicker·모임 달력). 새 팝업도 이 훅을 쓴다. ESC 닫기는 `lib/useEscClose`(2026-10-06 — Modal·AccountDrawer·ConfirmHost·GuideHost) — 층 스택이라 겹쳐 열린 창은 맨 위 하나만 닫힌다. 컴포넌트에 keydown 리스너를 새로 달지 않는다 |
 
 ---
 
@@ -43,8 +43,8 @@
 ## 3. 상수 · 토큰 · 메시지 중앙화
 | 항목 | 액션 |
 |------|------|
-| 색상/치수 하드코딩 | `globals.scss` 의 `--color-*`/`--radius-*`/`--space-*` 토큰으로 |
-| 인라인 스타일 | `style={{...}}` → 전역 클래스(`app-*`) 또는 CSS Module |
+| 색상/치수 하드코딩 | `styles/tokens.scss` 의 `--c-*`/`--r-*`/`--sp-*` 토큰으로 (docs/design-system.md) |
+| 인라인 스타일 | `style={{...}}` → 공용 부품 클래스(`ui-*`) 또는 CSS Module (데이터 값만 인라인 허용) |
 | 사용자 노출 문자열 | 흩어진 한국어 리터럴 모으기 (추후 i18n 도입 시 단일 출처) |
 | 매직넘버 | 토큰 만료·폴링 간격·limit 등은 명명 상수 + 의미 주석 |
 
@@ -55,7 +55,7 @@
 |------|------|
 | 거대 페이지 컴포넌트 | 기능 단위로 분해, 데이터 페칭 로직은 커스텀 훅(`useXxx`)으로 추출 |
 | API 레이어 | `lib/api.ts` 일원화 — 공통 prefix `/api`, 일관 에러 형태 `{ ok, message }` |
-| SCSS 위치 | 컴포넌트 전용 = `Foo.module.scss` 동거 / 여러 곳 공유 = 전역 `app/globals.scss` |
+| SCSS 위치 | 컴포넌트 전용 = `Foo.module.scss` 동거 / 여러 곳 공유 = `styles/components.scss` 의 `ui-*` (토큰은 `styles/tokens.scss`) |
 | 오케스트레이터 원칙 | 상위 컴포넌트는 조합·import 위주, 도메인 로직은 훅/lib |
 
 ---
@@ -63,7 +63,7 @@
 ## 5. 가독성 · 죽은 코드
 | 항목 | 체크 |
 |------|------|
-| 미사용 코드 | 호출 안 되는 함수·미사용 변수/import 삭제. **2026-10-02 패스**: 전 소스(92개) 재스캔 — 파일 밖 미사용 export 1건(`webmail.ts` `Webmail`) 내부화, 미호출 함수·미참조 파일 0건. CSS Module 안에서 전역 클래스를 `.app-input` 처럼 그냥 쓰면 해시가 붙어 **조용히 안 먹는다** — `:global(.app-input)` 로 쓸 것(연차 계산기에서 실제로 그랬다) |
+| 미사용 코드 | 호출 안 되는 함수·미사용 변수/import 삭제. **2026-10-02 패스**: 전 소스(92개) 재스캔 — 파일 밖 미사용 export 1건(`webmail.ts` `Webmail`) 내부화, 미호출 함수·미참조 파일 0건. CSS Module 안에서 전역 클래스를 `.ui-input` 처럼 그냥 쓰면 해시가 붙어 **조용히 안 먹는다** — `:global(.ui-input)` 로 쓸 것(연차 계산기에서 실제로 그랬다) |
 | 디버그 로그 | 임시 `console.log` 제거 (의도적 에러 로그는 유지) |
 | 역할 주석 | 비자명한 함수/모듈에 한 줄 주석 (왜 그렇게 하는지) |
 
@@ -96,7 +96,7 @@
 ## 8. 빌드 · 검증
 - [ ] 프론트: `npm run build`(= `next build` + 정적 export, tsc 타입체크 포함) — VPN 시 `NODE_OPTIONS=--use-system-ca`. ⚠️ **`next dev` 실행 중엔 build 금지**(같은 `.next/` 공유로 dev 깨짐) — 그때는 `npx tsc --noEmit` 으로 타입만 검증
 - [ ] 미사용 로컬/import 일괄 탐지: `npx tsc --noEmit --noUnusedLocals --noUnusedParameters`
-- [ ] 워커: 변경 파일 `node --check`. API 를 고쳤으면 **통합 검증** — `wrangler dev` 로그를 파일로 받아 `node scripts/verify-api.mjs http://127.0.0.1:8790 <로그경로>` (57 항목)
+- [ ] 워커: 변경 파일 `node --check`. API 를 고쳤으면 **통합 검증** — `wrangler dev` 로그를 파일로 받아 `node scripts/verify-api.mjs http://127.0.0.1:<포트> <로그경로>` (70 항목 — 메일 키 없는 설정으로, CLAUDE.md 참고)
 - [ ] 커밋 전 `git fetch` + diverge 확인 (협업/동시 세션 충돌 방지)
 
 ---

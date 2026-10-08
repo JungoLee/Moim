@@ -2,33 +2,35 @@
 // (정적 export 라 이 마크업은 빌드 시 HTML 로 그대로 박힌다)
 import { BRAND_NAME } from '@/lib/brand';
 import JsonLd from '@/components/JsonLd';
+import Icon from '@/components/Icon';
+import type { IconName } from '@/components/Icon';
 import { SITE_URL, SITE_TAGLINE, SITE_DESCRIPTION } from '@/lib/seo';
 import styles from './LandingContent.module.scss';
 
-const FEATURES = [
+const FEATURES: Array<{ icon: IconName; title: string; body: string }> = [
   {
-    icon: '🗓️',
+    icon: 'rooms',
     title: '모두 되는 날 자동 찾기',
     body:
       '모임 방을 만들어 링크나 코드로 친구를 부르면, 각자 되는 날·안 되는 날·“몇 시 이후 가능”을 찍습니다. ' +
       '전원이 가능한 날짜와, 시간만 조율하면 되는 날짜를 자동으로 모아 보여줘요.',
   },
   {
-    icon: '🔒',
+    icon: 'lock',
     title: '일정마다 공개 범위 선택',
     body:
       '일정별로 공유/비공개를 고를 수 있어요. 비공개로 두면 지정한 그룹 멤버에게만 상세가 보이고, ' +
       '나머지 친구에게는 “이 시간 바쁨”으로만 표시됩니다. 약속은 잡으면서 사생활은 지켜요.',
   },
   {
-    icon: '🙋',
+    icon: 'send',
     title: '부담 없는 시간 요청',
     body:
       '“이 시간 비워줄 수 있어?”를 친구에게 보내고 수락/거절만 받으면 끝. ' +
       '수락하면 양쪽 캘린더에 일정이 자동으로 생기고, 둘 사이 약속이라 다른 친구에게는 노출되지 않아요.',
   },
   {
-    icon: '💬',
+    icon: 'chat',
     title: '방 안에서 바로 대화',
     body: '날짜를 고르다 막히면 모임 방 채팅으로 바로 조율하세요. 안 읽은 메시지는 배지로 알려줍니다.',
   },
@@ -38,7 +40,10 @@ const STEPS = [
   { title: '로그인', body: '구글 계정으로 3초, 또는 아무 이메일로 코드를 받아 로그인합니다.' },
   { title: '모임 만들기', body: '모임 방을 만들고 링크나 초대 코드를 친구에게 보냅니다.' },
   { title: '날짜 찍기', body: '각자 달력에서 되는 날을 드래그로 표시합니다.' },
-  { title: '날짜 확정', body: '전원이 가능한 날이 자동으로 집계됩니다. 거기서 고르면 끝.' },
+  {
+    title: '날짜 확정',
+    body: '전원이 가능한 날이 후보로 자동 집계됩니다. 방장이 하나를 확정하면 모든 멤버의 캘린더에 일정으로 들어가요.',
+  },
 ];
 
 const FAQ = [
@@ -133,7 +138,7 @@ export default function LandingContent() {
             {FEATURES.map((f) => (
               <li key={f.title} className={styles.card}>
                 <span className={styles.icon} aria-hidden>
-                  {f.icon}
+                  <Icon name={f.icon} size={22} />
                 </span>
                 <h3 className={styles.h3}>{f.title}</h3>
                 <p className={styles.body}>{f.body}</p>
@@ -169,8 +174,9 @@ export default function LandingContent() {
             남은 연차와 갱신일만 넣으면 주말·공휴일(대체공휴일 포함)을 엮어 <strong>최소 연차로 최장 연휴</strong>를 만드는
             조합을 추천합니다. 2026~2031년 공휴일이 들어 있어 징검다리 연휴를 놓치지 않아요.
           </p>
-          <a className={styles.toolLink} href="/tools/leave">
-            연차 계산기 열기 →
+          <a className={`ui-btn ui-btn--lg ${styles.toolLink}`} href="/tools/leave">
+            연차 계산기 열기
+            <Icon name="chevron-right" size={18} />
           </a>
         </section>
 

@@ -1,0 +1,17 @@
+@use '@/styles/rem' as *;
+
+// 불러오는 중 자리
+.skTitle {
+  width: rem(200);
+  height: rem(32);
+}
+
+.skLine {
+  width: rem(320);
+  max-width: 100%;
+}
+
+.skBlock {
+  height: rem(360);
+  border-radius: var(--r-xl);
+}

@@ -1,0 +1,152 @@
+// 랜딩 · 로그인 — docs/design-system.md 6-9. 틀 밖 화면이라 위에 얇은 줄(연차 계산기 · 화면 보기)만 둔다.
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+.page {
+  min-height: 100vh;
+  padding: 0 var(--sp-4) var(--sp-8);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--sp-4) 0;
+}
+
+// ── 로그인 카드 ────────────────────────────────────────
+.hero {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-6) 0 0;
+
+  @include desktop {
+    min-height: min(70vh, rem(640));
+    align-items: center;
+    padding-top: 0;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--sp-4);
+  width: 100%;
+  max-width: rem(420);
+  padding: var(--sp-8) var(--sp-6);
+  text-align: center;
+
+  @include narrow {
+    padding: var(--sp-6) var(--sp-4);
+  }
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.logoIcon {
+  border-radius: 22%;
+}
+
+// 'MOIM' — 보드는 로고 그라데이션, 밝은 표 바탕에서는 단색(설계 문서 0장)
+.word {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: rem(34);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  background: linear-gradient(120deg, var(--c-primary), var(--c-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.intro {
+  margin: 0 auto var(--sp-2);
+  max-width: 22em;
+  font-size: rem(15);
+  color: var(--c-text-2);
+}
+
+// ── 구글 버튼 — 구글 로그인 버튼 규정(흰 바탕·회색 테두리·Roboto 500)이라 구글 색을 그대로 쓴다 ──
+.google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: rem(12);
+  width: 100%;
+  min-height: rem(48);
+  padding: 0 rem(16);
+  border: 1px solid #747775;
+  border-radius: var(--r-md);
+  background: #ffffff;
+  color: #1f1f1f;
+  font-family: Roboto, var(--font-sans);
+  font-size: rem(15);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: box-shadow var(--dur) var(--ease);
+
+  &:hover {
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3);
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// 또는
+.or {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: rem(13);
+  color: var(--c-text-3);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1 1 0;
+    height: 1px;
+    background: var(--c-line);
+  }
+}
+
+.emailForm {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--sp-3);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-1);
+}
+
+// ── 표 테마(밝음) ───────────────────────────────────────
+:global(html[data-theme='table']) {
+  .word {
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    color: var(--c-text);
+  }
+
+  .card {
+    box-shadow: var(--shadow-pop);
+  }
+}

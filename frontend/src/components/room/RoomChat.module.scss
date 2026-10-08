@@ -1,0 +1,183 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.body {
+  flex: 1 1 auto;
+  min-height: rem(240);
+  max-height: rem(440);
+  padding: var(--sp-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: rem(4);
+
+  // 모바일에서는 시트 안에서 화면을 채운다 (입력줄은 아래에 붙고 대화만 스크롤)
+  @include mobile {
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: none;
+  }
+}
+
+.empty {
+  margin: auto;
+  padding: var(--sp-6) var(--sp-2);
+  text-align: center;
+  font-size: rem(14);
+  color: var(--c-text-3);
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+}
+
+.day {
+  align-self: center;
+  margin: var(--sp-3) 0 var(--sp-2);
+  padding: rem(2) rem(10);
+  border-radius: var(--r-pill);
+  background: var(--c-surface-3);
+  font-size: rem(12);
+  color: var(--c-text-3);
+}
+
+.msg {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  margin-top: rem(8);
+
+  &[data-cont] {
+    margin-top: 0;
+  }
+
+  &[data-mine] {
+    justify-content: flex-end;
+  }
+}
+
+.avatarBtn {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.gap {
+  flex-shrink: 0;
+  width: rem(28);
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 82%;
+
+  .msg[data-mine] & {
+    align-items: flex-end;
+  }
+}
+
+.name {
+  font-size: rem(12);
+  color: var(--c-text-3);
+}
+
+.line {
+  display: flex;
+  align-items: flex-end;
+  gap: rem(6);
+  min-width: 0;
+
+  .msg[data-mine] & {
+    flex-direction: row;
+  }
+}
+
+.bubble {
+  margin: 0;
+  padding: rem(8) rem(12);
+  border-radius: rem(14);
+  border-top-left-radius: rem(4);
+  background: var(--c-surface-3);
+  color: var(--c-text);
+  font-size: rem(14);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
+  .msg[data-mine] & {
+    border-top-left-radius: rem(14);
+    border-top-right-radius: rem(4);
+    background: var(--c-primary);
+    color: var(--c-on-primary);
+  }
+
+  .msg[data-cont]:not([data-mine]) & {
+    border-top-left-radius: rem(14);
+  }
+}
+
+.time {
+  flex-shrink: 0;
+  font-size: rem(11);
+  color: var(--c-text-3);
+  white-space: nowrap;
+}
+
+.del {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(24);
+  height: rem(24);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--c-text-3);
+  opacity: 0;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--c-danger-soft);
+    color: var(--c-danger);
+  }
+
+  // 마우스는 말풍선에 올릴 때, 터치·키보드는 늘 보인다
+  .msg:hover &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 0.7;
+  }
+}
+
+.form {
+  display: flex;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--c-line);
+}

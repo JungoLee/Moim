@@ -1,0 +1,223 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+.page {
+  @include mobile {
+    gap: var(--sp-3);
+  }
+}
+
+// 모바일에서는 아래 탭 위 후보 띠 높이만큼 비워 둔다
+.page[data-has-strip] {
+  @include mobile {
+    padding-bottom: calc(var(--sp-8) + rem(96));
+  }
+}
+
+.deskHead {
+  @include mobile {
+    display: none;
+  }
+}
+
+.members {
+  min-width: 0;
+
+  @include mobile {
+    display: none; // 모바일은 머리의 '5명 모두 찍음'으로 갈음
+  }
+}
+
+// 왼쪽: 달력 카드
+.calCard {
+  flex: 999 1 rem(560);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-xl);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+
+  // 모바일은 카드 없이 화면에 바로
+  @include mobile {
+    gap: var(--sp-2);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+}
+
+.calHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+
+  @include mobile {
+    flex-direction: column-reverse; // 표시 방법이 위, 달 이동이 아래
+    align-items: stretch;
+    gap: var(--sp-2);
+  }
+}
+
+.modes {
+  @include desktop {
+    margin-left: auto;
+    justify-content: flex-end;
+  }
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-4);
+  font-size: rem(13);
+  color: var(--c-text-3);
+
+  @include mobile {
+    font-size: rem(12);
+  }
+}
+
+.hintTouch {
+  display: none;
+
+  @include mobile {
+    display: inline;
+  }
+}
+
+.hintDesk {
+  @include mobile {
+    display: none;
+  }
+}
+
+.scale {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(4);
+  margin-left: auto;
+
+  i {
+    display: inline-block;
+    width: rem(18);
+    height: rem(12);
+    border: 1px solid var(--c-line);
+    border-radius: 3px;
+    background: var(--heat-0);
+
+    &[data-level='1'] {
+      background: var(--heat-1);
+    }
+
+    &[data-level='2'] {
+      background: var(--heat-2);
+    }
+
+    &[data-level='3'] {
+      background: var(--heat-3);
+    }
+
+    &[data-level='4'] {
+      background: var(--heat-4);
+    }
+
+    &[data-level='5'] {
+      background: var(--heat-5);
+    }
+  }
+
+  @include mobile {
+    margin-left: 0;
+  }
+}
+
+// 오른쪽: 후보 · 대화 패널
+.side {
+  flex: 1 1 rem(320);
+  min-width: 0;
+  align-self: stretch;
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-xl);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.tabs {
+  flex-shrink: 0;
+  padding: 0 var(--sp-2);
+
+  > button {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}
+
+.tabBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+
+  @include mobile {
+    overflow: hidden;
+  }
+}
+
+.cands {
+  padding: var(--sp-4);
+
+  @include mobile {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
+// 마지막 대화 한 줄 미리보기
+.preview {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-shrink: 0;
+  width: 100%;
+  padding: rem(14) var(--sp-4);
+  border: 0;
+  border-top: 1px solid var(--c-line);
+  background: transparent;
+  color: var(--c-text-2);
+  font-size: rem(14);
+  text-align: left;
+
+  &:hover {
+    background: var(--c-surface-2);
+  }
+}
+
+.previewText {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  strong {
+    color: var(--c-text);
+    font-weight: 600;
+  }
+}
+
+.previewTime {
+  flex-shrink: 0;
+  font-size: rem(12);
+  color: var(--c-text-3);
+}

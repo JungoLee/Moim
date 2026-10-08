@@ -1,0 +1,70 @@
+@use '@/styles/rem' as *;
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.heading {
+  font-size: rem(18);
+  font-weight: 700;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.4;
+
+  strong {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: rem(17);
+  }
+
+  span {
+    font-size: rem(13);
+    color: var(--c-text-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--c-line);
+
+  :global(.ui-inline) {
+    width: 100%;
+  }
+}
+
+.code {
+  padding: rem(8) rem(10);
+  border-radius: var(--r-sm);
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  font-size: rem(13);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leave {
+  align-self: flex-start;
+  margin-top: auto;
+  color: var(--c-danger);
+}

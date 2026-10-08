@@ -1,0 +1,76 @@
+@use '@/styles/rem' as *;
+
+.wrap {
+  position: relative;
+  width: 100%;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+    color: var(--c-text-3);
+  }
+}
+
+.value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + rem(6));
+  left: 0;
+  right: 0;
+  z-index: var(--z-sheet);
+  max-height: rem(280);
+  overflow-y: auto;
+  padding: rem(6);
+  list-style: none;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-pop);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  width: 100%;
+  min-height: rem(40);
+  padding: 0 rem(10);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--c-text);
+  text-align: left;
+
+  &:hover {
+    background: var(--c-surface-2);
+  }
+
+  &[aria-pressed='true'] {
+    font-weight: 700;
+
+    svg {
+      color: var(--c-accent-text);
+    }
+  }
+}
+
+.empty {
+  padding: rem(10);
+  font-size: rem(14);
+  color: var(--c-text-3);
+}

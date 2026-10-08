@@ -1,0 +1,71 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+// 모바일에서만 보인다
+.head {
+  display: none;
+
+  @include mobile {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+}
+
+.back,
+.iconBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: rem(44);
+  height: rem(44);
+  border: 0;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.3;
+
+  h1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: rem(18);
+    font-weight: 700;
+  }
+
+  span {
+    font-size: rem(12);
+    opacity: 0.75;
+  }
+}
+
+.side {
+  display: flex;
+  align-items: center;
+  gap: rem(6);
+  flex-shrink: 0;
+}
+
+.badge {
+  position: absolute;
+  top: rem(4);
+  right: rem(4);
+  min-width: rem(16);
+  height: rem(16);
+  font-size: rem(10);
+}

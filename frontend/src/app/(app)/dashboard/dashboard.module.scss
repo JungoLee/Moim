@@ -1,0 +1,126 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+// ── 범례 ──────────────────────────────────────────────
+.legend {
+  position: relative; // 그룹 색 팝오버의 기준
+}
+
+// 그룹 색 바꾸기 버튼 — 누르면 팔레트 팝오버
+.legendBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(6);
+  min-height: rem(28);
+  padding: 0 rem(8);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--c-text-2);
+  font-size: rem(13);
+
+  &:hover {
+    background: var(--c-surface-2);
+    color: var(--c-text);
+  }
+
+  &[aria-expanded='true'] {
+    border-color: var(--c-line-strong);
+    background: var(--c-surface-3);
+    color: var(--c-text);
+  }
+
+  @include mobile {
+    min-height: rem(44);
+    padding: 0 rem(12);
+  }
+}
+
+// 내가 보낸 대기 요청 = 점선 블록 (달력의 fc-ev--request 와 같은 모양)
+.swPending {
+  border: 1px dashed var(--c-req);
+  background: var(--c-req-soft);
+}
+
+.palettePop {
+  top: calc(100% + #{rem(6)});
+  left: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+}
+
+.paletteTitle {
+  font-size: rem(13);
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+// ── 일정 팝업 ─────────────────────────────────────────
+.origin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  font-size: rem(14);
+  color: var(--c-text-2);
+}
+
+// 날짜 + 시·분 한 줄 (좁으면 날짜가 윗줄로)
+.dt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.dtDate {
+  flex: 1 1 rem(160);
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(6);
+  min-height: rem(34);
+  padding: 0 rem(12);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: rem(14);
+
+  &:hover {
+    background: var(--c-surface-2);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: var(--c-primary);
+    background: var(--c-primary-soft);
+    font-weight: 700;
+  }
+
+  @include mobile {
+    min-height: rem(44);
+  }
+}
+
+.chipDot {
+  width: rem(10);
+  height: rem(10);
+  border-radius: 50%;
+  flex-shrink: 0;
+}

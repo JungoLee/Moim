@@ -1,6 +1,7 @@
 'use client';
 
 import { Wheel, ShadeSlider, hsvaToHex, hexToHsva } from '@uiw/react-color';
+import styles from './ColorPalette.module.scss';
 
 type Props = {
   /** 현재 색 (#rrggbb) */
@@ -13,7 +14,7 @@ type Props = {
 export default function ColorWheel({ value, onChange }: Props) {
   const hsva = hexToHsva(value || '#7c8cff');
   return (
-    <div className="app-wheel">
+    <div className={styles.wheel}>
       <Wheel
         color={hsva}
         width={168}

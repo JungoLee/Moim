@@ -1,0 +1,51 @@
+// 시간 요청 화면 — docs/design-system.md 6-6
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+
+  > span {
+    height: rem(44);
+  }
+}
+
+// 행 — 좁은 화면에선 상태·동작이 아래 줄로 내려간다
+.row {
+  align-items: flex-start;
+
+  @include narrow {
+    flex-wrap: wrap;
+  }
+}
+
+.side {
+  align-self: center;
+
+  @include narrow {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    padding-left: calc(rem(36) + var(--sp-3));
+  }
+}
+
+.msg {
+  margin-top: rem(2);
+  font-size: rem(13);
+  color: var(--c-text-2);
+  overflow-wrap: anywhere;
+}
+
+// 보내기 팝업 — 시작 시·분 ~ 종료 시·분
+.times {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+
+  :global(.ui-select) {
+    flex: 1 1 rem(72);
+  }
+}

@@ -1,0 +1,21 @@
+@use '@/styles/rem' as *;
+
+.prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  color: var(--c-text-2);
+  font-size: rem(14);
+  line-height: 1.75;
+
+  h4 {
+    margin: var(--sp-3) 0 0;
+    color: var(--c-text);
+    font-size: rem(15);
+    font-weight: 700;
+  }
+
+  ul {
+    padding-left: var(--sp-5);
+  }
+}

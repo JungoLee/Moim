@@ -1,0 +1,174 @@
+@use '@/styles/rem' as *;
+
+// 거르기 칩 (표 모바일의 남색 머리 위에 놓인다 — 글자색은 바탕에서 물려받는다)
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: rem(6);
+
+  > button {
+    height: rem(34);
+    padding: 0 rem(12);
+    border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: inherit;
+    font-size: rem(13);
+    white-space: nowrap;
+
+    &[aria-pressed='true'] {
+      background: var(--c-shell-active); // 남색 머리 위의 흰 칩
+      border-color: var(--c-shell-active);
+      color: var(--c-shell);
+      font-weight: 700;
+    }
+  }
+}
+
+.scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.inner {
+  --who: #{rem(64)};
+  --sum: #{rem(48)};
+
+  min-width: calc(var(--who) + var(--m) * #{rem(26)} + var(--sum));
+}
+
+.headRow,
+.row {
+  display: grid;
+  grid-template-columns: var(--who) repeat(var(--m), minmax(0, 1fr)) var(--sum);
+  align-items: center;
+  gap: rem(4);
+}
+
+.headRow {
+  padding: rem(6) rem(6) rem(6);
+}
+
+.who {
+  justify-self: center;
+}
+
+.sumHead {
+  font-size: rem(11);
+  color: var(--c-text-3);
+  text-align: right;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: rem(5);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  width: 100%;
+  padding: rem(5) rem(6);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-text);
+  text-align: left;
+
+  // 전원 가능한 날 — 진하게
+  &[data-level='5'] {
+    border-color: var(--c-primary);
+    background: var(--c-primary);
+    color: var(--c-on-primary);
+  }
+}
+
+button.row {
+  min-height: rem(44);
+  cursor: pointer;
+
+  &:active {
+    filter: brightness(0.95);
+  }
+}
+
+.date {
+  display: flex;
+  align-items: baseline;
+  gap: rem(4);
+
+  &[data-dow='sun'] .dowText {
+    color: var(--c-sun);
+  }
+
+  &[data-dow='sat'] .dowText {
+    color: var(--c-sat);
+  }
+}
+
+.num {
+  font-size: rem(15);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.dowText {
+  font-size: rem(12);
+  color: var(--c-text-3);
+
+  .row[data-level='5'] & {
+    color: var(--c-on-primary);
+    opacity: 0.75;
+  }
+}
+
+.cell {
+  display: block;
+  height: rem(26);
+  border-radius: rem(6);
+  background: var(--avail-no);
+
+  &[data-state='yes'] {
+    background: var(--avail-yes);
+  }
+
+  &[data-state='after'] {
+    background: linear-gradient(0deg, var(--avail-after) 55%, var(--avail-no) 55%);
+  }
+
+  .row[data-level='5'] &[data-state='no'],
+  .row[data-level='5'] &[data-state='none'] {
+    background: color-mix(in srgb, var(--c-on-primary) 18%, transparent);
+  }
+
+  // 내 칸은 고치는 중에만 윤곽
+  .row[data-editing] &[data-me] {
+    outline: 2px solid var(--c-focus);
+    outline-offset: 1px;
+  }
+}
+
+.count {
+  text-align: right;
+  font-size: rem(14);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-3);
+
+  .row[data-level='4'] & {
+    color: var(--c-accent-text);
+  }
+
+  .row[data-level='5'] & {
+    color: var(--c-accent);
+  }
+}
+
+.empty {
+  padding: var(--sp-8) var(--sp-4);
+  text-align: center;
+  font-size: rem(14);
+  color: var(--c-text-3);
+}

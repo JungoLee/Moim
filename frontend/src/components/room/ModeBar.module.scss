@@ -1,0 +1,79 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  min-width: 0;
+}
+
+// 선택된 방식은 가능 상태 색을 따른다 — 되는 날 = 가능색, 저녁 이후 = 주황
+.seg {
+  > button[aria-pressed='true'] {
+    box-shadow: none;
+  }
+
+  > button[data-mode='yes'][aria-pressed='true'] {
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+  }
+
+  > button[data-mode='no'][aria-pressed='true'] {
+    background: var(--c-surface-3);
+    color: var(--c-text);
+  }
+
+  > button[data-mode='after'][aria-pressed='true'] {
+    background: var(--c-warn);
+    color: var(--c-on-warn);
+  }
+}
+
+.time {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.timeText {
+  font-size: rem(14);
+  color: var(--c-text-2);
+}
+
+.tools {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-left: auto;
+}
+
+@include mobile {
+  .seg {
+    display: flex;
+    flex: 1 1 100%;
+
+    > button {
+      flex: 1 1 0;
+      height: rem(36);
+      padding: 0 rem(6);
+    }
+  }
+
+  .tools {
+    margin-left: 0;
+  }
+}
+
+// ── 표 테마 차이 ───────────────────────────────────────
+:global(html[data-theme='table']) {
+  .seg > button[data-mode='yes'][aria-pressed='true'] {
+    background: var(--c-primary);
+    color: var(--c-on-primary);
+  }
+
+  .seg > button[aria-pressed='true'] {
+    box-shadow: 0 1px 2px rgba(20, 26, 44, 0.12);
+  }
+}

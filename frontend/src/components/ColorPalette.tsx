@@ -2,8 +2,10 @@
 
 import { useRef, useState } from 'react';
 import ColorWheel from '@/components/ColorWheel';
+import Icon from '@/components/Icon';
 import { useOutsideClose } from '@/lib/useOutsideClose';
 import { TIER_PALETTE } from '@/lib/colors';
+import styles from './ColorPalette.module.scss';
 
 type Props = {
   /** 현재 색 (#rrggbb) */
@@ -17,7 +19,7 @@ type Props = {
   immediate?: boolean;
 };
 
-/** 프리셋 스와치 + 커스텀 휠(🎨 버튼 아래 팝업 박스, 미리보기 포함) 공용 팔레트. */
+/** 프리셋 색 + 직접 고르기(휠 팝업). 그룹 색 공용. 색 칸 바탕은 데이터 값이라 인라인. */
 export default function ColorPalette({ value, onChange, immediate = false }: Props) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState(value);
@@ -33,41 +35,34 @@ export default function ColorPalette({ value, onChange, immediate = false }: Pro
   const current = immediate ? value : preview;
 
   return (
-    <div className="app-palette" ref={ref}>
-      <div className="app-swatches">
+    <div className={styles.palette} ref={ref}>
+      <div className={styles.swatches} role="group" aria-label="색 고르기">
         {TIER_PALETTE.map((c) => (
           <button
             type="button"
             key={c}
-            className={c === value ? 'app-swatch is-on' : 'app-swatch'}
+            className={styles.swatch}
             style={{ background: c }}
             onClick={() => onChange(c)}
-            aria-label={`색상 ${c}`}
-            aria-pressed={c === value}
+            aria-label={`색 ${c}`}
+            aria-pressed={c.toLowerCase() === value.toLowerCase()}
           />
         ))}
-        <button
-          type="button"
-          className={open ? 'app-swatch-toggle is-on' : 'app-swatch-toggle'}
-          onClick={toggle}
-          aria-pressed={open}
-          title="커스텀 색 선택"
-        >
-          🎨
+        <button type="button" className={styles.custom} onClick={toggle} aria-expanded={open} aria-label="직접 고르기" title="직접 고르기">
+          <Icon name="plus" size={16} />
         </button>
       </div>
       {open && (
-        <div className="app-palette-box" role="dialog" aria-label="커스텀 색 선택">
-          <div className="app-palette-preview">
-            <span className="app-swatch-preview" style={{ background: current }} />
-            <span className="app-palette-hex">{current.toUpperCase()}</span>
+        <div className={styles.box} role="dialog" aria-label="색 직접 고르기">
+          <div className={styles.preview}>
+            <span className={styles.previewSw} style={{ background: current }} />
+            <span className="ui-num">{current.toUpperCase()}</span>
           </div>
           <ColorWheel value={current} onChange={immediate ? onChange : setPreview} />
           {!immediate && (
             <button
               type="button"
-              className="app-btn"
-              style={{ width: '100%' }}
+              className="ui-btn ui-btn--primary ui-btn--block"
               onClick={() => {
                 onChange(preview);
                 setOpen(false);

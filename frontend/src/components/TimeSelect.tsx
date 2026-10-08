@@ -16,12 +16,12 @@ export default function TimeSelect({ value, onChange, hourLabel = '시', minuteL
   const mm = value.slice(3);
   return (
     <>
-      <select className="app-select" aria-label={hourLabel} value={hh} onChange={(e) => onChange(`${e.target.value}:${mm}`)}>
+      <select className="ui-select" aria-label={hourLabel} value={hh} onChange={(e) => onChange(`${e.target.value}:${mm}`)}>
         {HOURS.map((h) => (
           <option key={h} value={h}>{h}시</option>
         ))}
       </select>
-      <select className="app-select" aria-label={minuteLabel} value={mm} onChange={(e) => onChange(`${hh}:${e.target.value}`)}>
+      <select className="ui-select" aria-label={minuteLabel} value={mm} onChange={(e) => onChange(`${hh}:${e.target.value}`)}>
         {MINUTES.map((m) => (
           <option key={m} value={m}>{m}분</option>
         ))}

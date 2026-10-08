@@ -1,0 +1,64 @@
+@use '@/styles/rem' as *;
+
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: rem(36);
+  padding: 0 rem(12) 0 rem(4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: rem(14);
+}
+
+button.chip {
+  cursor: pointer;
+
+  &:hover {
+    background: var(--c-surface-2);
+  }
+}
+
+.name {
+  max-width: rem(140);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.done {
+  display: inline-flex;
+  color: var(--c-accent-text);
+}
+
+.wait {
+  font-size: rem(12);
+  color: var(--c-text-3);
+}
+
+.progress {
+  font-size: rem(13);
+  color: var(--c-text-3);
+
+  &[data-all] {
+    color: var(--c-accent-text);
+  }
+}

@@ -1,39 +1,43 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
+import PeopleTabs from '@/components/people/PeopleTabs';
 import DatePicker from '@/components/DatePicker';
 import Select from '@/components/Select';
 import TimeSelect from '@/components/TimeSelect';
 import Modal from '@/components/Modal';
-import Accordion from '@/components/Accordion';
-import PageHero from '@/components/PageHero';
-import { api, getToken } from '@/lib/api';
-import { formatRange, displayName } from '@/lib/format';
-import { todayKey } from '@/lib/datetime';
+import Avatar from '@/components/Avatar';
+import Icon from '@/components/Icon';
+import { useShell } from '@/components/shell/ShellContext';
+import { api } from '@/lib/api';
+import { REQUEST_COLOR } from '@/lib/colors';
+import { allDayIsoRange, fmtEventTime, todayKey } from '@/lib/datetime';
+import { displayName } from '@/lib/format';
 import { buildMarkedDates } from '@/lib/marks';
 import { toast } from '@/lib/toast';
-import { setQuickActions } from '@/lib/quickActions';
-import type { Friend, TimeRequest, MoimEvent } from '@/lib/types';
+import type { Friend, MoimEvent, TimeRequest } from '@/lib/types';
+import s from './page.module.scss';
 
-// 내가 보낸(대기 중) 시간 요청 날짜는 일정과 구분되는 색으로 표시
-const REQUEST_COLOR = '#a855f7';
-
-const STATUS: Record<TimeRequest['status'], string> = {
-  pending: '대기 중',
-  accepted: '수락됨',
-  declined: '거절됨',
+// 요청 상태 말·칩 색 — docs/design-system.md 5장
+const STATUS: Record<TimeRequest['status'], { label: string; chip: string }> = {
+  pending: { label: '답 기다리는 중', chip: 'ui-chip ui-chip--req' },
+  accepted: { label: '수락함', chip: 'ui-chip ui-chip--accent' },
+  declined: { label: '거절함', chip: 'ui-chip ui-chip--muted' },
 };
 
-export default function Requests() {
-  const router = useRouter();
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [received, setReceived] = useState<TimeRequest[]>([]);
-  const [sent, setSent] = useState<TimeRequest[]>([]);
-  const [events, setEvents] = useState<MoimEvent[]>([]);
+type View = 'received' | 'sent';
 
+export default function Requests() {
+  const { refreshInbox } = useShell();
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [received, setReceived] = useState<TimeRequest[] | null>(null);
+  const [sent, setSent] = useState<TimeRequest[] | null>(null);
+  const [events, setEvents] = useState<MoimEvent[]>([]);
+  const [view, setView] = useState<View>('received');
+
+  const [createOpen, setCreateOpen] = useState(false);
   const [toId, setToId] = useState('');
   const [date, setDate] = useState(todayKey());
   const [allDay, setAllDay] = useState(false);
@@ -41,46 +45,43 @@ export default function Requests() {
   const [endTime, setEndTime] = useState('20:00');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
-  const [createOpen, setCreateOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const f = await api<{ friends: Friend[] }>('/api/friends');
+      const [f, ev, r, sn] = await Promise.all([
+        api<{ friends: Friend[] }>('/api/friends'),
+        api<{ events: MoimEvent[] }>('/api/events'),
+        api<{ requests: TimeRequest[] }>('/api/requests/received'),
+        api<{ requests: TimeRequest[] }>('/api/requests/sent'),
+      ]);
       setFriends(f.friends);
-      const ev = await api<{ events: MoimEvent[] }>('/api/events');
       setEvents(ev.events);
-      const r = await api<{ requests: TimeRequest[] }>('/api/requests/received');
       setReceived(r.requests);
-      const s = await api<{ requests: TimeRequest[] }>('/api/requests/sent');
-      setSent(s.requests);
+      setSent(sn.requests);
     } catch {
-      /* 401 → 자동 로그아웃 */
+      /* 401 이면 api() 가 로그아웃 처리 */
+      setReceived((p) => p ?? []);
+      setSent((p) => p ?? []);
     }
   }, []);
 
   useEffect(() => {
-    if (!getToken()) {
-      router.replace('/');
-      return;
-    }
     load();
-    // 프로필 모달 등에서 ?to=<userId> 로 진입 시 대상 친구 미리 선택 + 요청 모달 자동 오픈
+    // 프로필 팝업·친구 목록에서 ?to=<userId> 로 들어오면 받는 사람을 미리 고르고 보내기 팝업을 연다
     const to = new URLSearchParams(window.location.search).get('to');
     if (to) {
       setToId(to);
       setCreateOpen(true);
     }
-  }, [router, load]);
+  }, [load]);
 
-  // FAB 컨텍스트 퀵액션 등록
-  useEffect(() => setQuickActions([{ id: 'request-create', label: '＋ 시간 요청 보내기', onSelect: () => setCreateOpen(true) }]), []);
-
-  // 날짜 → 색 (DatePicker: 내 일정 + 내가 보낸 대기 요청을 다른 색으로)
+  // 날짜 → 색 (DatePicker: 내 일정 + 내가 보낸 대기 요청을 다른 색 점으로)
   const markedDates = useMemo(
     () =>
       buildMarkedDates({
         events,
-        requests: sent.filter((r) => r.status === 'pending'),
+        requests: (sent || []).filter((r) => r.status === 'pending'),
         requestColor: REQUEST_COLOR,
       }),
     [events, sent]
@@ -88,158 +89,241 @@ export default function Requests() {
 
   async function send(e: FormEvent) {
     e.preventDefault();
+    if (busy) return;
     if (!toId) {
-      toast('보낼 친구를 선택하세요', 'error');
+      toast('보낼 친구를 골라 주세요', 'error');
       return;
     }
+    if (!allDay && endTime <= startTime) {
+      toast('끝나는 시각은 시작보다 늦어야 해요', 'error');
+      return;
+    }
+    setBusy(true);
     try {
-      const start = allDay ? `${date}T00:00` : `${date}T${startTime}`;
-      const end = allDay ? `${date}T23:59` : `${date}T${endTime}`;
-      await api('/api/requests', {
-        method: 'POST',
-        body: { to: toId, start, end, allDay, title, message },
-      });
+      // 시간대 없는 '2026-10-08T19:00' 을 그대로 보내면 서버가 UTC 로 읽어 9시간 밀린다 → 브라우저 시각 기준 ISO 로 보낸다
+      const range = allDay
+        ? allDayIsoRange(date, date)
+        : {
+            start: new Date(`${date}T${startTime}`).toISOString(),
+            end: new Date(`${date}T${endTime}`).toISOString(),
+          };
+      await api('/api/requests', { method: 'POST', body: { to: toId, ...range, allDay, title, message } });
       setTitle('');
       setMessage('');
       setCreateOpen(false);
-      toast('시간 요청을 보냈습니다', 'success');
+      setView('sent');
+      toast('시간 요청을 보냈어요', 'success');
       load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : '전송 실패', 'error');
+      toast(err instanceof Error ? err.message : '보내지 못했어요', 'error');
     }
+    setBusy(false);
   }
 
   async function act(id: string, action: 'accept' | 'decline') {
     try {
       await api(`/api/requests/${id}/${action}`, { method: 'POST' });
-      toast(action === 'accept' ? '수락했습니다 (양쪽 캘린더에 일정 추가)' : '거절했습니다', 'success');
-      load();
+      toast(action === 'accept' ? '수락했어요. 두 사람 캘린더에 일정이 들어갔어요' : '거절했어요', 'success');
     } catch (err) {
-      toast(err instanceof Error ? err.message : '처리 실패', 'error');
+      // 이미 다른 곳에서 처리됐으면(409) 서버 말을 그대로 알린다
+      toast(err instanceof Error ? err.message : '처리하지 못했어요', 'error');
     }
+    await load();
+    refreshInbox();
   }
 
   async function cancel(id: string) {
     try {
       await api(`/api/requests/${id}`, { method: 'DELETE' });
-      toast('요청을 취소했습니다', 'success');
-      load();
+      toast('요청을 취소했어요', 'success');
     } catch (err) {
-      toast(err instanceof Error ? err.message : '취소 실패', 'error');
+      toast(err instanceof Error ? err.message : '취소하지 못했어요', 'error');
     }
+    await load();
+    refreshInbox();
   }
 
+  const pendingReceived = (received || []).filter((r) => r.status === 'pending').length;
+  const list = view === 'received' ? received : sent;
+
   return (
-    <>
-      <Nav />
-      <main className="app-container">
-        <PageHero
-          icon="calendar-check"
-          title="시간 요청"
-          desc="친구에게 “이때 시간 내주세요”를 보내고, 수락하면 양쪽 캘린더에 일정이 자동으로 추가돼요."
-        />
+    <div className="ui-page">
+      <PageHeader
+        title="사람"
+        sub="친구에게 “이때 시간 내 줄래요?”를 보내요. 수락하면 두 사람 캘린더에 일정이 생겨요"
+        actions={
+          <button type="button" className="ui-btn ui-btn--primary" onClick={() => setCreateOpen(true)} data-guide="req-new">
+            <Icon name="send" size={18} />
+            시간 요청 보내기
+          </button>
+        }
+      />
+      <PeopleTabs />
 
-        {createOpen && (
-          <Modal onClose={() => setCreateOpen(false)} maxWidth={520}>
-            <form className="app-form app-contents" onSubmit={send}>
-              <h3>시간 요청 보내기</h3>
+      <section className="ui-card" data-guide="req-list" aria-label="시간 요청 목록">
+        <div className="ui-card__head">
+          <div className="ui-seg" role="group" aria-label="요청 보기">
+            <button type="button" aria-pressed={view === 'received'} onClick={() => setView('received')}>
+              받은 요청
+              {pendingReceived > 0 && (
+                <>
+                  {' '}
+                  <span className="ui-badge" aria-label={`답할 요청 ${pendingReceived}개`}>
+                    {pendingReceived}
+                  </span>
+                </>
+              )}
+            </button>
+            <button type="button" aria-pressed={view === 'sent'} onClick={() => setView('sent')}>
+              보낸 요청
+            </button>
+          </div>
+        </div>
 
-              <label className="app-form-label">누구에게</label>
+        {list === null ? (
+          <div className={s.skeletons} aria-hidden>
+            <span className="ui-skeleton" />
+            <span className="ui-skeleton" />
+            <span className="ui-skeleton" />
+          </div>
+        ) : list.length === 0 ? (
+          <div className="ui-empty">
+            <span className="ui-empty__icon" aria-hidden>
+              <Icon name="clock" size={24} />
+            </span>
+            <p className="ui-empty__title">{view === 'received' ? '받은 요청이 없어요' : '보낸 요청이 없어요'}</p>
+            <p className="ui-empty__text">
+              {view === 'received' ? '친구가 시간을 부탁하면 여기에 나타나요.' : '친구에게 시간을 부탁해 보세요.'}
+            </p>
+            {view === 'sent' && (
+              <button type="button" className="ui-btn ui-btn--primary" onClick={() => setCreateOpen(true)}>
+                <Icon name="send" size={18} />
+                시간 요청 보내기
+              </button>
+            )}
+          </div>
+        ) : (
+          <ul className="ui-list">
+            {list.map((r) => {
+              const other = view === 'received' ? r.from : r.to;
+              const name = other ? displayName(other) : '알 수 없음';
+              const st = STATUS[r.status];
+              return (
+                <li key={r._id} className={`ui-row ${s.row}`}>
+                  <Avatar src={other?.picture} name={name} id={other?._id} />
+                  <span className="ui-row__main">
+                    <span className="ui-row__title">{r.title || '시간 요청'}</span>
+                    <span className="ui-row__sub">
+                      {name} · {fmtEventTime(r.start, r.end, r.allDay)}
+                    </span>
+                    {r.message && <span className={s.msg}>{r.message}</span>}
+                  </span>
+                  <span className={`ui-row__side ${s.side}`}>
+                    {view === 'received' && r.status === 'pending' ? (
+                      <>
+                        <button type="button" className="ui-btn ui-btn--accent ui-btn--sm" onClick={() => act(r._id, 'accept')}>
+                          수락
+                        </button>
+                        <button type="button" className="ui-btn ui-btn--sm" onClick={() => act(r._id, 'decline')}>
+                          거절
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className={st.chip}>{st.label}</span>
+                        {view === 'sent' && r.status === 'pending' && (
+                          <button type="button" className="ui-btn ui-btn--sm" onClick={() => cancel(r._id)}>
+                            취소
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {createOpen && (
+        <Modal
+          title="시간 요청 보내기"
+          onClose={() => setCreateOpen(false)}
+          footer={
+            <div className="ui-actions">
+              <button type="button" className="ui-btn" onClick={() => setCreateOpen(false)}>
+                취소
+              </button>
+              <button type="submit" form="req-send-form" className="ui-btn ui-btn--primary" disabled={busy}>
+                {busy ? '보내는 중…' : '보내기'}
+              </button>
+            </div>
+          }
+        >
+          <form id="req-send-form" className="ui-form" onSubmit={send}>
+            <div className="ui-field">
+              <span className="ui-label">누구에게</span>
               <Select
                 value={toId}
                 onChange={setToId}
-                placeholder="친구 선택"
-                ariaLabel="친구 선택"
-                options={friends.map((f) => ({ value: f.user._id, label: `${f.user.name} (${f.user.email})` }))}
+                placeholder="친구 고르기"
+                ariaLabel="친구 고르기"
+                options={friends.map((f) => ({ value: f.user._id, label: `${displayName(f.user)} (${f.user.email})` }))}
               />
+            </div>
 
-              <label className="app-form-label">날짜</label>
-              <div className="app-form-date">
-                <DatePicker value={date} onChange={setDate} markedDates={markedDates} />
-              </div>
+            <div className="ui-field">
+              <span className="ui-label">날짜</span>
+              <DatePicker value={date} onChange={setDate} markedDates={markedDates} block ariaLabel="날짜 고르기" />
+            </div>
 
-              <label className="app-form-label">시간</label>
-              <label className="app-row" style={{ gap: 'var(--space-2)' }}>
+            <div className="ui-field">
+              <span className="ui-label">시간</span>
+              <label className="ui-switch">
                 <input type="checkbox" checked={allDay} onChange={(e) => setAllDay(e.target.checked)} />
+                <span className="ui-switch__track" aria-hidden />
                 <span>종일</span>
               </label>
               {!allDay && (
-                <div className="app-row app-when-times">
+                <div className={s.times}>
                   <TimeSelect value={startTime} onChange={setStartTime} hourLabel="시작 시" minuteLabel="시작 분" />
-                  <span className="app-muted">~</span>
+                  <span className="ui-muted" aria-hidden>
+                    –
+                  </span>
                   <TimeSelect value={endTime} onChange={setEndTime} hourLabel="종료 시" minuteLabel="종료 분" />
                 </div>
               )}
-
-              <label className="app-form-label">제목</label>
-              <input className="app-input" placeholder="예: 저녁 같이 먹어요" value={title} onChange={(e) => setTitle(e.target.value)} />
-
-              <label className="app-form-label">메시지 (선택)</label>
-              <input className="app-input" placeholder="짧은 메시지를 남겨보세요" value={message} onChange={(e) => setMessage(e.target.value)} />
-
-              <div className="app-actions">
-                <button type="button" className="app-btn app-btn--ghost" onClick={() => setCreateOpen(false)}>
-                  닫기
-                </button>
-                <button className="app-btn" type="submit">
-                  보내기
-                </button>
-              </div>
-            </form>
-          </Modal>
-        )}
-
-        <div data-guide="req-received">
-        <Accordion title={`받은 요청 (${received.filter((r) => r.status === 'pending').length})`} defaultOpen>
-          {received.length === 0 && <p className="app-muted">받은 요청이 없습니다.</p>}
-          {received.map((r) => (
-            <div className="app-card" key={r._id}>
-              <div className="app-row">
-                <strong>{r.from ? displayName(r.from) : '알 수 없음'}</strong>
-                <span className="app-muted">{r.title}</span>
-                <span className="app-spacer" />
-                {r.status === 'pending' ? (
-                  <>
-                    <button className="app-btn" onClick={() => act(r._id, 'accept')}>
-                      수락
-                    </button>
-                    <button className="app-btn app-btn--ghost" onClick={() => act(r._id, 'decline')}>
-                      거절
-                    </button>
-                  </>
-                ) : (
-                  <span className="app-pill">{STATUS[r.status]}</span>
-                )}
-              </div>
-              <div className="app-muted">{formatRange(r.start, r.end, r.allDay)}</div>
-              {r.message && <div className="app-muted">💬 {r.message}</div>}
             </div>
-          ))}
-        </Accordion>
-        </div>
 
-        <div data-guide="req-sent">
-        <Accordion title={`보낸 요청 (${sent.length})`} defaultOpen>
-          {sent.length === 0 && <p className="app-muted">보낸 요청이 없습니다.</p>}
-          {sent.map((r) => (
-            <div className="app-card" key={r._id}>
-              <div className="app-row">
-                <strong>{r.to ? displayName(r.to) : '알 수 없음'}</strong>
-                <span className="app-muted">{r.title}</span>
-                <span className="app-spacer" />
-                <span className="app-pill">{STATUS[r.status]}</span>
-                {r.status === 'pending' && (
-                  <button className="app-btn app-btn--ghost" onClick={() => cancel(r._id)}>
-                    취소
-                  </button>
-                )}
-              </div>
-              <div className="app-muted">{formatRange(r.start, r.end, r.allDay)}</div>
+            <div className="ui-field">
+              <label className="ui-label" htmlFor="req-title">
+                제목
+              </label>
+              <input
+                id="req-title"
+                className="ui-input"
+                placeholder="예: 저녁 같이 먹어요"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
-          ))}
-        </Accordion>
-        </div>
-      </main>
-    </>
+
+            <div className="ui-field">
+              <label className="ui-label" htmlFor="req-message">
+                메시지 <span className="ui-muted">(선택)</span>
+              </label>
+              <input
+                id="req-message"
+                className="ui-input"
+                placeholder="짧은 메시지를 남겨 보세요"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+            </div>
+          </form>
+        </Modal>
+      )}
+    </div>
   );
 }

@@ -21,9 +21,9 @@
 - **죽은 코드** — 본인 변경으로 생긴 것만 제거. 기존 데드코드는 보고만.
 
 ## 코드 컨벤션
-- **네이밍은 브랜드 비종속(generic)** — 코드 식별자(클래스·함수·변수·파일명)에 브랜드명 금지. 프론트 전역 클래스는 `app-*` 접두사. 브랜드는 **사용자 노출 텍스트에만**, 단일 출처 `frontend/src/lib/brand.ts` 의 `BRAND_NAME`(=`NEXT_PUBLIC_BRAND_NAME` 오버라이드)로 렌더.
+- **네이밍은 브랜드 비종속(generic)** — 코드 식별자(클래스·함수·변수·파일명)에 브랜드명 금지. 프론트 전역 공용 부품 클래스는 `ui-*` 접두사(2.0 — 예전 `app-*` 는 다시 쓰지 않는다). 화면 전용은 CSS Module. 브랜드는 **사용자 노출 텍스트에만**, 단일 출처 `frontend/src/lib/brand.ts` 의 `BRAND_NAME`(=`NEXT_PUBLIC_BRAND_NAME` 오버라이드)로 렌더.
 - **TS**: `any` 지양 — props·API 응답·상태에 명시적 인터페이스(`src/lib/types.ts`). `as` 캐스팅 최소화.
-- **스타일**: 인라인 `style={{}}` 지양. 색·치수는 `globals.scss` 의 `--color-*`/`--radius-*`/`--space-*` 토큰. 컴포넌트 전용 스타일이 커지면 `Foo.module.scss` 동거.
+- **스타일**: 기준은 **[docs/design-system.md](docs/design-system.md)**(2.0 — 보드/표 두 테마, 토큰·공용 부품·화면 배치). 색·간격은 `styles/tokens.scss` 의 `--c-*`/`--sp-*`/`--r-*` 토큰, 공용 부품은 `styles/components.scss` 의 `ui-*`. 인라인 `style={{}}` 은 데이터로 정해지는 값(그룹 색·진행 폭)만. 표 테마 차이는 각 scss 맨 아래 `html[data-theme='table']` 한 블록.
 - **치수는 `rem()`** — px 로 쓰고 rem 으로 출력한다: `padding: rem(12) rem(20)`. `@use '@/styles/rem' as *;` 후 사용. 손으로 계산한 `0.875rem` 같은 값 금지. 근거·기준값은 [docs/rem-convention.md](docs/rem-convention.md).
 - **워커**: 에러 응답은 `fail(message, status)` = `{ ok:false, message }`. `:id` 라우트는 `isId()` 선행. 입력 검증은 핸들러에서(서버가 최종 검증).
 - **API 응답 형태**: 성공도 `{ ok:true, ...payload }` 로 통일. D1 행 → 프론트 계약(`_id`·camelCase·중첩 객체) 변환은 **`worker/db.js` 한 곳**에서.
@@ -31,7 +31,8 @@
 
 ## 빌드 · 검증
 - 프론트: `npm run build` (= `next build` + 정적 export → `frontend/out`, tsc 타입체크 포함). 워커: 변경 파일 `node --check <file>`.
-- API 를 고쳤으면 **통합 검증**: `npx wrangler dev` 로그를 파일로 남기고 `node scripts/verify-api.mjs http://127.0.0.1:8790 <로그경로>` (57 항목).
+- API 를 고쳤으면 **통합 검증**: 워커를 띄워 로그를 파일로 남기고 `node scripts/verify-api.mjs http://127.0.0.1:<포트> <로그경로>` (70 항목).
+  - ⚠️ 로컬 `.dev.vars` 에 `RESEND_API_KEY` 가 있으면 검증 계정 앞으로 **실제 메일이 나가고** 코드가 로그에 안 찍힌다. 키 없는 설정으로 띄울 것 — `wrangler.toml` 을 스크래치 폴더에 복사(`main`·`assets.directory` 는 절대 경로, `routes` 삭제)하고 그 옆에 `JWT_SECRET` 만 든 `.dev.vars` 를 두고 `npx wrangler dev -c <복사본> --local --persist-to <빈 폴더>`(스키마 먼저 적용).
 - ⚠️ **`next dev` 실행 중 `next build` 금지** — 같은 `.next/` 를 동시에 써서 dev 가 깨짐(`Cannot find module './###.js'`). 빌드하려면 dev 중지 후 실행. 타입만 볼 땐 `npx tsc --noEmit`(`.next` 미접촉, dev 와 공존 가능).
 - **VPN 환경에서 npm 은 `NODE_OPTIONS=--use-system-ca` 필요** (없으면 cert 오류).
 - 빌드 산출물(`.next/` 등) 직접 수정 금지 — 소스만.

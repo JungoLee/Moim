@@ -1,0 +1,31 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+.codeRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.code {
+  margin-right: auto;
+  font-family: var(--font-sans);
+  font-size: rem(20);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+}
+
+.block {
+  display: block;
+}
+
+// 삭제는 왼쪽 끝, 닫기는 오른쪽
+.delete {
+  margin-right: auto;
+
+  @include narrow {
+    flex: 0 0 auto;
+  }
+}

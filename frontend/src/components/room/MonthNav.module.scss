@@ -1,0 +1,16 @@
+@use '@/styles/rem' as *;
+
+.nav {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.label {
+  min-width: rem(104);
+  padding: 0 var(--sp-1);
+  text-align: center;
+  font-size: rem(18);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

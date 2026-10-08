@@ -1,0 +1,319 @@
+@use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+// 후보 한 줄
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding: rem(12) rem(14);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+}
+
+.n {
+  display: none; // 표 보기에서만 큰 숫자
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 rem(120);
+  min-width: 0;
+  gap: 2px;
+}
+
+.date {
+  font-size: rem(15);
+  font-weight: 600;
+}
+
+.desc {
+  font-size: rem(13);
+  color: var(--c-text-3);
+
+  .item[data-tone='accent'] & {
+    color: var(--c-accent-text);
+  }
+
+  .item[data-tone='warn'] & {
+    color: var(--c-warn-text);
+  }
+}
+
+.btn {
+  height: rem(34);
+  padding: 0 rem(12);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--c-text);
+  font-size: rem(13);
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--c-surface-3);
+  }
+
+  @include mobile {
+    height: rem(44);
+    padding: 0 rem(16);
+  }
+}
+
+// 1순위 — 큰 카드
+.item[data-first] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: rem(10);
+  padding: rem(16);
+  border-color: color-mix(in srgb, var(--c-accent) 45%, var(--c-line));
+  background: color-mix(in srgb, var(--c-accent) 12%, var(--c-surface));
+
+  .date {
+    font-size: rem(20);
+    font-weight: 700;
+  }
+
+  .desc {
+    font-size: rem(14);
+  }
+
+  .main {
+    flex: 0 0 auto;
+  }
+
+  .btn {
+    height: rem(44);
+    border: 0;
+    background: var(--c-primary);
+    color: var(--c-on-primary);
+    font-size: rem(15);
+    font-weight: 700;
+
+    &:hover {
+      background: var(--c-primary-hover);
+    }
+  }
+}
+
+.tag {
+  align-self: flex-start;
+  padding: rem(2) rem(8);
+  border-radius: rem(6);
+  background: var(--c-accent);
+  color: var(--c-on-accent);
+  font-size: rem(12);
+  font-weight: 700;
+}
+
+.note {
+  margin: rem(2) rem(2) 0;
+  font-size: rem(13);
+  line-height: 1.6;
+  color: var(--c-text-3);
+}
+
+.empty {
+  padding: var(--sp-6) var(--sp-2);
+  text-align: center;
+  font-size: rem(14);
+  line-height: 1.6;
+  color: var(--c-text-3);
+}
+
+// 확정된 날짜 카드
+.confirmed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: rem(8);
+  padding: rem(16);
+  border: 1px solid var(--c-accent);
+  border-radius: var(--r-lg);
+  background: var(--c-accent-soft);
+}
+
+.confirmedDate {
+  font-size: rem(20);
+  font-weight: 700;
+}
+
+.confirmedActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: rem(4);
+}
+
+// ── 모바일 아래 띠 (아래 탭 바로 위) ───────────────────
+.strip {
+  display: none;
+}
+
+@include mobile {
+  .strip {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+    z-index: var(--z-shell);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: rem(12) var(--sp-4);
+    border-top: 1px solid var(--c-line-strong);
+    border-radius: rem(20) rem(20) 0 0;
+    background: var(--c-surface);
+    box-shadow: var(--shadow-pop);
+  }
+}
+
+.stripMain {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.stripTag {
+  font-size: rem(12);
+  font-weight: 700;
+  color: var(--c-accent-text);
+}
+
+.stripDate {
+  font-size: rem(16);
+  font-weight: 700;
+}
+
+.stripDesc {
+  font-size: rem(12);
+  color: var(--c-text-2);
+}
+
+.stripSide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: rem(4);
+  flex-shrink: 0;
+}
+
+.stripWait {
+  font-size: rem(12);
+  color: var(--c-text-3);
+}
+
+.stripMore {
+  min-height: rem(32);
+  padding: 0 rem(4);
+  border: 0;
+  background: transparent;
+  color: var(--c-link);
+  font-size: rem(13);
+}
+
+// ── 표 테마 차이 ───────────────────────────────────────
+:global(html[data-theme='table']) {
+  // 후보는 번호표 줄 — 큰 숫자 + 날짜 + 확정
+  .item {
+    flex-wrap: nowrap;
+    background: var(--c-surface);
+    border-color: var(--c-line);
+  }
+
+  .n {
+    display: block;
+    flex-shrink: 0;
+    width: rem(48);
+    font-size: rem(20);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--c-accent-text);
+  }
+
+  .item[data-tone='warn'] .n {
+    color: var(--c-warn-text);
+  }
+
+  .item[data-first] {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--c-accent-soft);
+    border-color: var(--c-accent);
+
+    .tag {
+      flex: 0 0 100%;
+    }
+
+    .date {
+      font-size: rem(15);
+    }
+
+    .desc {
+      font-size: rem(13);
+    }
+
+    .main {
+      flex: 1 1 rem(120);
+    }
+
+    .btn {
+      height: rem(36);
+      padding: 0 rem(14);
+      font-size: rem(14);
+    }
+  }
+
+  .btn {
+    border: 0;
+    background: var(--c-surface-3);
+    font-weight: 600;
+  }
+
+  .strip {
+    border-color: var(--c-shell);
+    background: var(--c-shell);
+    color: var(--c-shell-active);
+  }
+
+  .stripTag {
+    color: var(--c-accent);
+  }
+
+  .stripDesc,
+  .stripWait {
+    color: var(--c-shell-text);
+  }
+
+  .stripMore {
+    color: var(--c-shell-text);
+  }
+
+  .strip :global(.ui-btn--primary) {
+    border-color: var(--c-accent);
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+  }
+}

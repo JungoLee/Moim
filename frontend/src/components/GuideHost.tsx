@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { usePathname } from 'next/navigation';
 import { subscribeGuide, stopGuide, type GuideStep } from '@/lib/guide';
 import { useEscClose } from '@/lib/useEscClose';
+import styles from './GuideHost.module.scss';
 
 const PAD = 8; // 스포트라이트가 대상보다 살짝 크게 (px)
 const TIP_W = 340; // 설명 카드 폭 (px, CSS 와 동일)
@@ -13,6 +14,15 @@ const EDGE = 12; // 화면 가장자리 최소 여백 (px)
 type Rect = { top: number; left: number; width: number; height: number };
 
 /** 사용 가이드(스포트라이트 투어) 호스트 — 루트 레이아웃에서 렌더. lib/guide 의 startGuide 로 시작. */
+/** 화면에 실제로 보이는 첫 대상 — 테마·화면 폭에 따라 숨긴 같은 이름 요소(크기 0)는 건너뛴다 */
+function findVisible(selector: string): HTMLElement | null {
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>(selector))) {
+    const r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) return el;
+  }
+  return null;
+}
+
 export default function GuideHost() {
   const pathname = usePathname();
   const [steps, setSteps] = useState<GuideStep[] | null>(null);
@@ -30,7 +40,7 @@ export default function GuideHost() {
           setSteps(null);
           return;
         }
-        const found = s.filter((st) => document.querySelector(st.target));
+        const found = s.filter((st) => findVisible(st.target));
         setSteps(found.length ? found : null);
         setIdx(0);
       }),
@@ -46,7 +56,7 @@ export default function GuideHost() {
 
   const measure = useCallback(() => {
     if (!step) return;
-    const el = document.querySelector(step.target);
+    const el = findVisible(step.target);
     if (!el) return;
     const r = el.getBoundingClientRect();
     setRect({ top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 });
@@ -58,7 +68,7 @@ export default function GuideHost() {
       setRect(null);
       return;
     }
-    document.querySelector(step.target)?.scrollIntoView({ block: 'center', behavior: 'auto' });
+    findVisible(step.target)?.scrollIntoView({ block: 'center', behavior: 'auto' });
     measure();
   }, [step, measure]);
 
@@ -98,34 +108,34 @@ export default function GuideHost() {
 
   return (
     // 배경(어두운 영역) 클릭 = 다음 스텝. 카드 안 클릭은 전파 차단.
-    <div className="app-guide" role="dialog" aria-label="사용 가이드" onClick={next}>
+    <div className={styles.guide} role="dialog" aria-label="사용 가이드" onClick={next}>
       <div
-        className="app-guide-spot"
+        className={styles.spot}
         style={{ top: rect.top, left: rect.left, width: rect.width, height: rect.height }}
       />
       <div
         ref={tipRef}
         // 첫 렌더(위치 미계산)엔 숨긴 채 높이만 재고, 이후 스텝 이동은 transition 으로 미끄러짐
-        className={tipPos ? 'app-guide-tip' : 'app-guide-tip app-guide-tip--measuring'}
+        className={tipPos ? styles.tip : `${styles.tip} ${styles.measuring}`}
         style={tipPos ?? { top: 0, left: EDGE }}
         onClick={(e) => e.stopPropagation()}
       >
-        <span className="app-guide-count">
+        <span className={styles.count}>
           {idx + 1} / {steps.length}
         </span>
         <h3>{step.title}</h3>
         <p>{step.body}</p>
-        <div className="app-guide-actions">
-          <button type="button" className="app-btn app-btn--ghost" onClick={() => stopGuide()}>
+        <div className={styles.actions}>
+          <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => stopGuide()}>
             건너뛰기
           </button>
-          <span className="app-spacer" />
+          <span className="ui-spacer" />
           {idx > 0 && (
-            <button type="button" className="app-btn app-btn--ghost" onClick={() => setIdx((i) => i - 1)}>
+            <button type="button" className="ui-btn ui-btn--sm" onClick={() => setIdx((i) => i - 1)}>
               이전
             </button>
           )}
-          <button type="button" className="app-btn" onClick={next}>
+          <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={next} autoFocus>
             {last ? '완료' : '다음'}
           </button>
         </div>
