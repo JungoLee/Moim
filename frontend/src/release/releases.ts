@@ -36,6 +36,12 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '2.0.2',
+    date: '2026-10-08',
+    title: '연차 계산 시작일 고르기',
+    items: [{ kind: 'improve', text: '연차 계산기 시작일을 다시 고를 수 있어요. 기본은 오늘이고, 지난 날은 계산에서 빠집니다.' }],
+  },
+  {
     version: '2.0.1',
     date: '2026-10-08',
     title: '연차 계산은 오늘부터',

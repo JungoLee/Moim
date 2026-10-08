@@ -145,7 +145,9 @@ export function useHomeData(opts: { withFriends: boolean }): HomeData {
   // 추천 연차 — 저장된 설정으로 계산한 첫 항목 (연차 계산기와 같은 로직)
   const leave = useMemo<LeaveSuggestion | null>(() => {
     if (!leaveSettings) return null;
-    const from = today; // 연차 계산은 늘 오늘부터 (연차 계산기와 같게)
+    // 저장된 시작일이 지났으면 오늘부터 (연차 계산기와 같은 규칙)
+    const saved = parseDateKey(leaveSettings.start);
+    const from = saved && saved.getTime() > today.getTime() ? saved : today;
     const to = parseDateKey(leaveSettings.renewal) || new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
     if (from.getTime() >= to.getTime()) return null;
     const years: number[] = [];

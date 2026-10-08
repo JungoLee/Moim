@@ -81,7 +81,7 @@ const GUIDES: Record<string, GuideStep[]> = {
     { target: g('room-invite'), title: '초대', body: '링크나 코드를 복사해 친구를 불러요.' },
   ],
   '/tools/leave': [
-    { target: g('leave-form'), title: '조건 넣기', body: '남은 연차·갱신일·최대 연속 연차를 넣고 방식을 골라요. 계산은 늘 오늘부터 시작해요. 로그인했다면 저장되고, 갱신일이 지나면 다음 해로 넘어가요.' },
+    { target: g('leave-form'), title: '조건 넣기', body: '남은 연차·갱신일·최대 연속 연차를 넣고 방식을 골라요. 시작일 기본은 오늘이고, 지난 날은 계산에서 빠져요. 로그인했다면 저장되고, 갱신일이 지나면 다음 해로 넘어가요.' },
     { target: g('leave-calc'), title: '계획 만들기', body: '주말·공휴일(대체공휴일 포함)을 엮어 연차를 가장 적게 쓰고 가장 길게 쉬는 조합을 찾아요.' },
     { target: g('leave-result'), title: '결과 보는 법', body: '배수(예: 4x)는 연차 하루로 쉬는 날 수예요. 높을수록 이득이에요.' },
   ],

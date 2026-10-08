@@ -74,6 +74,8 @@ function BridgeRow({ p, style }: { p: Bridge; style: LeaveStyle }) {
 
 export default function LeavePlanner() {
   const [remaining, setRemaining] = useState('15');
+  // 시작일 — 기본은 그날의 오늘. 고를 수 있지만 지난 날은 오늘로 본다(지난 연차는 계산할 필요가 없다)
+  const [start, setStart] = useState(() => toKey(todayMidnight()));
   const [renewal, setRenewal] = useState(() => toKey(addDays(todayMidnight(), 365)));
   const [maxConsec, setMaxConsec] = useState('5');
   const [style, setStyle] = useState<LeaveStyle>('balanced');
@@ -91,6 +93,8 @@ export default function LeavePlanner() {
         const v = r.leave;
         if (!v) return;
         if (typeof v.remaining === 'number') setRemaining(String(v.remaining));
+        // 저장된 시작일은 아직 안 지났을 때만 쓴다 — 지난 날이면 오늘 그대로 (날짜가 굳지 않게)
+        if (v.start && v.start > toKey(todayMidnight())) setStart(v.start);
         if (v.renewal) setRenewal(v.renewal);
         if (typeof v.maxConsec === 'number') setMaxConsec(String(v.maxConsec));
         if (v.style) setStyle(v.style);
@@ -100,10 +104,12 @@ export default function LeavePlanner() {
 
   function calculate() {
     setError('');
-    const from = todayMidnight(); // 시작은 늘 오늘 (사용자 요청 2026-10-08)
+    const today = todayMidnight();
+    const picked = parseDate(start);
+    const from = picked && picked.getTime() > today.getTime() ? picked : today; // 지난 날은 오늘부터
     const to = parseDate(renewal) || addDays(todayMidnight(), 365);
     if (from.getTime() >= to.getTime()) {
-      setError('갱신일은 오늘보다 뒤여야 해요.');
+      setError('갱신일은 시작일보다 뒤여야 해요.');
       return;
     }
     const rem = parseFloat(remaining) || 0;
@@ -193,7 +199,10 @@ export default function LeavePlanner() {
             </div>
             <div className="ui-field">
               <span className="ui-label">시작일</span>
-              <p className={`ui-input ${s.fixed}`}>오늘 · {fmtDay(todayMidnight())}</p>
+              <DatePicker value={start} onChange={setStart} block ariaLabel="시작일" />
+              <span className="ui-help">
+                기본은 오늘({fmtDay(todayMidnight())})이에요. 지난 날을 고르면 오늘부터 계산해요.
+              </span>
             </div>
             <div className="ui-field">
               <span className="ui-label">연차 갱신일 (까지)</span>
