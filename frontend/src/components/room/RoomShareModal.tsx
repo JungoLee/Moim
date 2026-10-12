@@ -2,6 +2,7 @@
 
 import CopyButton from '@/components/CopyButton';
 import Modal from '@/components/Modal';
+import { BRAND_NAME } from '@/lib/brand';
 import type { RoomDetail } from '@/lib/types';
 import styles from './RoomShareModal.module.scss';
 
@@ -30,7 +31,7 @@ export default function RoomShareModal({ room, onClose }: Props) {
         <span className="ui-label">초대 링크</span>
         <div className="ui-inline">
           <input className="ui-input" value={link} readOnly aria-label="초대 링크" onFocus={(e) => e.currentTarget.select()} />
-          <CopyButton text={link} label="링크 복사" size="md" />
+          <CopyButton text={link} label="링크 복사" size="md" share shareTitle={`${room.name} · ${BRAND_NAME}`} />
         </div>
         <span className="ui-help">
           {room.joinByUrl

@@ -8,6 +8,7 @@ import MemberRow from '@/components/MemberRow';
 import Modal from '@/components/Modal';
 import { useShell } from '@/components/shell/ShellContext';
 import { api } from '@/lib/api';
+import { BRAND_NAME } from '@/lib/brand';
 import { confirmDialog } from '@/lib/confirm';
 import { toast } from '@/lib/toast';
 import type { RoomDetail } from '@/lib/types';
@@ -117,7 +118,13 @@ export default function RoomSettingsModal({ room, meId, onChanged, onClose }: Pr
         <div className={styles.codeRow}>
           <code className={styles.code}>{room.code}</code>
           <CopyButton text={room.code} label="코드 복사" />
-          <CopyButton text={`${window.location.origin}/rooms/detail?id=${room._id}`} icon title="초대 링크 복사" />
+          <CopyButton
+            text={`${window.location.origin}/rooms/detail?id=${room._id}`}
+            icon
+            title="초대 링크 복사"
+            share
+            shareTitle={`${room.name} · ${BRAND_NAME}`}
+          />
           {isOwner && (
             <button type="button" className="ui-btn ui-btn--sm" onClick={regenCode} disabled={busy}>
               재발급

@@ -36,6 +36,14 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '2.0.3',
+    date: '2026-10-12',
+    title: '휴대폰에서는 바로 공유',
+    items: [
+      { kind: 'improve', text: '휴대폰·태블릿에서 모임 초대 링크를 보낼 때 카카오톡·메시지 등 기기 공유창이 바로 열려요. PC 에서는 지금처럼 링크가 복사돼요.' },
+    ],
+  },
+  {
     version: '2.0.2',
     date: '2026-10-08',
     title: '연차 계산 시작일 고르기',
