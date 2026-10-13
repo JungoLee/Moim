@@ -7,12 +7,9 @@ import interactionPlugin from '@fullcalendar/interaction';
 import type { EventInput, DateSelectArg } from '@fullcalendar/core';
 import type { MoimEvent } from '@/lib/types';
 import { eventColor, readableText } from '@/lib/colors';
-import { addDays, dateKey } from '@/lib/datetime';
+import { addDays, dateKey, fcMonthTitle } from '@/lib/datetime';
 import { getHolidays } from '@/lib/holidays';
 import styles from './Calendar.module.scss';
-
-// 달력 제목 '2026년 11월' (월 0-based) — docs/design-system.md 5장
-const ymTitle = (arg: { date: { year: number; month: number } }) => `${arg.date.year}년 ${arg.date.month + 1}월`;
 
 // FullCalendar 의 종일(allDay) end 는 '배타적'(다음 날)이라, 우리 데이터의 포함 끝(마지막 날 23:59)을
 // +1일 날짜로 바꿔야 마지막 날까지 칠해진다. 종일은 날짜 문자열로 넘겨 타임존 영향도 제거.
@@ -107,7 +104,7 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
         locale="ko"
         height="auto"
         headerToolbar={{ left: 'prev,next today', center: 'title', right: '' }}
-        titleFormat={ymTitle}
+        titleFormat={fcMonthTitle}
         buttonText={{ today: '오늘' }}
         events={fcEvents}
         eventDisplay="block"

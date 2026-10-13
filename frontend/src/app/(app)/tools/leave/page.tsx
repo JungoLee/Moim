@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import type { EventInput } from '@fullcalendar/core';
-import { fmtDay, fmtDayRange } from '@/lib/datetime';
+import { fcMonthTitle, fmtDay, fmtDayRange, parseDateKey } from '@/lib/datetime';
 import { addDays, computeLeavePlan, toKey, metricLabel, type Bridge, type LeaveStyle } from '@/lib/leave';
 import { getHolidays } from '@/lib/holidays';
 import { api, getToken } from '@/lib/api';
@@ -19,21 +19,11 @@ type LeaveSettings = { remaining: number; start: string; renewal: string; maxCon
 
 const MAX_LIST = 40; // 후보 목록 표시 상한
 
-function parseDate(v: string): Date | null {
-  if (!v) return null;
-  const [y, m, d] = v.split('-').map(Number);
-  if (!y || !m || !d) return null;
-  return new Date(y, m - 1, d);
-}
-
 function todayMidnight(): Date {
   const t = new Date();
   t.setHours(0, 0, 0, 0);
   return t;
 }
-
-// 달력 제목 '2026년 11월'
-const ymTitle = (arg: { date: { year: number; month: number } }) => `${arg.date.year}년 ${arg.date.month + 1}월`;
 
 type Result = {
   candidates: Bridge[];
@@ -105,9 +95,9 @@ export default function LeavePlanner() {
   function calculate() {
     setError('');
     const today = todayMidnight();
-    const picked = parseDate(start);
+    const picked = parseDateKey(start);
     const from = picked && picked.getTime() > today.getTime() ? picked : today; // 지난 날은 오늘부터
-    const to = parseDate(renewal) || addDays(todayMidnight(), 365);
+    const to = parseDateKey(renewal) || addDays(todayMidnight(), 365);
     if (from.getTime() >= to.getTime()) {
       setError('갱신일은 시작일보다 뒤여야 해요.');
       return;
@@ -300,7 +290,7 @@ export default function LeavePlanner() {
                       initialDate={result.initialDate}
                       locale="ko"
                       height="auto"
-                      titleFormat={ymTitle}
+                      titleFormat={fcMonthTitle}
                       headerToolbar={{ left: 'prev,next', center: 'title', right: 'today' }}
                       buttonText={{ today: '오늘' }}
                       events={result.calEvents}

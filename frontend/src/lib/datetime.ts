@@ -70,6 +70,11 @@ export function fmtDay(d: Date): string {
   return `${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`;
 }
 
+/** '11월 21일 토요일' — 화면 머리·읽어 주는 글(aria-label) */
+export function fmtDayWords(d: Date): string {
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${DOW[d.getDay()]}요일`;
+}
+
 /** '11/21 (토)' */
 export function fmtDayShort(d: Date): string {
   return `${d.getMonth() + 1}/${d.getDate()} (${DOW[d.getDay()]})`;
@@ -95,6 +100,9 @@ export function fmtKeyRange(startKey: string, endKey: string): string {
 export function fmtMonth(d: Date): string {
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
 }
+
+/** FullCalendar titleFormat 용 '2026년 11월' (month 는 0부터) — 일정 달력·연차 계산기 공용 */
+export const fcMonthTitle = (arg: { date: { year: number; month: number } }) => `${arg.date.year}년 ${arg.date.month + 1}월`;
 
 /** '19:00' (24시간) */
 export function fmtTime(d: Date): string {

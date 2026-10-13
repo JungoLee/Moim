@@ -3,12 +3,12 @@
 import { useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import Avatar from '@/components/Avatar';
-import { dateKey, DOW_KO, todayKey } from '@/lib/datetime';
+import { dateKey, DOW_KO, fmtDayWords, todayKey } from '@/lib/datetime';
 import { displayName } from '@/lib/format';
-import { heatLevel } from '@/lib/roomCandidates';
+import { heatLevel, marksByUser } from '@/lib/roomCandidates';
 import type { DaySummary } from '@/lib/roomCandidates';
 import type { Mark, User } from '@/lib/types';
-import { dayWords, markWords } from './format';
+import { markWords } from './format';
 import styles from './MatrixList.module.scss';
 
 export type MatrixFilter = 'all' | 'three' | 'full';
@@ -59,15 +59,7 @@ type Props = {
 export default function MatrixList({ members, meId, availabilities, summary, total, month, holidays, filter, editing, onApply }: Props) {
   const today = todayKey();
   const monthIdx = month.getMonth();
-  const marksBy = useMemo(() => {
-    const out: Record<string, Record<string, Mark>> = {};
-    for (const [uid, list] of Object.entries(availabilities)) {
-      const m: Record<string, Mark> = {};
-      for (const x of list) m[x.date] = x;
-      out[uid] = m;
-    }
-    return out;
-  }, [availabilities]);
+  const marksBy = useMemo(() => marksByUser(availabilities), [availabilities]);
 
   const rows = useMemo(() => {
     const n = new Date(month.getFullYear(), monthIdx + 1, 0).getDate();
@@ -132,7 +124,7 @@ export default function MatrixList({ members, meId, availabilities, summary, tot
                   </span>
                 </>
               );
-              const summaryText = `${dayWords(d)}${holiday ? `, ${holiday}` : ''}, ${total}명 중 ${yes}명 가능${after > 0 ? `, 저녁 이후 ${after}명` : ''}`;
+              const summaryText = `${fmtDayWords(d)}${holiday ? `, ${holiday}` : ''}, ${total}명 중 ${yes}명 가능${after > 0 ? `, 저녁 이후 ${after}명` : ''}`;
               return (
                 <li key={key}>
                   {editing ? (

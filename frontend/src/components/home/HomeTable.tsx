@@ -6,7 +6,7 @@ import Avatar from '@/components/Avatar';
 import Icon from '@/components/Icon';
 import PageHeader from '@/components/PageHeader';
 import { displayName } from '@/lib/format';
-import { DOW_KO, dateKey, fmtDayRange } from '@/lib/datetime';
+import { DOW_KO, dateKey, fmtDayRange, fmtDayWords } from '@/lib/datetime';
 import { getHolidays } from '@/lib/holidays';
 import { roomStatus } from '@/lib/roomStatus';
 import { useOutsideClose } from '@/lib/useOutsideClose';
@@ -161,7 +161,7 @@ export default function HomeTable({ data }: { data: HomeData }) {
                             <div
                               className={styles.bands}
                               role="img"
-                              aria-label={`${r.mine ? '나' : r.name}, ${d.getMonth() + 1}월 ${d.getDate()}일 ${DOW_KO[d.getDay()]}요일: ${BANDS.map(
+                              aria-label={`${r.mine ? '나' : r.name}, ${fmtDayWords(d)}: ${BANDS.map(
                                 (b, bi) => `${b.label} ${r.days[di][bi] ? '바쁨' : '빔'}`
                               ).join(', ')}`}
                             >

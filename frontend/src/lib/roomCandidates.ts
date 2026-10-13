@@ -12,6 +12,17 @@ export type DaySummary = {
   afterIds: string[];
 };
 
+/** 사람 → 날짜 → 표시 (표 보기의 큰 표·모바일 목록 공용) */
+export function marksByUser(availabilities: Record<string, Mark[]>): Record<string, Record<string, Mark>> {
+  const out: Record<string, Record<string, Mark>> = {};
+  for (const [uid, list] of Object.entries(availabilities)) {
+    const m: Record<string, Mark> = {};
+    for (const x of list) m[x.date] = x;
+    out[uid] = m;
+  }
+  return out;
+}
+
 /** 날짜 → 요약 */
 export function summarize(availabilities: Record<string, Mark[]>): Record<string, DaySummary> {
   const sum: Record<string, DaySummary> = {};

@@ -4,12 +4,12 @@ import { useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import Avatar from '@/components/Avatar';
 import Icon from '@/components/Icon';
-import { dateKey, DOW_KO, todayKey } from '@/lib/datetime';
+import { dateKey, DOW_KO, fmtDayWords, todayKey } from '@/lib/datetime';
 import { displayName } from '@/lib/format';
-import { heatLevel } from '@/lib/roomCandidates';
+import { heatLevel, marksByUser } from '@/lib/roomCandidates';
 import type { DaySummary } from '@/lib/roomCandidates';
 import type { Mark, User } from '@/lib/types';
-import { dayWords, markWords } from './format';
+import { markWords } from './format';
 import { useDragSelect } from './useDragSelect';
 import styles from './MemberMatrix.module.scss';
 
@@ -40,15 +40,7 @@ export default function MemberMatrix({ members, meId, availabilities, summary, t
     return Array.from({ length: n }, (_, i) => new Date(month.getFullYear(), monthIdx, i + 1));
   }, [month, monthIdx]);
   const keys = useMemo(() => days.map(dateKey), [days]);
-  const marksBy = useMemo(() => {
-    const out: Record<string, Record<string, Mark>> = {};
-    for (const [uid, list] of Object.entries(availabilities)) {
-      const m: Record<string, Mark> = {};
-      for (const x of list) m[x.date] = x;
-      out[uid] = m;
-    }
-    return out;
-  }, [availabilities]);
+  const marksBy = useMemo(() => marksByUser(availabilities), [availabilities]);
 
   const drag = useDragSelect({ keys, isDisabled: (k) => k < today, onApply });
   const tableStyle = { '--n': days.length } as CSSProperties;
@@ -105,7 +97,7 @@ export default function MemberMatrix({ members, meId, availabilities, summary, t
                   const state = mk ? (mk.status === 'yes' ? 'yes' : mk.status === 'after' ? 'after' : 'no') : 'none';
                   const all = heatLevel(summary[key], total) === 5;
                   const past = key < today;
-                  const words = `${name}, ${dayWords(d)}: ${markWords(mk)}`;
+                  const words = `${name}, ${fmtDayWords(d)}: ${markWords(mk)}`;
                   const face = (
                     <>
                       {state === 'yes' && <Icon name="check" size={13} stroke={3} />}
@@ -165,7 +157,7 @@ export default function MemberMatrix({ members, meId, availabilities, summary, t
                     {yes}
                     {after > 0 ? '+' : ''}
                   </span>
-                  <span className="ui-sr-only">{`${dayWords(d)}, ${total}명 중 ${yes}명 가능${after > 0 ? `, 저녁 이후 ${after}명` : ''}`}</span>
+                  <span className="ui-sr-only">{`${fmtDayWords(d)}, ${total}명 중 ${yes}명 가능${after > 0 ? `, 저녁 이후 ${after}명` : ''}`}</span>
                 </td>
               );
             })}

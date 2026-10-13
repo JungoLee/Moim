@@ -7,7 +7,7 @@ import Icon from '@/components/Icon';
 import PageHeader from '@/components/PageHeader';
 import { displayName } from '@/lib/format';
 import { eventColor } from '@/lib/colors';
-import { DOW_KO, dateKey, fmtTime } from '@/lib/datetime';
+import { DOW_KO, dateKey, fmtDayWords, fmtTime } from '@/lib/datetime';
 import { getHolidays } from '@/lib/holidays';
 import { roomStatus } from '@/lib/roomStatus';
 import { eventsOnDay } from '@/components/home/week';
@@ -22,7 +22,7 @@ export default function HomeBoard({ data }: { data: HomeData }) {
   const { me, today, days, ready, inbox, weekEvents, rooms, leave, pendingKey, answer } = data;
   const name = me ? displayName(me) : '';
 
-  const eyebrow = `${today.getMonth() + 1}월 ${today.getDate()}일 ${DOW_KO[today.getDay()]}요일`;
+  const eyebrow = fmtDayWords(today);
   let title: string;
   if (!ready) title = name ? `${name} 님, 안녕하세요` : '홈';
   else if (inbox.length > 0) title = `${name} 님, 답할 게 ${inbox.length}개 있어요`;

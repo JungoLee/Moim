@@ -1,11 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { dateKey, DOW_KO, monthGridDays, todayKey } from '@/lib/datetime';
+import { dateKey, DOW_KO, fmtDayWords, monthGridDays, todayKey } from '@/lib/datetime';
 import { heatLevel } from '@/lib/roomCandidates';
 import type { DaySummary } from '@/lib/roomCandidates';
 import type { Mark, RoomConfirmed } from '@/lib/types';
-import { dayWords, markWords } from './format';
+import { markWords } from './format';
 import { useDragSelect } from './useDragSelect';
 import styles from './HeatCalendar.module.scss';
 
@@ -61,7 +61,7 @@ export default function HeatCalendar({ month, myMarks, summary, total, holidays,
           const after = s?.after ?? 0;
           const inConfirmed = !!confirmed && key >= confirmed.start && key <= confirmed.end;
           const label =
-            `${dayWords(day)}, ${total}명 중 ${yes}명 가능` +
+            `${fmtDayWords(day)}, ${total}명 중 ${yes}명 가능` +
             (after > 0 ? `, 저녁 이후 ${after}명` : '') +
             `, 내 표시: ${markWords(mark)}` +
             (holiday ? `, ${holiday}` : '') +
