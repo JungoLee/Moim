@@ -1,6 +1,6 @@
 import { copyToClipboard } from '@/lib/clipboard';
 
-export type ShareResult = 'shared' | 'cancelled' | 'copied';
+type ShareResult = 'shared' | 'cancelled' | 'copied';
 
 /**
  * 시스템 공유창을 쓸 수 있는 기기인가 — 휴대폰·태블릿(터치 전용 포인터)만 true.

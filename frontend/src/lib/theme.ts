@@ -11,7 +11,7 @@ export { isTheme };
 
 const THEME_COLOR: Record<UiTheme, string> = { board: '#0b0f1c', table: '#141a2c' };
 
-export function currentTheme(): UiTheme {
+function currentTheme(): UiTheme {
   if (typeof document === 'undefined') return DEFAULT_THEME;
   const t = document.documentElement.getAttribute('data-theme');
   return isTheme(t) ? t : DEFAULT_THEME;

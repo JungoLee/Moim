@@ -16,7 +16,7 @@ import type { AvailStatus, Mark, RoomComment, RoomDetail, User } from '@/lib/typ
 
 type RoomRes = { room: RoomDetail; availabilities: Record<string, Mark[]>; comments: RoomComment[] };
 
-export type RoomPhase = 'loading' | 'ready' | 'denied';
+type RoomPhase = 'loading' | 'ready' | 'denied';
 
 const seenKey = (roomId: string) => `moim_chat_seen_${roomId}`;
 

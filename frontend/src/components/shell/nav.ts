@@ -1,7 +1,7 @@
 import type { IconName } from '@/components/Icon';
 
-// 메뉴 4개 + 보조 링크 — Sidebar·TopBar·BottomTabs 공용 (docs/design-system.md 0장 '메뉴')
-export type NavItem = { href: string; label: string; icon: IconName; match: (path: string) => boolean };
+// 메뉴 4개 + 보조 링크 — AppShell 의 보드 사이드바·표 위 메뉴·모바일 아래 탭 공용 (docs/design-system.md 0장 '메뉴')
+type NavItem = { href: string; label: string; icon: IconName; match: (path: string) => boolean };
 
 const under = (path: string, ...bases: string[]) => bases.some((b) => path === b || path.startsWith(`${b}/`));
 

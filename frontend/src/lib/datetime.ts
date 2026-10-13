@@ -5,7 +5,7 @@ export const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, 
 /** 5분 단위 분(分) 옵션: '00','05',…,'55' */
 export const MINUTES = Array.from({ length: 12 }, (_, m) => String(m * 5).padStart(2, '0'));
 
-export function pad2(n: number): string {
+function pad2(n: number): string {
   return String(n).padStart(2, '0');
 }
 
@@ -20,11 +20,6 @@ export function timeKey(d: Date): string {
 }
 
 const DOW = ['일', '월', '화', '수', '목', '금', '토'];
-
-/** Date → 'YYYY-MM-DD (요일)' — 앱 전역 날짜 표기 형식 */
-export function dayLabel(d: Date): string {
-  return `${dateKey(d)} (${DOW[d.getDay()]})`;
-}
 
 /** 오늘 'YYYY-MM-DD' */
 export function todayKey(): string {
@@ -43,7 +38,7 @@ export function addDays(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
-/** 달력 한 달 칸 — 그 달 1일이 든 주의 일요일부터 말일이 든 주의 토요일까지(DatePicker·AvailabilityCalendar 공용) */
+/** 달력 한 달 칸 — 그 달 1일이 든 주의 일요일부터 말일이 든 주의 토요일까지(DatePicker·모임 방 HeatCalendar 공용) */
 export function monthGridDays(view: Date): Date[] {
   const monthStart = new Date(view.getFullYear(), view.getMonth(), 1);
   const monthEnd = new Date(view.getFullYear(), view.getMonth() + 1, 0);

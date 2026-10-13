@@ -20,7 +20,7 @@ function fcRange(start: string, end: string, allDay?: boolean): { start: string;
 
 type Props = {
   events: MoimEvent[];
-  /** 드래그/클릭으로 기간 선택 (대시보드: 새 일정 프리필). allDay=월 뷰(종일), false=주 뷰(시간 지정). 없으면 읽기 전용. */
+  /** 드래그/클릭으로 기간 선택 (대시보드: 새 일정 프리필). 월 뷰만 써서 allDay 는 늘 true. 없으면 읽기 전용. */
   onSelectRange?: (start: Date, end: Date, allDay: boolean) => void;
   /** 일정 클릭 (대시보드: 수정 모달). */
   onSelectEvent?: (id: string) => void;
@@ -49,7 +49,7 @@ export default function Calendar({ events, onSelectRange, onSelectEvent, tierCol
 
   const fcEvents: EventInput[] = useMemo(() => {
     const evs: EventInput[] = events.map((ev) => {
-      // 볼 수 없는 일정(busy): 회색 + 시간 숨김(종일 블록) — 주 뷰에서도 시간대 미노출
+      // 볼 수 없는 일정(busy): 회색 + 시간 숨김(종일 블록) — 시간대를 드러내지 않는다
       if (ev.busy) {
         return {
           id: ev._id,

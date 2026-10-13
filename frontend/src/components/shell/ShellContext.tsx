@@ -8,7 +8,7 @@ import type { FriendRequest, RoomSummary, TimeRequest, User } from '@/lib/types'
 
 // 틀이 한 번 불러와 모든 화면이 같이 쓰는 것 — 내 정보·답할 것·내 모임.
 // 예전엔 화면마다 /api/auth/me 를 따로 불렀다(4곳). 이제 여기 한 곳.
-export type Inbox = { requests: TimeRequest[]; friendRequests: FriendRequest[] };
+type Inbox = { requests: TimeRequest[]; friendRequests: FriendRequest[] };
 
 type ShellValue = {
   /** 로그인 안 했으면 null, 불러오는 중이면 undefined */

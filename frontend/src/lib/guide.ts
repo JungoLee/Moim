@@ -1,4 +1,4 @@
-// 페이지별 사용 가이드(스포트라이트 투어) — toast/confirm/quickActions 와 동일한 모듈 pub/sub 패턴.
+// 페이지별 사용 가이드(스포트라이트 투어) — toast/confirm 과 같은 모듈 pub/sub 패턴.
 // 대상 요소는 각 페이지 JSX 의 data-guide 속성(또는 전역 클래스)으로 지정하고,
 // GuideHost 가 시작 시점에 화면에 존재하는 타겟만 걸러 스텝을 진행한다(조건부 섹션 자동 스킵).
 export type GuideStep = {

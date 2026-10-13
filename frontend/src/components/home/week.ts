@@ -10,7 +10,7 @@ export const BANDS = [
   { key: 'eve', label: '저녁', from: 18, to: 24 },
 ] as const;
 
-export type TimeSpan = { start: string; end: string; allDay?: boolean };
+type TimeSpan = { start: string; end: string; allDay?: boolean };
 
 /** 오늘부터 7일 */
 export function weekDays(today: Date): Date[] {

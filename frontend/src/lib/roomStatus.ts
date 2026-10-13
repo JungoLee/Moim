@@ -2,8 +2,8 @@
 import { fmtKeyRange } from '@/lib/datetime';
 import type { RoomSummary } from '@/lib/types';
 
-export type RoomTone = 'accent' | 'warn' | 'muted' | 'primary';
-export type RoomStatus = { label: string; tone: RoomTone; desc: string; progress: number };
+type RoomTone = 'accent' | 'warn' | 'muted' | 'primary';
+type RoomStatus = { label: string; tone: RoomTone; desc: string; progress: number };
 
 export function roomStatus(r: RoomSummary): RoomStatus {
   const total = Math.max(r.memberCount, 1);

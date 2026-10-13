@@ -22,7 +22,7 @@ type Described = {
 };
 
 /** 후보 한 개를 사람이 읽는 말로 */
-export function describeCandidate(c: Candidate, total: number, members: User[]): Described {
+function describeCandidate(c: Candidate, total: number, members: User[]): Described {
   const range = fmtKeyRange(c.start, c.end);
   if (c.kind === 'partial') {
     const yes = total - c.afterIds.length;

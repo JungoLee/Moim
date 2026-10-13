@@ -8,24 +8,19 @@ import styles from './Accordion.module.scss';
 type Props = {
   title: ReactNode;
   children: ReactNode;
-  /** 처음부터 펼쳐둘지 */
-  defaultOpen?: boolean;
   /** 헤더 우측 보조 텍스트/뱃지 */
   aside?: ReactNode;
-  /** 카드 안에 끼워 넣을 때의 작은 헤더(작은 화살표·가벼운 글씨) */
-  compact?: boolean;
 };
 
-/** 부드럽게 열리고 닫히는 접기 섹션 (grid-rows 0fr↔1fr 트랜지션). */
-export default function Accordion({ title, children, defaultOpen = false, aside, compact = false }: Props) {
-  const [open, setOpen] = useState(defaultOpen);
+/** 부드럽게 열리고 닫히는 접기 섹션 (grid-rows 0fr↔1fr 트랜지션). 처음엔 접혀 있다. */
+export default function Accordion({ title, children, aside }: Props) {
+  const [open, setOpen] = useState(false);
   const panelId = useId();
   return (
     <div className={styles.acc}>
       <button
         type="button"
         className={styles.head}
-        data-compact={compact}
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}

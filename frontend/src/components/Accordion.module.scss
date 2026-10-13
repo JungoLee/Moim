@@ -22,12 +22,6 @@
   &:hover {
     background: var(--c-surface-2);
   }
-
-  &[data-compact='true'] {
-    gap: var(--sp-2);
-    padding: rem(6) var(--sp-2);
-    font-size: rem(14);
-  }
 }
 
 .chevron {
