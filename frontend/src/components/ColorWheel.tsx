@@ -1,6 +1,7 @@
 'use client';
 
 import { Wheel, ShadeSlider, hsvaToHex, hexToHsva } from '@uiw/react-color';
+import { DEFAULT_TIER_COLOR } from '@/lib/colors';
 import styles from './ColorPalette.module.scss';
 
 type Props = {
@@ -12,7 +13,7 @@ type Props = {
 
 /** 원판형 색상 휠 + 밝기 슬라이더. 그룹 색 커스텀 선택용. */
 export default function ColorWheel({ value, onChange }: Props) {
-  const hsva = hexToHsva(value || '#7c8cff');
+  const hsva = hexToHsva(value || DEFAULT_TIER_COLOR);
   return (
     <div className={styles.wheel}>
       <Wheel

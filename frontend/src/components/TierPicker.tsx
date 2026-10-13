@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/Icon';
+import { DEFAULT_TIER_COLOR } from '@/lib/colors';
 import type { Tier } from '@/lib/types';
 import styles from './TierPicker.module.scss';
 
@@ -28,7 +29,7 @@ export default function TierPicker({ tiers, userId, onAdd }: Props) {
             aria-pressed={already}
             title={already ? '이미 든 그룹' : `${t.name} 그룹에 추가`}
           >
-            <span className={styles.dot} style={{ background: t.color || '#7c8cff' }} aria-hidden />
+            <span className={styles.dot} style={{ background: t.color || DEFAULT_TIER_COLOR }} aria-hidden />
             {t.name}
             {already ? <Icon name="check" size={14} stroke={2.6} /> : <Icon name="plus" size={14} stroke={2.6} />}
           </button>
