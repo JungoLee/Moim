@@ -1,6 +1,6 @@
 # rem 작성 규칙
 
-> 2026-07-31, Claude(에이전트)가 `C:\workspaceoilerplate-2026`
+> 2026-07-31, Claude(에이전트)가 `C:\workspace\boilerplate-2026`
 > (`src/assets/styles/abstracts/_mixins.scss`)의 px→rem 변환 공식을 이 프로젝트로 이식했다.
 > 파일: **`frontend/src/styles/_rem.scss`**
 
@@ -29,29 +29,24 @@
 ```
 
 단위는 생략해도 되고 px 를 붙여도 된다 — `rem(14)` 와 `rem(14px)` 이 같다.
+미디어 쿼리는 rem 이 아니라 px 로 쓴다(`styles/_bp.scss` — rem 은 html 글자 크기를 따라 움직여 경계가 어긋난다).
 
-## 기준값(baseline)은 16px 로 뒀다
+## 기준값 — 지금 Moim
 
-`$rem-baseline: 16px` → **1rem = 16px**. boilerplate 는 `$global-font-size: 10px`
-(1rem = 10px)를 쓰지만 이 프로젝트에는 그대로 옮기지 않았다. 이유:
+- **`$rem-baseline: 16px`** — `rem()` 은 16 으로 나눈다(`rem(16)` = `1rem`).
+- **html 글자 크기는 `clamp(14px, 12px + 0.45vw, 18px)`**(`styles/base.scss`) — 넓은 화면에서 글자를 크게(사용자 요청). 모든 rem 이 이 한 줄을 따라 함께 커지고 작아진다. 그래서 `rem(16)` 은 좁은 화면에서 14px, 넓은 화면에서 18px 로 보인다.
+- 처음 이식할 때 boilerplate 의 `$global-font-size: 10px`(1rem = 10px)를 그대로 옮기지 않은 이유: 이미 작성된 rem 값이 많은 프로젝트에서 html 기준을 바꾸면 화면 전체 크기가 한꺼번에 바뀐다.
 
-이미 작성된 rem 값이 많은 프로젝트에서 html 기준을 10px 로 내리면, 기존 `1rem` 이
-16px → 10px 로 바뀌어 **화면 전체가 62.5% 로 줄어든다.** 기준만 16px 로 두고 변환 공식은
-동일하게 쓰는 편이 안전하고, 얻는 이득(px 로 쓰고 rem 으로 출력)은 똑같다.
+## OPNAE 공통 규칙과 다른 점 (결정 대기)
 
-새 프로젝트를 시작한다면 `$rem-baseline: 10px` 로 두고 `html` 에 `@include rem-baseline;`
-을 걸면 boilerplate 와 완전히 같아진다. 기준 변경은 **프로젝트 시작 시점에만** 하는 결정이다.
-
-## 남은 일
-
-기존 코드의 rem 값을 일괄 치환하지는 않았다 — 동작이 같은 값을 건드리면 리뷰만 늘어난다.
-**새로 쓰거나 고치는 부분부터** `rem()` 을 쓰면 된다.
+OPNAE 아래 프로젝트 공통 규칙은 **`1rem = 10px`(html 62.5%, `$rem-baseline: 10px`)·글자 최소 12px** 다. Moim 은 아직 위 16px 기준이고, 12px 미만 글자(`rem(9)`~`rem(11)` 16곳 — 달력 칸 숫자·배지·작은 이름표 등)도 남아 있다.
+맞추려면 기준·html 글자 크기·전 화면 치수가 함께 바뀌어, 두 테마 전 화면 촬영 검수가 필요하다. 넓은 화면 글자 키우기(clamp)를 어떻게 살릴지도 함께 정해야 한다 → [PLAN.md](PLAN.md) "다음 작업".
 
 ## 이미지 규칙
 
 치수와 같은 이유로 이미지도 화면 폭에 따라 변해야 한다. 두 층으로 나눈다.
 
-**1) 전역 기본값** — 어떤 이미지도 컨테이너를 넘지 않게, 비율은 유지하게.
+**1) 전역 기본값** — 어떤 이미지도 컨테이너를 넘지 않게, 비율은 유지하게(`styles/base.scss`).
 
 ```css
 img, svg, video { max-width: 100%; }

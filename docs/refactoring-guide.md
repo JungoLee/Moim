@@ -4,7 +4,7 @@
 > 개별 기능 추가/수정 후에도 **관련 섹션을 점검**해 회귀를 막는다.
 > 스택: Next.js(App Router, 정적 export)+TS+SCSS 프론트 / Cloudflare Workers(`worker/`)+D1 백 / Google OAuth+JWT(jose).
 > **MVP 단계** — 테스트 없는 영역의 동작 변경은 보수적으로. 명백한 cleanup·타입·토큰화부터, 동작 변경은 단계별 커밋 + 수동 검증.
-> ⚠️ `backend/`(구 Express+Mongo)는 삭제 예정 잔재 — 리팩토링 대상에서 제외.
+> 화면은 **보드/표 두 테마**(docs/design-system.md) — 테마 CSS 가 쓰는 클래스가 있으니 참조를 셀 땐 문자열 조합 클래스명까지 본다(§5).
 
 ---
 
@@ -26,6 +26,7 @@
 | 프론트/백 검증 중복 | 워커 핸들러를 **최종 검증 출처**로, 프론트는 UX 검증만 |
 | 반복되는 폼 입력 블록 | 공용 컴포넌트로 추출 |
 | 팝업 바깥 클릭 닫기·달력 칸 계산 | ✅ 2026-10-02 공용화 — `lib/useOutsideClose`(Select·DatePicker·ColorPalette), `lib/datetime` `monthGridDays`(DatePicker·모임 달력). 새 팝업도 이 훅을 쓴다. ESC 닫기는 `lib/useEscClose`(2026-10-06 — Modal·AccountDrawer·ConfirmHost·GuideHost) — 층 스택이라 겹쳐 열린 창은 맨 위 하나만 닫힌다. 컴포넌트에 keydown 리스너를 새로 달지 않는다 |
+| 날짜 표기·묶기·워커 공용 조회 | ✅ 2026-10-13 공용화 — 날짜 글은 `lib/datetime`(`fmtDayWords` '11월 21일 토요일'·`fcMonthTitle` FullCalendar 제목·`parseDateKey`), 표 보기 사람→날짜 묶기는 `lib/roomCandidates` `marksByUser`, 워커의 KST 오늘·기간 필터·친구 확인은 `worker/db.js`(`kstToday`·`rangeClause`·`areFriends`). 화면·라우트 안에 같은 계산을 새로 쓰지 않는다 |
 
 ---
 
@@ -63,7 +64,9 @@
 ## 5. 가독성 · 죽은 코드
 | 항목 | 체크 |
 |------|------|
-| 미사용 코드 | 호출 안 되는 함수·미사용 변수/import 삭제. **2026-10-02 패스**: 전 소스(92개) 재스캔 — 파일 밖 미사용 export 1건(`webmail.ts` `Webmail`) 내부화, 미호출 함수·미참조 파일 0건. CSS Module 안에서 전역 클래스를 `.ui-input` 처럼 그냥 쓰면 해시가 붙어 **조용히 안 먹는다** — `:global(.ui-input)` 로 쓸 것(연차 계산기에서 실제로 그랬다) |
+| 미사용 코드 | 호출 안 되는 함수·미사용 변수/import 삭제. CSS Module 안에서 전역 클래스를 `.ui-input` 처럼 그냥 쓰면 해시가 붙어 **조용히 안 먹는다** — `:global(.ui-input)` 로 쓸 것(연차 계산기에서 실제로 그랬다) |
+| 참조 0 확인 절차 | ① export: import 문을 실제로 풀어(`@/`·상대경로 → 파일) 이름별로 가져가는 곳을 센다 — 단순 단어 grep 은 같은 이름의 다른 심볼에 속는다 ② 파일: 어디서도 import 안 되는지 ③ 전역 `ui-*` 클래스: tsx 문자열 + **`ui-chip--${tone}` 같은 조합의 가능한 값** + 모듈의 `:global(...)` ④ CSS Module 클래스: `styles.x`/`s.x`/`styles['x']`, `styles[변수]` 동적 접근이 있으면 그 값 목록까지 ⑤ props: JSX 호출부가 넘기는지. 화면이 안 부르는 API·서버 라우트는 지우지 않고 보고만 |
+| 패스 기록 | **2026-10-02**: 전 소스(92개) 재스캔 — 파일 밖 미사용 export 1건(`webmail.ts` `Webmail`) 내부화, 미호출 함수·미참조 파일 0건. **2026-10-13**(2.0 뒤 첫 패스): `Tooltip` 부품·`formatRange`·`dayLabel`·`.ui-chip--danger`·`.ui-prose`·안 넘기는 props(BrandMark `iconOnly`, Accordion `defaultOpen`·`compact`) 삭제, 파일 안에서만 쓰는 export 10건 내부화. `AdUnit` 은 import 0 이지만 AdSense 대기라 유지. 56개 라우트는 전부 화면·운영(health)이 부른다. 남긴 것(동작이 조금이라도 바뀔 수 있어 보류)은 UPGRADE-IDEAS D 절 |
 | 디버그 로그 | 임시 `console.log` 제거 (의도적 에러 로그는 유지) |
 | 역할 주석 | 비자명한 함수/모듈에 한 줄 주석 (왜 그렇게 하는지) |
 
@@ -77,7 +80,7 @@
 | 인증 게이트 | 라우트 테이블(`index.js`)의 auth 플래그(`true`/`'admin'`)로만 — 핸들러 내 자체 인증 금지 |
 | 응답 형태 단일화 | D1 행 → 프론트 계약(`_id`·camelCase·중첩) 변환은 `worker/db.js` 헬퍼로만 (라우트별 수제 변환 분산 금지) |
 | 다중 쓰기 | 원자성이 필요하면 `db.batch([...])` — 개별 `run()` 연쇄 금지(중간 실패 시 반쪽 상태) |
-| 가시성 로직 단일화 | 친구 여부 × 일정 `visibility`(공유/비공개·audience) 판정은 `worker/calendar.js` 패턴 재사용 (분산 금지) |
+| 가시성 로직 단일화 | 친구 여부(`db.js` `areFriends`) × 일정 `visibility`(공유/비공개·audience) 판정은 `worker/calendar.js` 패턴 재사용 (분산 금지) |
 | env 접근 | `process.env` 금지 — 핸들러 인자 `env` 로만 |
 
 ---
@@ -95,7 +98,8 @@
 
 ## 8. 빌드 · 검증
 - [ ] 프론트: `npm run build`(= `next build` + 정적 export, tsc 타입체크 포함) — VPN 시 `NODE_OPTIONS=--use-system-ca`. ⚠️ **`next dev` 실행 중엔 build 금지**(같은 `.next/` 공유로 dev 깨짐) — 그때는 `npx tsc --noEmit` 으로 타입만 검증
-- [ ] 미사용 로컬/import 일괄 탐지: `npx tsc --noEmit --noUnusedLocals --noUnusedParameters`
+- [ ] 미사용 로컬/import 일괄 탐지: `frontend` 폴더에서 `npx tsc --noEmit --noUnusedLocals --noUnusedParameters` (tsconfig 가 frontend 에만 있다)
+- [ ] 워커 미정의·미사용 이름 탐지(타입 검사 없는 JS 라 `node --check` 로는 안 잡힌다): 루트에서 `npx --prefix frontend tsc --allowJs --checkJs --noEmit --noUnusedLocals --target es2022 --module esnext --moduleResolution bundler --skipLibCheck --lib es2022,dom worker/*.js` — `index.js` 라우트 표 튜플 타입 오류 1건은 원래 있는 것(무시)
 - [ ] 워커: 변경 파일 `node --check`. API 를 고쳤으면 **통합 검증** — `wrangler dev` 로그를 파일로 받아 `node scripts/verify-api.mjs http://127.0.0.1:<포트> <로그경로>` (70 항목 — 메일 키 없는 설정으로, CLAUDE.md 참고)
 - [ ] 커밋 전 `git fetch` + diverge 확인 (협업/동시 세션 충돌 방지)
 

@@ -18,7 +18,8 @@
 // 단위는 생략해도 되고 px 를 붙여도 된다: rem(14) == rem(14px).
 //
 // ── 기준값(baseline)
-// 이 프로젝트는 html 글자 크기를 건드리지 않는다 → 1rem = 16px.
+// rem() 은 16px 로 나눈다(rem(16) = 1rem). 화면의 1rem 은 base.scss 의 html 글자 크기
+// clamp(14px, 12px + 0.45vw, 18px) 를 따라 넓은 화면에서 커진다 — docs/rem-convention.md.
 // boilerplate 는 $global-font-size: 10px(1rem = 10px)를 쓰지만, 이미 작성된 rem 값이
 // 많은 프로젝트에서 기준을 바꾸면 화면 전체가 62.5% 로 줄어든다. 그래서 기준만 16px 로 두고
 // 변환 공식은 동일하게 쓴다. 신규 프로젝트라면 `$rem-baseline: 10px` 로 두고
