@@ -1,6 +1,6 @@
 // 일정 CRUD
 import { json, fail } from './http.js';
-import { newId, nowIso, toIso, isId, placeholders, groupBy, eventDoc } from './db.js';
+import { newId, nowIso, toIso, isId, placeholders, groupBy, eventDoc, rangeClause } from './db.js';
 
 /** 한 사람의 일정 audienceTiers 를 한 번에 조회 → { [eventId]: [tierId] }
  *  (일정 id 를 IN (?, …) 로 나열하면 D1 바인딩 100개 한도에 걸린다 — 소유자 조건 JOIN 으로) */
@@ -13,23 +13,6 @@ async function loadAudience(db, ownerId) {
     .bind(ownerId)
     .all();
   return groupBy(results, 'event_id', 'tier_id');
-}
-
-/** 기간 필터(from/to)를 WHERE 절 조각으로 */
-function rangeClause(url) {
-  const from = toIso(url.searchParams.get('from'));
-  const to = toIso(url.searchParams.get('to'));
-  let sql = '';
-  const args = [];
-  if (from) {
-    sql += ' AND start >= ?';
-    args.push(from);
-  }
-  if (to) {
-    sql += ' AND start <= ?';
-    args.push(to);
-  }
-  return { sql, args };
 }
 
 // 내 일정 목록 (from/to 로 기간 필터)

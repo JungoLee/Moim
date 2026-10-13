@@ -1,6 +1,6 @@
 // 시간 요청 — "이때 시간 내주세요"를 친구에게 보내고 수락/거절. 수락 시 양쪽 캘린더에 일정 생성.
 import { json, fail } from './http.js';
-import { newId, nowIso, toIso, isId, userBrief, timeRequestDoc } from './db.js';
+import { newId, nowIso, toIso, isId, userBrief, timeRequestDoc, areFriends } from './db.js';
 
 const SELECT_WITH = (joinCol, alias) => `
   SELECT t.*, u.id AS ${alias}_id, u.name AS ${alias}_name, u.nickname AS ${alias}_nickname,
@@ -15,17 +15,6 @@ const brief = (r, alias) =>
     email: r[`${alias}_email`],
     picture: r[`${alias}_picture`],
   });
-
-async function areFriends(db, a, b) {
-  const row = await db
-    .prepare(
-      `SELECT 1 FROM friendships WHERE status = 'accepted'
-       AND ((requester = ? AND recipient = ?) OR (requester = ? AND recipient = ?))`
-    )
-    .bind(a, b, b, a)
-    .first();
-  return !!row;
-}
 
 // 받은 시간 요청
 export async function received(request, env, params, body, userId) {

@@ -2,7 +2,7 @@
 // JWT 는 기존 Express 판과 완전 호환(같은 시크릿·HS256·{ sub } · 30일)이라 기존 로그인이 유지된다.
 import { SignJWT, jwtVerify } from 'jose';
 import { json, fail } from './http.js';
-import { newId, nowIso, userDoc } from './db.js';
+import { newId, nowIso, userDoc, kstToday } from './db.js';
 import { buildAuthUrl, fetchProfile } from './google.js';
 import { sendLoginCode, hasMailTransport } from './mailer.js';
 
@@ -282,11 +282,6 @@ export async function deleteMe(request, env, params, body, userId) {
 
 // ── 연차 계산기 설정 (사용자별 유지 + 갱신일 자동 이월) ──────────
 const pad2 = (n) => String(n).padStart(2, '0');
-// 한국(KST) 기준 오늘 (서버가 UTC여도 동일하게 동작)
-function kstToday() {
-  const k = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  return `${k.getUTCFullYear()}-${pad2(k.getUTCMonth() + 1)}-${pad2(k.getUTCDate())}`;
-}
 function addOneYear(ymd) {
   if (!ymd) return ymd;
   const [y, m, d] = ymd.split('-').map(Number);

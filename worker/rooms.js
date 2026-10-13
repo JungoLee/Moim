@@ -1,6 +1,6 @@
 // 모임 방 — 코드로 초대된 멤버들이 가능한 날짜를 등록하면 모두 되는 날을 집계한다.
 import { json, fail } from './http.js';
-import { newId, nowIso, toIso, isId, userBrief } from './db.js';
+import { newId, nowIso, toIso, isId, userBrief, kstToday } from './db.js';
 import { generateUniqueCode } from './tiers.js';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -29,12 +29,6 @@ async function isMember(db, roomId, ownerId, userId) {
   if (ownerId === userId) return true;
   const row = await db.prepare('SELECT 1 FROM room_members WHERE room_id = ? AND user_id = ?').bind(roomId, userId).first();
   return !!row;
-}
-
-// 한국(KST) 기준 오늘 'YYYY-MM-DD' (서버가 UTC 여도 같다)
-function kstToday() {
-  const k = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  return k.toISOString().slice(0, 10);
 }
 
 /** 확정 상태 — 비어 있으면 null */

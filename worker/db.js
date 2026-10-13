@@ -1,10 +1,16 @@
-// D1 공용 헬퍼 — id 생성·시각 정규화·행 → (기존 Mongo 문서 형태) 변환
+// D1 공용 헬퍼 — id 생성·시각 정규화·여러 라우트가 같이 쓰는 조회·행 → (기존 Mongo 문서 형태) 변환
 // 프론트 계약을 그대로 유지하기 위해 응답은 _id / camelCase / 중첩 객체로 되조립한다.
 
 /** 신규 id. 기존 데이터는 Mongo ObjectId(24-hex)를 그대로 승계하므로 둘이 공존한다. */
 export const newId = () => crypto.randomUUID();
 
 export const nowIso = () => new Date().toISOString();
+
+/** 한국(KST) 기준 오늘 'YYYY-MM-DD' (서버가 UTC 여도 같다) — 연차 이월·모임 진행 상태 공용 */
+export function kstToday() {
+  const k = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  return k.toISOString().slice(0, 10);
+}
 
 /** 입력 날짜(ISO 문자열·'YYYY-MM-DD' 등) → ISO8601 UTC 정규화. 실패하면 null */
 export function toIso(v) {
@@ -20,6 +26,35 @@ export function isId(v) {
 
 /** IN (?,?,?) 절 — 빈 배열이면 호출 측에서 건너뛸 것 */
 export const placeholders = (n) => Array(n).fill('?').join(',');
+
+/** 일정 기간 필터(?from&to)를 WHERE 절 조각으로 — 내 일정·친구 캘린더 공용 */
+export function rangeClause(url) {
+  const from = toIso(url.searchParams.get('from'));
+  const to = toIso(url.searchParams.get('to'));
+  let sql = '';
+  const args = [];
+  if (from) {
+    sql += ' AND start >= ?';
+    args.push(from);
+  }
+  if (to) {
+    sql += ' AND start <= ?';
+    args.push(to);
+  }
+  return { sql, args };
+}
+
+/** 두 사람이 친구(수락됨)인가 — 캘린더 열람·시간 요청 권한 공용 */
+export async function areFriends(db, a, b) {
+  const row = await db
+    .prepare(
+      `SELECT 1 FROM friendships WHERE status = 'accepted'
+       AND ((requester = ? AND recipient = ?) OR (requester = ? AND recipient = ?))`
+    )
+    .bind(a, b, b, a)
+    .first();
+  return !!row;
+}
 
 /** 그룹핑: [{event_id, tier_id}] → { [event_id]: [tier_id] } */
 export function groupBy(rows, keyCol, valCol) {
