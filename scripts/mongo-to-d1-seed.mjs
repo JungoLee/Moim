@@ -1,7 +1,7 @@
-// backup/*.json (Mongo 백업) → worker/seed.sql (D1 INSERT 문) 생성
+// backup/*.json (Mongo 백업) → worker/seed.sql (D1 INSERT 문) 생성 — 2026-08-13 이관 때 쓴 1회용 도구
 // 사용: node scripts/mongo-to-d1-seed.mjs
-//   적용: npx wrangler d1 execute moim --local  --file worker/seed.sql
-//         npx wrangler d1 execute moim --remote --file worker/seed.sql
+//   적용(로컬만): npx wrangler d1 execute moim --local --file worker/seed.sql
+// ⚠ 운영(--remote)에 적용하지 말 것 — 표마다 DELETE 후 INSERT 라 이관 뒤 쌓인 운영 데이터가 지워지고 이관 당시 스냅샷으로 바뀐다.
 // seed.sql 은 개인 데이터라 gitignore 대상 — 커밋 금지
 //
 // 설계 메모

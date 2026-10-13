@@ -1,13 +1,12 @@
 # Moim 핸들링 가이드 (신규자 + AI 용)
 
 > 이 프로젝트를 처음 보는 사람도(또는 AI 가) 이 문서만 따라 셋업·실행·문제 해결할 수 있게 정리.
-> 규칙은 [`../CLAUDE.md`](../CLAUDE.md), 살아있는 할 일은 [`PLAN.md`](PLAN.md), 리팩토링 절차는 [`refactoring-guide.md`](refactoring-guide.md), 인프라 이관 배경은 [`cf-migration.md`](cf-migration.md).
+> 규칙은 [`../CLAUDE.md`](../CLAUDE.md), 살아있는 할 일은 [`PLAN.md`](PLAN.md), 화면·스타일 기준은 [`design-system.md`](design-system.md), 리팩토링 절차는 [`refactoring-guide.md`](refactoring-guide.md), 배포 후 운영 규칙은 [`operating-notes.md`](operating-notes.md).
 
 ## 0. 이게 뭔가
-친구들과 스케줄을 공유하고 함께 비는 시간을 찾는 소셜 캘린더.
+친구들과 스케줄을 공유하고 함께 비는 시간을 찾는 소셜 캘린더. 화면은 **보드/표 두 테마**(사용자가 고르고 계정에 저장).
 **단일 Cloudflare Workers 배포** — https://moim.opnae.com. `/api/*` 는 워커(`worker/`), 그 외 경로는 Next.js 정적 export 산출물(`frontend/out`)을 같은 워커가 서빙한다. DB 는 **D1**(바인딩 `env.DB`).
 인증은 **Google OAuth 또는 이메일 코드**(영문 대소문자+숫자 **6자** OTP, 대소문자 구분) → 워커가 JWT 발급 → 프론트가 `localStorage` 에 담아 `Authorization: Bearer` 로 호출.
-
 
 ---
 
@@ -15,7 +14,8 @@
 
 ```powershell
 $env:NODE_OPTIONS="--use-system-ca"   # VPN 환경에서만
-npm run install:all                   # 루트 + frontend 의존성
+npm install                           # 루트 (wrangler · jose)
+npm --prefix frontend install         # 프론트
 
 # .dev.vars 파일 생성 (gitignore) — §2 참조
 npm run db:schema                     # 로컬 D1 에 스키마 적용 (최초 1회)
@@ -24,7 +24,8 @@ npm run build                         # frontend/out 정적 export
 npm run worker:dev                    # http://localhost:8790  ← API + 프론트 한 곳
 ```
 
-프론트만 빠르게 고칠 땐 `cd frontend; npm run dev`(:3000, HMR). 단 이 모드에서는 API 호출이 3000 포트로 나가 실패하므로, **API 가 필요하면 위 `worker:dev` 방식**을 쓴다.
+프론트만 빠르게 고칠 땐 `npm run dev`(루트 — `frontend` 의 `next dev` :3000 을 띄우고 브라우저를 연다, HMR). 단 이 모드에서는 API 호출이 3000 포트로 나가 실패하므로, **API 가 필요하면 위 `worker:dev` 방식**을 쓴다.
+⚠️ `next dev` 가 떠 있는 동안 `npm run build` 금지(같은 `.next/` 를 써서 dev 가 깨진다) — 타입만 볼 땐 `frontend` 에서 `npx tsc --noEmit`. `wrangler dev` 가 떠 있으면 빌드가 `frontend/out` 을 못 지워 EBUSY 로 실패할 수 있다.
 
 > Windows + VPN 이면 새 터미널마다 `NODE_OPTIONS` 가 필요. 영구 적용은 `setx NODE_OPTIONS "--use-system-ca"` (새 터미널부터).
 
@@ -51,16 +52,17 @@ npm run worker:dev                    # http://localhost:8790  ← API + 프론�
 JWT_SECRET=<운영과 동일한 고정 문자열>
 GOOGLE_CLIENT_SECRET=<구글 클라이언트 비밀번호>
 ```
+`RESEND_API_KEY` 를 넣으면 로컬에서도 실제 메일이 나간다 — API 검증(`verify-api.mjs`)을 돌릴 땐 키 없는 설정으로(CLAUDE.md '빌드 · 검증').
 
 다른 PC 로 옮길 때 git 으로 안 넘어가는 파일은 루트 `.dev.vars` 와 `frontend/.env.local` 둘이다 — 실제 값은 노션 자료실
-[🔐 Moim Environment Variables](https://app.notion.com/p/3974c4005827814fbee2c52edffef5c1) 에 있다(저장소에 적지 않는다).
+[🔐 Moim Environment Variables](https://app.notion.com/p/3974c4005827814fbee2c52edffef5c1) 에 있다(저장소에 적지 않는다). `frontend/.env.local` 형식은 `frontend/.env.local.example`.
 
 ---
 
 ## 3. 트러블슈팅 — "에러나면 여기부터 의심"
 
 ### 🔴 모든 API 가 500
-→ D1 스키마 미적용. `npm run db:schema`(로컬) / `npm run db:schema:remote`(운영). 워커 로그는 `npx wrangler tail`(운영) 또는 dev 콘솔.
+→ D1 스키마 미적용. `npm run db:schema`(로컬) / `npm run db:schema:remote`(운영). 기존 표에 칸이 빠진 경우(`no such column`)는 `worker/migrations/*.sql` 적용 여부 확인([operating-notes.md](operating-notes.md) §2-③). 워커 로그는 `npx wrangler tail`(운영) 또는 dev 콘솔.
 
 ### 🔴 `npm install` / `npm run build` 인증서(cert) 오류
 → VPN 의 사내 루트 CA 때문. **`NODE_OPTIONS=--use-system-ca`** 설정 후 새 터미널.
@@ -70,6 +72,7 @@ GOOGLE_CLIENT_SECRET=<구글 클라이언트 비밀번호>
 2. `GOOGLE_CLIENT_ID`(wrangler.toml) / `GOOGLE_CLIENT_SECRET`(시크릿)이 **같은 클라이언트**의 값인지.
 3. OAuth 동의 화면이 "테스트" 상태면 **테스트 사용자에 본인 이메일** 추가.
 4. 워커 로그에 `[auth] 구글 로그인 실패:` 가 찍히므로 원인 메시지 확인.
+5. 카카오톡 등 인앱 브라우저에서는 구글이 막는다(disallowed_useragent) — 랜딩이 기본 브라우저로 여는 안내를 띄운다.
 
 ### 🔴 로그인은 되는데 자꾸 "토큰이 유효하지 않습니다"
 → **JWT_SECRET 불일치.** 로컬 `.dev.vars` 와 운영 시크릿이 다르면 서로의 토큰을 못 읽는다. 운영 시크릿을 바꾸면 **전체 사용자가 로그아웃**된다.
@@ -77,7 +80,7 @@ GOOGLE_CLIENT_SECRET=<구글 클라이언트 비밀번호>
 ### 🟡 이메일 로그인 코드가 메일로 안 옴
 → `RESEND_API_KEY` 가 없으면 **발송하지 않고 워커 로그에만 출력**한다(정상 동작). 운영에는 등록돼 있어 실제 발송된다.
 - 로컬: `wrangler dev` 콘솔의 `[mail] … 로그인 코드: XXXX`
-- 운영: `npx wrangler tail` 로 같은 줄 확인
+- 운영: `npx wrangler tail` 로 `[mail]` 줄 확인
 - 실제 발송하려면 [resend.com](https://resend.com) 가입 후 `npx wrangler secret put RESEND_API_KEY` (opnae 공용 키 있음)
 - ⚠️ Workers 는 raw TCP 를 못 열어 **SMTP 는 불가능**. HTTP API 만 쓴다.
 
@@ -92,6 +95,9 @@ GOOGLE_CLIENT_SECRET=<구글 클라이언트 비밀번호>
 ### 🟡 정적 페이지가 404
 → `npm run build` 를 안 돌려 `frontend/out` 이 낡았을 수 있다. 새 페이지를 추가했으면 빌드 후 재배포.
 
+### 🟡 테마를 바꿨는데 새로고침하면 돌아감
+→ 계정 값(`users.ui_theme`)이 이 브라우저 값(`localStorage.moim_ui_theme`)보다 우선이다. 저장 실패 토스트가 떴다면 `PATCH /api/auth/me` 응답을 확인.
+
 ---
 
 ## 4. 자주 빼먹는 것 (체크)
@@ -99,39 +105,48 @@ GOOGLE_CLIENT_SECRET=<구글 클라이언트 비밀번호>
 - [ ] OAuth 승인된 리디렉션 URI **2개** 등록
 - [ ] JWT_SECRET 고정 유지 (바꾸면 전체 로그아웃)
 - [ ] 로컬 D1 스키마 적용
-- [ ] 배포 전 `npm run build` (worker:deploy 는 자동으로 포함)
+- [ ] 배포 전 `npm run build` (worker:deploy 는 자동으로 포함) · 업데이트 내역(`release/releases.ts`) 갱신
+- [ ] 화면을 고쳤으면 **보드·표 두 테마 × 데스크톱·모바일** 다 확인
 
 ---
 
 ## 5. 구조 한눈에
 ```
 worker/    Cloudflare Workers (API)
-  index.js        라우트 표 53개 + 구 동적경로 301 + ASSETS 폴백
-  auth.js         JWT(jose) · requireAuth/requireAdmin · Google OAuth · 이메일 코드 · 내 정보 · 연차
+  index.js        라우트 표 56개 + 구 동적경로 301 + ASSETS 폴백
+  auth.js         JWT(jose) · requireAuth/requireAdmin · Google OAuth · 이메일 코드 · 내 정보(테마 포함) · 연차
   google.js       OAuth fetch (동의 URL · code 교환 · 프로필)
   mailer.js       Resend HTTP API (키 없으면 로그 출력)
-  db.js           id/시각 헬퍼 + D1 행 → 프론트 문서 형태 변환 ★계약의 단일 지점
+  db.js           id/시각 헬퍼 · 공용 조회(친구 확인·기간 필터) · D1 행 → 프론트 문서 형태 변환 ★계약의 단일 지점
   http.js         json()/fail() 응답 헬퍼
-  events · friends · calendar · tiers · rooms · requests · admin
-  schema.sql      D1 스키마 13테이블 (멱등)
+  events · friends · calendar(친구 캘린더·친구 바쁜 시간) · tiers · rooms(모임·날짜 확정) · requests · admin
+  schema.sql      D1 스키마 13테이블 (멱등 — 새 DB 용)
+  migrations/     이미 있는 표를 고치는 ALTER (운영에 한 번만 — 2026-10-renewal.sql 은 적용 끝)
 frontend/  Next.js App Router (정적 export → out/)
-  src/app/        라우트 (로그인 / home / dashboard / friends / tiers(그룹) / rooms · rooms/detail?id= / requests / tools/leave / admin / u?id= / auth/callback)
-  src/components/ 공용:
-                  shell/AppShell(로그인 뒤 틀 — app/(app)/layout.tsx 가 한 번 그림: 보드=왼쪽 메뉴·표=위 메뉴·모바일=아래 탭, useShell()) · PageHeader · room/*(모임 방 두 보기) · home/* · Calendar=FullCalendar(월 뷰) · DatePicker
-                  RoomChat(모임 플로팅 채팅·폴링) · UserProfileModal · Modal · ConfirmHost · Toaster · Accordion · GuideHost(사용 가이드 투어)
-                  Select · TimeSelect · ColorPalette+ColorWheel · Avatar · MemberRow · Notice · AccountDrawer · LegalModal · CopyButton · Icon · Tooltip · AdUnit
-                  CodeBoxes(인증코드 6칸 입력) · LandingContent(랜딩 공개 소개) · JsonLd(구조화 데이터)
-  src/lib/        api.ts(fetch+토큰) · clipboard · types · format · brand · colors · datetime · marks · confirm · quickActions · guide · inapp · toast · leave · holidays · adsense · seo(메타·OG·noindex) · webmail(메일함 바로가기) · useOutsideClose(팝업 바깥 클릭 닫기 훅) · useEscClose(ESC 닫기 — 겹친 창은 맨 위 하나만)
+  src/app/        / (랜딩·로그인) · auth/callback
+                  (app)/ — 로그인 뒤 화면을 묶는 route group(주소엔 안 나옴). layout.tsx 가 AppShell 을 한 번 그린다
+                    home · dashboard(캘린더 + EventModal) · rooms · rooms/detail?id= · friends · tiers · requests · u?id= · tools/leave · admin
+  src/components/ shell/      AppShell(보드 사이드바·표 위 메뉴·모바일 머리·아래 탭 네 틀) · ShellContext(useShell: 내 정보·답할 것·내 모임) · nav · BrandMark · ThemeSwitch
+                  room/       useRoom(방 데이터·동작 한 벌) · RoomBoardView/RoomTableView(테마별 보기) · HeatCalendar · MemberMatrix · MatrixList · CandidateList · ModeBar · MemberStrip · MonthNav · RoomChat · RoomMobileHead · SheetPanel · RoomSettingsModal · RoomShareModal · useDragSelect
+                  home/       useHomeData · HomeBoard/HomeTable(테마별 홈) · HomeParts · week
+                  people/     PeopleTabs(친구·그룹·시간 요청 탭)
+                  공용        PageHeader · Modal · Calendar(FullCalendar 월 뷰) · DatePicker · TimeSelect · Select · ColorPalette+ColorWheel · Avatar · MemberRow · TierPicker · Notice · Accordion · CopyButton(휴대폰은 공유창) · Icon
+                              AccountDrawer · LegalModal · UserProfileModal · ConfirmHost · Toaster · GuideHost(사용 가이드 투어) · CodeBoxes(인증코드 6칸) · LandingContent · JsonLd · AdUnit(승인 대기)
+  src/lib/        api(fetch+토큰) · types · datetime(날짜 계산·표시) · format(displayName) · colors · avatar · theme/themeInit(보드·표)
+                  roomCandidates(집계·후보) · roomStatus(방 상태 태그) · leave · holidays · marks · share · clipboard · confirm · toast · guide
+                  useOutsideClose(팝업 바깥 클릭 닫기) · useEscClose(ESC 닫기 — 겹친 창은 맨 위 하나만) · inapp · webmail · seo · adsense · brand
+  src/release/    releases.ts(업데이트 내역 단일 출처) · ReleaseModal
+  src/styles/     tokens(색·간격 — 두 테마) · base · components(ui-* 공용 부품) · fullcalendar · _rem · _bp
   public/         ads.txt(애드센스 게시자 확인)
-scripts/   verify-api.mjs(API 통합 검증 57항목) · mongo-to-d1-seed.mjs(백업 JSON → seed.sql) · open-browser.mjs(dev 서버 뜨면 브라우저 오픈)
-docs/      PLAN.md(로드맵·할 일) · operating-notes.md(운영 규칙) · refactoring-guide.md · UPGRADE-IDEAS.md(아이디어 목록) · rem-convention.md(치수 규칙) · workers-auto-deploy.md(자동 배포 절차) · ONBOARDING.md(이 문서)
-           역사 기록: cf-migration.md(이관 당시 기록)
+scripts/   verify-api.mjs(API 통합 검증 70항목) · open-browser.mjs(dev 서버 뜨면 브라우저 오픈) · mongo-to-d1-seed.mjs(이관 때 쓴 1회용 — 운영 적용 금지)
+docs/      PLAN.md(로드맵·할 일) · design-system.md(화면 기준) · operating-notes.md(운영 규칙) · refactoring-guide.md · UPGRADE-IDEAS.md(아이디어 목록) · rem-convention.md(치수 규칙) · workers-auto-deploy.md(자동 배포 절차) · ONBOARDING.md(이 문서)
 CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
-루트        wrangler.toml(도메인·assets·D1 바인딩) · .dev.vars(로컬 시크릿, gitignore) · package.json
+루트        wrangler.toml(도메인·assets·D1 바인딩) · .dev.vars(로컬 시크릿, gitignore) · package.json · backup/(Mongo 원본·D1 백업, gitignore)
 ```
 
 ## 6. 어디서 뭘 고치나
 - 데이터 모델·기능 로드맵·다음 작업 → [`PLAN.md`](PLAN.md)
+- 화면·색·공용 부품 → [`design-system.md`](design-system.md) (`styles/tokens.scss`·`styles/components.scss`)
 - API 응답 형태를 바꿔야 하면 → `worker/db.js` (프론트 계약의 단일 지점)
 - 코드 정리/리팩토링 절차 → [`refactoring-guide.md`](refactoring-guide.md)
 - 작업 규칙·컨벤션 → [`../CLAUDE.md`](../CLAUDE.md)
@@ -143,7 +158,7 @@ CLAUDE.md  공통 작업 규칙 (모든 세션이 읽음)
 ```powershell
 # 최초 1회
 npm run db:schema:remote                        # 원격 D1 스키마
-npx wrangler secret put JWT_SECRET              # 운영 값 (고정 유지)
+npx wrangler secret put JWT_SECRET              # 운영 값 (고정 유지) — 여러 개는 secret bulk(파이프 금지)
 npx wrangler secret put GOOGLE_CLIENT_SECRET
 npx wrangler secret put RESEND_API_KEY          # (선택) 메일 발송 — opnae 공용 키
 
@@ -153,7 +168,8 @@ npm run worker:deploy                           # = npm run build && wrangler de
 
 - **커스텀 도메인**: `wrangler.toml` 의 `routes = [{ pattern = "moim.opnae.com", custom_domain = true }]` — wrangler 가 **DNS 레코드와 인증서를 자동 생성**한다(수동 CNAME 불필요).
 - **`run_worker_first`**: `/api/*`·`/rooms/*`·`/u/*` 는 SPA 폴백보다 워커가 먼저 받아야 한다. 빠지면 API 요청에 `index.html` 이 돌아오고 구 경로 301 이 안 먹는다.
-- **배포 후 검증**: ⚠️ 운영은 `RESEND_API_KEY` 가 등록돼 있어 **로그인 코드가 로그에 안 찍힌다**(실메일 발송) — `verify-api.mjs` 를 운영에 돌리면 코드 회수가 안 되고, 가짜 주소로 실발송까지 나간다. **검증은 로컬 `wrangler dev`(키 없는 환경)에서 돌릴 것**: `node scripts/verify-api.mjs http://127.0.0.1:8790 <로그파일>` → 70 항목 전부 PASS 확인(⚠️ 로컬 `.dev.vars` 에 메일 키가 있으면 CLAUDE.md '빌드 · 검증'의 키 없는 설정으로). (검증 계정·데이터는 스크립트가 스스로 지운다)
+- **DB 를 바꿨으면** 배포 전에 운영 D1 백업 + 적용([operating-notes.md](operating-notes.md) §2-③).
+- **배포 후 검증**: ⚠️ 운영은 `RESEND_API_KEY` 가 등록돼 있어 **로그인 코드가 로그에 안 찍힌다**(실메일 발송) — `verify-api.mjs` 를 운영에 돌리면 코드 회수가 안 되고, 가짜 주소로 실발송까지 나간다. **검증은 로컬 `wrangler dev`(키 없는 환경)에서 돌릴 것**: `node scripts/verify-api.mjs http://127.0.0.1:8790 <로그파일>` → 70 항목 전부 PASS 확인. (검증 계정·데이터는 스크립트가 스스로 지운다) 운영은 `/api/health`·랜딩 200·로그인 뒤 화면 눈 확인.
 - **D1 직접 조회**: `npx wrangler d1 execute moim --remote --command "SELECT COUNT(*) FROM users"`
 - **AdSense**(선택): `frontend/.env.local` 의 `NEXT_PUBLIC_ADSENSE_CLIENT`(`ca-pub-…`) 설정 후 재빌드·재배포. 빌드 타임에 인라인되므로 값 변경 시 반드시 다시 빌드.
-- **콜드스타트 없음** — Workers 는 잠들지 않는다(Render free 의 ~50s 지연이 사라진 이유).
+- **콜드스타트 없음** — Workers 는 잠들지 않는다.

@@ -1,7 +1,8 @@
 # Workers Builds — git push 자동 배포 설정
 
-> 지금은 `npm run worker:deploy` 로 손수 배포한다. GitHub 를 연결하면 **main 에 push 할 때 Cloudflare 가 알아서 빌드·배포**한다.
+> 지금은 `npm run worker:deploy` 로 손수 배포한다(아직 켜지 않았다 — PLAN.md "다음 작업"의 선택 항목). GitHub 를 연결하면 **main 에 push 할 때 Cloudflare 가 알아서 빌드·배포**한다.
 > 대시보드에서만 되는 설정이라 문서로 남긴다. (형제 프로젝트에도 같은 절차 — 아래 §3 프롬프트 참고)
+> ⚠ 켜면 push 가 곧 배포가 된다 — 지금처럼 "push 와 배포를 따로 확인하고" 하는 습관과 맞는지 먼저 정할 것.
 
 ## 1. 설정 절차 (Moim 기준)
 
@@ -20,18 +21,18 @@
 
 ### 왜 빌드 명령이 저렇게 긴가
 `frontend/out`(정적 export 산출물)은 **gitignore 대상**이라 저장소에 없다. 그래서 Cloudflare 쪽에서 프론트를 직접 빌드해야 `wrangler deploy` 가 올릴 자산이 생긴다.
-루트 `install:all` 을 쓰지 않는 이유는 그 안에 구 `backend/`(mongoose 등) 설치가 들어 있어 빌드가 느려지기 때문이다.
+루트 `package.json` 에는 워커용(`wrangler`·`jose`)만 있고 프론트 의존성은 `frontend/package.json` 에 따로 있어 두 번 설치한다.
 
 ## 2. 주의할 점
 
 - **시크릿은 자동 배포와 무관하다.** `wrangler secret` 으로 넣은 값(`JWT_SECRET` 등)은 워커에 그대로 남는다. `wrangler.toml` 의 `[vars]` 만 코드에서 갱신된다.
-- **D1 스키마는 자동 적용되지 않는다.** 테이블을 바꿨으면 배포와 별개로 `npm run db:schema:remote` 를 직접 돌릴 것.
+- **D1 스키마는 자동 적용되지 않는다.** 새 표는 `npm run db:schema:remote`, 기존 표에 칸 추가는 `worker/migrations/*.sql` 을 배포와 별개로 직접 적용할 것([operating-notes.md](operating-notes.md) §2-③). 칸을 읽는 코드가 먼저 배포되면 운영이 오류를 내므로 **DB 먼저, push 나중**.
 - 빌드가 실패하면 배포는 일어나지 않는다(기존 버전 유지). 실패 로그는 같은 Build 탭에서 본다.
 - 자동 배포를 켜도 `npm run worker:deploy` 수동 배포는 계속 가능하다.
 
 ## 3. 다른 프로젝트에 적용할 때 쓸 프롬프트
 
-형제 프로젝트(MyBudget · Gilo · youtubePlaylist · MenuManager 등) 세션에 그대로 붙여넣으면 된다.
+형제 프로젝트(MyBudget · Gilo · youtubePlaylist · tabl 등) 세션에 그대로 붙여넣으면 된다.
 
 ```
 이 프로젝트도 Cloudflare Workers 로 배포 중인데, 지금은 wrangler deploy 를 손으로 돌리고 있어.

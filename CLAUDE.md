@@ -1,15 +1,14 @@
 # CLAUDE.md — Moim 공통 작업 규칙
 
 > 모든 세션(사람·에이전트)이 이 파일을 먼저 읽고 따른다.
-> 살아있는 할 일/상태·기능 로드맵·데이터 모델은 **[docs/PLAN.md](docs/PLAN.md)** 가 단일 출처. 리팩토링 절차는 **[docs/refactoring-guide.md](docs/refactoring-guide.md)**, 셋업·트러블슈팅은 **[docs/ONBOARDING.md](docs/ONBOARDING.md)**, 배포 후 운영 규칙·주의사항은 **[docs/operating-notes.md](docs/operating-notes.md)**, 실행 요약은 **[README.md](README.md)** 참조.
+> 살아있는 할 일/상태·기능 로드맵·데이터 모델은 **[docs/PLAN.md](docs/PLAN.md)** 가 단일 출처. 화면·스타일 기준은 **[docs/design-system.md](docs/design-system.md)**, 리팩토링 절차는 **[docs/refactoring-guide.md](docs/refactoring-guide.md)**, 셋업·트러블슈팅은 **[docs/ONBOARDING.md](docs/ONBOARDING.md)**, 배포 후 운영 규칙·주의사항은 **[docs/operating-notes.md](docs/operating-notes.md)**, 실행 요약은 **[README.md](README.md)** 참조.
 > **새 세션은 작업 시작 전 docs/PLAN.md 의 "현재 상태"와 "다음 작업" 절을 반드시 확인할 것.**
 
 ## 프로젝트 개요
 - **Moim** — 친구들과 스케줄을 공유하고, 함께 비는 시간을 찾아 모임·여행을 잡는 소셜 캘린더.
 - 스택: 프론트 **Next.js(App Router, 정적 export) + React 18 + TypeScript + SCSS** (`frontend/`, 달력 UI는 **FullCalendar**), 백 **Cloudflare Workers + D1** (`worker/`).
 - 배포: **단일 Workers** — https://moim.opnae.com (`/api/*` 는 워커, 그 외는 `frontend/out` 정적 자산). 같은 도메인이라 **CORS 없음**.
-- 인증: **Google OAuth**(워커가 fetch 로 직접 처리) → **JWT**(jose HS256, `{sub}`, 30일), 프론트는 `Authorization: Bearer` 헤더로 호출.
-- ⚠️ `backend/`(구 Express+Mongo)는 **데이터 이전용으로만 남아 있다** — 수정 대상 아님. 삭제 시점은 docs/PLAN.md 참조.
+- 인증: **Google OAuth**(워커가 fetch 로 직접 처리) 또는 **이메일 코드**(Resend 발송) → **JWT**(jose HS256, `{sub}`, 30일), 프론트는 `Authorization: Bearer` 헤더로 호출.
 - 핵심 개념: 일정 가시성 = **일정별 공유(public)/비공개(private)** × **그룹(Tier)**. 공유=친구 모두 상세, 비공개=선택 그룹 멤버만 상세(그 외 "바쁨"). 그룹은 사용자가 만들고 이메일/코드로 멤버 추가. (UI 표기는 '그룹', 코드 식별자는 `Tier`)
 
 ## 작업 방식
