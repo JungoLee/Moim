@@ -233,7 +233,7 @@ export default function Requests() {
                         <span className={st.chip}>{st.label}</span>
                         {view === 'sent' && r.status === 'pending' && (
                           <button type="button" className="ui-btn ui-btn--sm" onClick={() => cancel(r._id)}>
-                            취소
+                            요청 취소
                           </button>
                         )}
                       </>

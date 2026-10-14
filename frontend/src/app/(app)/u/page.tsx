@@ -86,7 +86,7 @@ export default function FriendCalendar() {
       <PageHeader
         eyebrow="사람"
         title={owner ? `${name} 님의 캘린더` : '캘린더'}
-        sub="공개 일정은 자세히, 비공개 일정은 내가 속한 그룹일 때만 자세히 보여요"
+        sub="비공개 일정은 내가 속한 그룹일 때만 자세히 보여요"
         actions={
           owner &&
           !isSelf && (

@@ -75,7 +75,7 @@ export function useHomeData(opts: { withFriends: boolean }): HomeData {
       const r = await api<{ events: MoimEvent[] }>('/api/events');
       setEvents(r.events);
     } catch (e) {
-      setError(e instanceof Error ? e.message : '불러오기 실패');
+      setError(e instanceof Error ? e.message : '일정을 불러오지 못했어요. 화면을 새로고침해 주세요.');
       setEvents((prev) => prev ?? []);
     }
   }, []);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import type { EventInput } from '@fullcalendar/core';
@@ -71,6 +71,9 @@ export default function LeavePlanner() {
   const [style, setStyle] = useState<LeaveStyle>('balanced');
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState('');
+  // 계획을 만든 횟수 — 휴대폰에서는 결과가 폼 아래(화면 밖)에 생겨 눌러도 바뀐 게 안 보였다. 만들 때마다 결과로 내려 준다
+  const [calcSeq, setCalcSeq] = useState(0);
+  const resultRef = useRef<HTMLDivElement>(null);
   // FullCalendar 는 클라이언트에서만 렌더 (SSR 회피)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -91,6 +94,12 @@ export default function LeavePlanner() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!calcSeq || !window.matchMedia('(max-width: 899px)').matches) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    resultRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }, [calcSeq]);
 
   function calculate() {
     setError('');
@@ -144,6 +153,7 @@ export default function LeavePlanner() {
       initialDate: combo.length ? toKey(combo[0].spanStart) : toKey(from),
       style,
     });
+    setCalcSeq((n) => n + 1);
 
     // 설정 저장 (로그인 시) — 시작일/갱신일 등을 다음 방문에도 유지
     if (getToken()) {
@@ -232,7 +242,7 @@ export default function LeavePlanner() {
           </form>
         </section>
 
-        <div className={s.result} data-guide="leave-result" aria-live="polite">
+        <div className={s.result} data-guide="leave-result" aria-live="polite" ref={resultRef}>
           {!result ? (
             <section className="ui-card">
               <div className="ui-empty">

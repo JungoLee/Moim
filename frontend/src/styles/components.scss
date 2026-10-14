@@ -401,7 +401,7 @@
   border-radius: var(--r-pill);
   background: var(--c-danger);
   color: var(--c-on-danger);
-  font-size: rem(11);
+  font-size: rem(12);
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -745,7 +745,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
-  width: min(100%, rem(380));
+  // 휴대폰에서도 왼쪽에 바탕이 조금 남게(바깥 누르기로 닫을 자리) — 2.1.0 루트 글자 16px 이후 380px 이 390 화면을 거의 다 덮었다
+  width: min(calc(100% - #{rem(48)}), #{rem(380)});
   padding: var(--sp-5);
   padding-bottom: calc(var(--sp-5) + env(safe-area-inset-bottom));
   background: var(--c-surface);
@@ -896,6 +897,40 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-2);
+}
+
+// 휴대폰: 버튼이 들어가면 제목 줄 오른쪽에 둔다(예전엔 늘 설명 아래 한 줄을 더 썼다).
+// 묶음(__main)을 display: contents 로 풀어 eyebrow · 제목+버튼 · 설명 순서로 흘린다.
+// 제목과 버튼이 한 줄에 안 들어가면 버튼이 제목 아래 줄로 내려간다(설명은 그 아래 — 바로 밑 내용을 설명한다).
+@include mobile {
+  .ui-page-head {
+    align-items: center;
+    gap: rem(6) var(--sp-3);
+  }
+
+  .ui-page-head__main {
+    display: contents;
+
+    h1 {
+      order: 1;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+  }
+
+  .ui-page-head__eyebrow {
+    order: 0;
+    flex: 0 0 100%;
+  }
+
+  .ui-page-head__actions {
+    order: 2;
+  }
+
+  .ui-page-head__sub {
+    order: 3;
+    flex: 0 0 100%;
+  }
 }
 
 // 본문 + 옆 패널 — 좁으면 자동으로 쌓인다

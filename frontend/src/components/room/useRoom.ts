@@ -264,9 +264,10 @@ export function useRoom(roomId: string) {
 
   /** 내 표시 전부 지우기 (확인창 있음) */
   const resetMine = useCallback(async () => {
-    if (!availRef.current[meIdRef.current]?.length) return;
+    const n = availRef.current[meIdRef.current]?.length || 0;
+    if (!n) return;
     const ok = await confirmDialog({
-      message: '내가 표시한 날짜를 모두 지울까요?',
+      message: `내가 표시한 날짜 ${n}일을 모두 지울까요?\n되돌릴 수 없어요. 다른 사람이 찍은 날짜는 그대로예요.`,
       confirmText: '모두 지우기',
       danger: true,
     });

@@ -16,8 +16,10 @@ body {
 }
 
 html {
-  // 넓은 화면 글자 크게(사용자 요청) — 모든 rem 이 이 한 줄을 따라 함께 커진다
-  font-size: clamp(14px, 12px + 0.45vw, 18px);
+  // 넓은 화면 글자 크게(사용자 요청) — 모든 rem 이 이 한 줄을 따라 함께 커진다.
+  // 최솟값 16px(2.1, 예전 14px) — 휴대폰에서 rem(12) 가 12px 아래로 내려가지 않게(OPNAE 글자 최소 12px).
+  // 12px + 0.45vw 는 889px 에서 16px 이 되므로 데스크톱(900px 이상) 크기는 그대로다.
+  font-size: clamp(16px, 12px + 0.45vw, 18px);
   -webkit-text-size-adjust: 100%;
 }
 

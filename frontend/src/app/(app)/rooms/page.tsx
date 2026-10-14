@@ -49,12 +49,12 @@ function Rooms() {
     <div className="ui-page">
       <PageHeader
         title="모임"
-        sub="친구를 초대해 각자 되는 날을 찍으면, 다 같이 되는 날을 찾아 드려요."
+        sub="각자 되는 날을 찍으면 다 같이 되는 날을 찾아 드려요"
         actions={
           <>
             <button type="button" className="ui-btn" onClick={() => setJoinOpen(true)} data-guide="rooms-join">
               <Icon name="enter" size={16} />
-              초대 코드로 입장
+              코드로 입장
             </button>
             <button type="button" className="ui-btn ui-btn--primary" onClick={() => setCreateOpen(true)} data-guide="rooms-new">
               <Icon name="plus" size={16} />새 모임

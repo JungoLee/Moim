@@ -46,7 +46,7 @@ export default function RoomShareModal({ room, onClose }: Props) {
           <code className={styles.code}>{room.code}</code>
           <CopyButton text={room.code} label="코드 복사" size="md" />
         </div>
-        <span className="ui-help">모임 목록의 ‘초대 코드로 입장’에 넣으면 들어와요.</span>
+        <span className="ui-help">모임 목록의 ‘코드로 입장’에 넣으면 들어와요.</span>
       </div>
     </Modal>
   );

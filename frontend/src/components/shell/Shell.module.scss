@@ -443,6 +443,17 @@
     background: var(--c-shell);
     border-bottom: 1px solid var(--c-shell-line);
     color: var(--c-shell-text);
+    transition: transform var(--dur) var(--ease);
+
+    // 아래로 내리는 동안 접힌다(AppShell useBarCollapse) — 내용이 화면 위 끝까지 보인다
+    &[data-hidden] {
+      transform: translateY(-100%);
+    }
+  }
+
+  // 자기 머리가 있는 화면(모임 방)은 로고 줄을 두지 않는다 — 머리가 두 겹이 되지 않게
+  .shell[data-own-head] .mobilebar {
+    display: none;
   }
 
   .main {
@@ -470,7 +481,7 @@
       gap: 2px;
       min-height: 44px;
       color: var(--c-text-3);
-      font-size: rem(11);
+      font-size: rem(12);
       font-weight: 500;
       text-decoration: none;
 

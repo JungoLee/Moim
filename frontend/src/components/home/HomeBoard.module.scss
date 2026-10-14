@@ -104,6 +104,12 @@
   gap: var(--sp-2);
   min-width: rem(560);
   margin: 0;
+
+  // 휴대폰: 글자가 커진 만큼(2.1.0) 칸 폭을 줄여 예전처럼 다섯 날 안팎이 한눈에 들어오게
+  @include mobile {
+    gap: rem(6);
+    min-width: rem(500);
+  }
   padding: 0;
   list-style: none;
 }
@@ -117,7 +123,8 @@
   padding: rem(10) var(--sp-2);
 
   @include mobile {
-    min-height: rem(140);
+    min-height: rem(124); // 2.1.0 글자 커짐 — 예전 화면 높이(약 122px)를 유지
+    padding: rem(10) rem(4);
   }
   background: var(--c-surface-2);
   border: 1px solid var(--c-line);
@@ -165,7 +172,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: rem(11);
+  font-size: rem(12);
   color: var(--c-sun);
 }
 
@@ -180,11 +187,16 @@
   background: color-mix(in srgb, var(--ev) 22%, var(--c-surface));
   font-size: rem(12);
   line-height: 1.35;
+
+  @include mobile {
+    padding: rem(5) rem(4);
+  }
 }
 
 .evTime {
   font-weight: 600;
   color: var(--c-text-2);
+  white-space: nowrap; // '12:00' 이 두 줄로 쪼개지지 않게
 }
 
 .evTitle {

@@ -130,6 +130,8 @@ export default function EventModal({ mode, initial, tiers, markedDates, origin, 
           <span>종일</span>
         </label>
 
+        {/* 종일이면 시작·종료 날짜를 한 줄에 나란히 (시각이 붙으면 한 줄에 하나) */}
+        <div className={styles.range} data-allday={f.allDay || undefined}>
         <div className="ui-field">
           <span className="ui-label" id={`${formId}-start`}>
             시작
@@ -150,20 +152,21 @@ export default function EventModal({ mode, initial, tiers, markedDates, origin, 
           </span>
           <div className={styles.dt} role="group" aria-labelledby={`${formId}-end`}>
             <div className={styles.dtDate}>
-              <DatePicker value={f.endDate} onChange={(v) => set('endDate', v)} markedDates={markedDates} block ariaLabel="종료 날짜" />
+              <DatePicker value={f.endDate} onChange={(v) => set('endDate', v)} markedDates={markedDates} block ariaLabel="종료 날짜" alignEnd={f.allDay} />
             </div>
             {!f.allDay && <TimeSelect value={f.endTime} onChange={(v) => set('endTime', v)} hourLabel="종료 시" minuteLabel="종료 분" />}
           </div>
         </div>
+        </div>
 
         <div className="ui-field">
           <label className="ui-label" htmlFor={`${formId}-loc`}>
-            장소
+            장소 <span className="ui-muted">(선택)</span>
           </label>
           <input
             id={`${formId}-loc`}
             className="ui-input"
-            placeholder="선택"
+            placeholder="예: 강남역 2번 출구"
             value={f.location}
             onChange={(e) => set('location', e.target.value)}
           />
@@ -171,12 +174,12 @@ export default function EventModal({ mode, initial, tiers, markedDates, origin, 
 
         <div className="ui-field">
           <label className="ui-label" htmlFor={`${formId}-memo`}>
-            메모
+            메모 <span className="ui-muted">(선택)</span>
           </label>
           <textarea
             id={`${formId}-memo`}
             className="ui-textarea"
-            placeholder="선택"
+            placeholder="예: 준비물, 예약 번호"
             rows={3}
             value={f.memo}
             onChange={(e) => set('memo', e.target.value)}

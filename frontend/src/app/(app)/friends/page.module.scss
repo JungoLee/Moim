@@ -25,7 +25,13 @@
   @include narrow {
     flex: 1 1 100%;
     justify-content: flex-start;
-    padding-left: calc(rem(36) + var(--sp-3)); // 아바타 폭만큼 들여 이름 아래에 맞춘다
+    gap: rem(6);
+
+    // 2.1.0: 글자가 커져 들여 쓰면 단추 셋이 두 줄이 됐다 — 들여쓰기 없이, 단추 안 여백을 조금 줄여 한 줄에(390 기준)
+    > :global(.ui-btn),
+    > span > :global(.ui-btn) {
+      padding: 0 rem(10);
+    }
   }
 }
 

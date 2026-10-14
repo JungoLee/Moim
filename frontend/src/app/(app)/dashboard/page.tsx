@@ -77,7 +77,7 @@ export default function Dashboard() {
   const load = useCallback(async () => {
     const [ev, sent] = await Promise.all([
       api<{ events: MoimEvent[] }>('/api/events').catch((e: unknown) => {
-        setError(e instanceof Error ? e.message : '불러오기 실패');
+        setError(e instanceof Error ? e.message : '일정을 불러오지 못했어요. 화면을 새로고침해 주세요.');
         return null;
       }),
       api<{ requests: TimeRequest[] }>('/api/requests/sent').catch(() => null),

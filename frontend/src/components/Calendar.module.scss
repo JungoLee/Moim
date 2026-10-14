@@ -1,4 +1,5 @@
 @use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
 
 .placeholder {
   min-height: rem(440);
@@ -8,14 +9,29 @@
   display: inline-flex;
   align-items: baseline;
   gap: rem(6);
+  max-width: 100%;
+  min-width: 0;
+
+  // 좁은 화면: 칸 폭이 이름보다 좁아 옆 칸 숫자를 덮었다 — 이름을 숫자 아래 줄, 칸 폭 안에 둔다
+  @include narrow {
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: 0;
+  }
 }
 
 .holiday {
   max-width: rem(72);
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--c-sun);
-  font-size: rem(11);
+  font-size: rem(12);
   font-weight: 500;
+
+  @include narrow {
+    max-width: 100%;
+    line-height: 1.2;
+  }
 }

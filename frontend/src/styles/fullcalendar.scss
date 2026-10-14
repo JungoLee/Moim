@@ -1,6 +1,7 @@
 // FullCalendar 덮어쓰기 — 토큰만 쓴다(두 테마 자동). 일정 블록 색은 lib/colors.ts 가 채움색으로 넘긴다.
 // 이벤트 종류 클래스: fc-ev--busy(친구 바쁨) · fc-ev--request(보낸 대기 요청) · fc-ev--holiday · fc-ev--leave
 @use 'rem' as *;
+@use 'bp' as *;
 
 .fc {
   --fc-border-color: var(--c-line);
@@ -75,6 +76,13 @@
   font-weight: 600;
   text-decoration: none;
   font-variant-numeric: tabular-nums;
+
+  // 좁은 화면: 공휴일 이름이 칸 밖(옆 칸 숫자 위)으로 넘치지 않게 칸 폭 안에 가둔다
+  @include narrow {
+    max-width: 100%;
+    min-width: 0;
+    padding: rem(4) rem(5);
+  }
 }
 
 .fc .fc-day-sun .fc-col-header-cell-cushion,
@@ -94,6 +102,11 @@
 
 .fc .fc-daygrid-day-frame {
   min-height: rem(96);
+
+  // 좁은 화면: 글자가 커진 만큼(2.1.0) 칸 높이를 예전 화면 크기(약 84px)보다 조금 낮춰 한 달이 한 화면에 더 들어오게
+  @include narrow {
+    min-height: rem(76);
+  }
 }
 
 .fc .fc-daygrid-day.fc-day-today {
@@ -123,17 +136,35 @@
   font-size: rem(12);
   line-height: 1.45;
   cursor: pointer;
+
+  @include narrow {
+    padding: 1px rem(3);
+  }
 }
 
 .fc .fc-daygrid-block-event .fc-event-title {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+
+  // 좁은 화면: 칸에 두세 글자만 들어가 '점…' 처럼 보였다 — 두 줄까지 접어 '점심 / 같이' 로 읽히게
+  @include narrow {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    line-height: 1.3;
+  }
 }
 
 .fc .fc-event-time {
   flex-shrink: 0;
   white-space: nowrap;
+
+  // 좁은 화면: 칸이 좁아 시각만 보이고 제목이 잘렸다 — 무슨 일정인지가 먼저라 제목을 보인다(내 캘린더는 일정을 누르면 시각이 보인다)
+  @include narrow {
+    display: none;
+  }
 }
 
 .fc .fc-daygrid-block-event:hover {

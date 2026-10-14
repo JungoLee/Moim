@@ -10,6 +10,7 @@ import { useShell } from '@/components/shell/ShellContext';
 import { api } from '@/lib/api';
 import { BRAND_NAME } from '@/lib/brand';
 import { confirmDialog } from '@/lib/confirm';
+import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import type { RoomDetail } from '@/lib/types';
 import styles from './RoomSettingsModal.module.scss';
@@ -71,8 +72,12 @@ export default function RoomSettingsModal({ room, meId, onChanged, onClose }: Pr
     }, '코드를 다시 만들지 못했어요');
   }
 
-  async function kick(userId: string) {
-    const ok = await confirmDialog({ message: '이 멤버를 내보낼까요?', confirmText: '내보내기', danger: true });
+  async function kick(userId: string, name: string) {
+    const ok = await confirmDialog({
+      message: `${name} 님을 내보낼까요?\n이 멤버가 찍은 날짜도 함께 지워져요.`,
+      confirmText: '내보내기',
+      danger: true,
+    });
     if (!ok) return;
     await run(async () => {
       await api(`/api/rooms/${room._id}/members/${userId}`, { method: 'DELETE' });
@@ -173,7 +178,7 @@ export default function RoomSettingsModal({ room, meId, onChanged, onClose }: Pr
                     key={m._id}
                     user={m}
                     action={
-                      <button type="button" className="ui-btn ui-btn--sm ui-btn--danger" onClick={() => kick(m._id)} disabled={busy}>
+                      <button type="button" className="ui-btn ui-btn--sm ui-btn--danger" onClick={() => kick(m._id, displayName(m))} disabled={busy}>
                         내보내기
                       </button>
                     }

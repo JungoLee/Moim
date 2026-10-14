@@ -15,6 +15,8 @@ type Props = {
   /** 가로 폭을 꽉 채움 */
   block?: boolean;
   ariaLabel?: string;
+  /** 달력 팝업을 입력칸 오른쪽 끝에 맞춘다(오른쪽 칸에 놓인 입력 — 화면 밖으로 나가지 않게) */
+  alignEnd?: boolean;
 };
 
 function label(value: string): string {
@@ -25,7 +27,7 @@ function label(value: string): string {
 }
 
 /** 네이티브 date 대신 쓰는 달력 입력 */
-export default function DatePicker({ value, onChange, markedDates, block, ariaLabel }: Props) {
+export default function DatePicker({ value, onChange, markedDates, block, ariaLabel, alignEnd }: Props) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<Date>(() => parseDateKey(value) || new Date());
   const ref = useRef<HTMLDivElement>(null);
@@ -48,7 +50,7 @@ export default function DatePicker({ value, onChange, markedDates, block, ariaLa
         <span>{label(value)}</span>
       </button>
       {open && (
-        <div className={styles.pop} role="dialog" aria-label="날짜 고르기">
+        <div className={alignEnd ? `${styles.pop} ${styles.popEnd}` : styles.pop} role="dialog" aria-label="날짜 고르기">
           <div className={styles.head}>
             <button type="button" className="ui-btn ui-btn--ghost ui-btn--icon ui-btn--sm" aria-label="이전 달" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))}>
               <Icon name="chevron-left" size={18} />

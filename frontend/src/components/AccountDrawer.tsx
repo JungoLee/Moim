@@ -35,7 +35,7 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
   async function deleteAccount() {
     if (
       !(await confirmDialog({
-        message: '정말 탈퇴하시겠어요?\n내 일정·그룹·모임·친구 관계 등 모든 데이터가 삭제되며 되돌릴 수 없습니다.',
+        message: '회원 탈퇴할까요?\n내 일정·그룹·모임·친구 관계가 모두 지워지고, 되돌릴 수 없어요.',
         confirmText: '탈퇴',
         danger: true,
       }))
@@ -47,7 +47,7 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
       // 전체 로드로 랜딩 복귀 — 탈퇴한 계정의 화면·캐시가 남아 보이지 않게
       window.location.href = '/';
     } catch {
-      toast('탈퇴 처리에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+      toast('탈퇴하지 못했어요. 잠시 뒤 다시 눌러 주세요.', 'error');
     }
   }
 
@@ -94,7 +94,7 @@ export default function AccountDrawer({ onClose }: { onClose: () => void }) {
 
             <section className={styles.block}>
               <label className="ui-label" htmlFor="acct-nick">
-                닉네임 <span className="ui-muted">(비우면 구글 이름)</span>
+                닉네임 <span className="ui-muted">(비우면 원래 이름)</span>
               </label>
               <div className="ui-inline">
                 <input id="acct-nick" className="ui-input" placeholder={me.name} value={nick} maxLength={30} onChange={(e) => setNick(e.target.value)} />

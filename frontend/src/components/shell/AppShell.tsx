@@ -19,6 +19,52 @@ import styles from './Shell.module.scss';
 // 로그아웃 상태로도 여는 화면 — 메뉴 대신 간단한 머리만
 const PUBLIC_PATHS = ['/tools/leave'];
 
+// 휴대폰에서 앱 위 머리(로고 줄)를 숨기는 화면 — 자기 머리(뒤로 · 이름 · 단추)가 있어 두 겹이 된다
+const OWN_HEAD_PATHS = ['/rooms/detail'];
+
+// 위 머리 접기 — 이만큼(머리 높이)은 늘 보이고, 이보다 작게 움직인 것은 무시한다
+const BAR_KEEP_TOP = 56;
+const BAR_MIN_DELTA = 8;
+const MOBILE_QUERY = '(max-width: 899px)';
+
+/**
+ * 휴대폰 위 머리 접기 — 아래로 내리면 숨기고, 위로 올리면 다시 보인다. 화면을 옮기면 다시 보인다.
+ * 데스크톱(900px 이상)에서는 머리 자체가 없어 아무것도 하지 않는다.
+ */
+function useBarCollapse(pathname: string): [boolean, () => void] {
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    setHidden(false);
+    const mq = window.matchMedia(MOBILE_QUERY);
+    let lastY = window.scrollY;
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const y = window.scrollY;
+        if (!mq.matches || y <= BAR_KEEP_TOP) {
+          setHidden(false);
+          lastY = y;
+          return;
+        }
+        const dy = y - lastY;
+        if (Math.abs(dy) < BAR_MIN_DELTA) return;
+        setHidden(dy > 0);
+        lastY = y;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [pathname]);
+
+  return [hidden, () => setHidden(false)];
+}
+
 /**
  * 로그인 뒤 화면의 틀 — app/(app)/layout.tsx 가 한 번만 그린다(이동할 때 메뉴가 다시 만들어지지 않는다).
  * 보드/표 · 데스크톱/모바일 네 가지 틀을 모두 그리고, 무엇을 보일지는 CSS(테마·화면 폭)가 정한다 → 깜빡임 없음.
@@ -71,6 +117,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
 function ShellFrame({ pathname, children }: { pathname: string; children: ReactNode }) {
   const { me, inbox, rooms } = useShell();
   const [accountOpen, setAccountOpen] = useState(false);
+  const [barHidden, showBar] = useBarCollapse(pathname);
+  const ownHead = OWN_HEAD_PATHS.includes(pathname);
   const inboxN = inboxCount(inbox);
   const peopleDot = inbox.friendRequests.length > 0;
   const name = me ? displayName(me) : '';
@@ -91,7 +139,7 @@ function ShellFrame({ pathname, children }: { pathname: string; children: ReactN
   );
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} data-own-head={ownHead || undefined}>
       <a href="#main" className={styles.skip}>
         본문으로 건너뛰기
       </a>
@@ -180,8 +228,8 @@ function ShellFrame({ pathname, children }: { pathname: string; children: ReactN
         {avatarBtn(styles.topAvatar)}
       </header>
 
-      {/* 모바일 — 위 머리 */}
-      <header className={styles.mobilebar}>
+      {/* 모바일 — 위 머리 (내리면 접힌다. 포커스가 들어오면 다시 보인다) */}
+      <header className={styles.mobilebar} data-hidden={barHidden || undefined} onFocus={showBar}>
         <BrandMark size={26} />
         <span className="ui-spacer" />
         <ThemeSwitch />
