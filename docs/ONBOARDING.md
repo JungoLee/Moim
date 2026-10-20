@@ -54,8 +54,7 @@ GOOGLE_CLIENT_SECRET=<구글 클라이언트 비밀번호>
 ```
 `RESEND_API_KEY` 를 넣으면 로컬에서도 실제 메일이 나간다 — API 검증(`verify-api.mjs`)을 돌릴 땐 키 없는 설정으로(CLAUDE.md '빌드 · 검증').
 
-다른 PC 로 옮길 때 git 으로 안 넘어가는 파일은 루트 `.dev.vars` 와 `frontend/.env.local` 둘이다 — 실제 값은 노션 자료실
-[🔐 Moim Environment Variables](https://app.notion.com/p/3974c4005827814fbee2c52edffef5c1) 에 있다(저장소에 적지 않는다). `frontend/.env.local` 형식은 `frontend/.env.local.example`.
+다른 PC 로 옮길 때 git 으로 안 넘어가는 파일은 루트 `.dev.vars` 와 `frontend/.env.local` 둘이다 — 실제 값은 공통 관리 저장소 dev-setup(비공개 GitHub)의 `opnae/env/moim.md` 에 있다(이 저장소에 적지 않는다). `frontend/.env.local` 형식은 `frontend/.env.local.example`.
 
 ---
 

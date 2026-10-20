@@ -66,7 +66,7 @@
 |------|------|
 | 미사용 코드 | 호출 안 되는 함수·미사용 변수/import 삭제. CSS Module 안에서 전역 클래스를 `.ui-input` 처럼 그냥 쓰면 해시가 붙어 **조용히 안 먹는다** — `:global(.ui-input)` 로 쓸 것(연차 계산기에서 실제로 그랬다) |
 | 참조 0 확인 절차 | ① export: import 문을 실제로 풀어(`@/`·상대경로 → 파일) 이름별로 가져가는 곳을 센다 — 단순 단어 grep 은 같은 이름의 다른 심볼에 속는다 ② 파일: 어디서도 import 안 되는지 ③ 전역 `ui-*` 클래스: tsx 문자열 + **`ui-chip--${tone}` 같은 조합의 가능한 값** + 모듈의 `:global(...)` ④ CSS Module 클래스: `styles.x`/`s.x`/`styles['x']`, `styles[변수]` 동적 접근이 있으면 그 값 목록까지 ⑤ props: JSX 호출부가 넘기는지. 화면이 안 부르는 API·서버 라우트는 지우지 않고 보고만 |
-| 패스 기록 | **2026-10-02**: 전 소스(92개) 재스캔 — 파일 밖 미사용 export 1건(`webmail.ts` `Webmail`) 내부화, 미호출 함수·미참조 파일 0건. **2026-10-13**(2.0 뒤 첫 패스): `Tooltip` 부품·`formatRange`·`dayLabel`·`.ui-chip--danger`·`.ui-prose`·안 넘기는 props(BrandMark `iconOnly`, Accordion `defaultOpen`·`compact`) 삭제, 파일 안에서만 쓰는 export 10건 내부화. `AdUnit` 은 import 0 이지만 AdSense 대기라 유지. 56개 라우트는 전부 화면·운영(health)이 부른다. 남긴 것(동작이 조금이라도 바뀔 수 있어 보류)은 UPGRADE-IDEAS D 절 |
+| 패스 기록 | **2026-10-02**: 전 소스(92개) 재스캔 — 파일 밖 미사용 export 1건(`webmail.ts` `Webmail`) 내부화, 미호출 함수·미참조 파일 0건. **2026-10-13**(2.0 뒤 첫 패스): `Tooltip` 부품·`formatRange`·`dayLabel`·`.ui-chip--danger`·`.ui-prose`·안 넘기는 props(BrandMark `iconOnly`, Accordion `defaultOpen`·`compact`) 삭제, 파일 안에서만 쓰는 export 10건 내부화. `AdUnit` 은 import 0 이지만 AdSense 대기라 유지. 56개 라우트는 전부 화면·운영(health)이 부른다. 남긴 것(동작이 조금이라도 바뀔 수 있어 보류)은 UPGRADE-IDEAS D 절. **2026-10-20**: 121개 파일 재스캔(미사용 export·미참조 파일·`ui-*`·CSS Module 클래스·`tsc --noUnusedLocals`·워커 checkJs) — 지울 것 0건(`AdUnit` 만 import 0·유지). 문서는 ONBOARDING 의 옛 노션 링크를 dev-setup 으로 고침 |
 | 디버그 로그 | 임시 `console.log` 제거 (의도적 에러 로그는 유지) |
 | 역할 주석 | 비자명한 함수/모듈에 한 줄 주석 (왜 그렇게 하는지) |
 

@@ -31,7 +31,7 @@
 ## 빌드 · 검증
 - 프론트: `npm run build` (= `next build` + 정적 export → `frontend/out`, tsc 타입체크 포함). 워커: 변경 파일 `node --check <file>`.
 - API 를 고쳤으면 **통합 검증**: 워커를 띄워 로그를 파일로 남기고 `node scripts/verify-api.mjs http://127.0.0.1:<포트> <로그경로>` (70 항목).
-  - ⚠️ 로컬 `.dev.vars` 에 `RESEND_API_KEY` 가 있으면 검증 계정 앞으로 **실제 메일이 나가고** 코드가 로그에 안 찍힌다. 키 없는 설정으로 띄울 것 — `wrangler.toml` 을 스크래치 폴더에 복사(`main`·`assets.directory` 는 절대 경로, `routes` 삭제)하고 그 옆에 `JWT_SECRET` 만 든 `.dev.vars` 를 두고 `npx wrangler dev -c <복사본> --local --persist-to <빈 폴더>`(스키마 먼저 적용).
+  - ⚠️ 로컬 `.dev.vars` 에 `RESEND_API_KEY` 가 있으면 검증 계정 앞으로 **실제 메일이 나가고** 코드가 로그에 안 찍힌다 — 키 없는 설정으로 띄울 것: `wrangler.toml` 을 스크래치 폴더에 복사(`main`·`assets.directory` 절대 경로, `routes` 삭제) + 옆에 `JWT_SECRET` 만 든 `.dev.vars` + `npx wrangler dev -c <복사본> --local --persist-to <빈 폴더>`(스키마 먼저). 운영엔 못 돌린다([operating-notes.md](docs/operating-notes.md) §4).
 - ⚠️ **`next dev` 실행 중 `next build` 금지** — 같은 `.next/` 를 동시에 써서 dev 가 깨짐(`Cannot find module './###.js'`). 빌드하려면 dev 중지 후 실행. 타입만 볼 땐 `npx tsc --noEmit`(`.next` 미접촉, dev 와 공존 가능).
 - **VPN 환경에서 npm 은 `NODE_OPTIONS=--use-system-ca` 필요** (없으면 cert 오류).
 - 빌드 산출물(`.next/` 등) 직접 수정 금지 — 소스만.
@@ -46,7 +46,7 @@
 ## 환경 · 시크릿
 - 운영 시크릿은 **`npx wrangler secret put <이름>`**: `JWT_SECRET`(⚠ 고정 유지 — 바꾸면 전체 로그인 무효화) · `GOOGLE_CLIENT_SECRET` · (선택) `RESEND_API_KEY`(메일 발송, opnae 공용 키).
 - 공개 값은 `wrangler.toml` `[vars]`: `GOOGLE_CLIENT_ID` · `ADMIN_EMAILS` · `BRAND_NAME` · `SMTP_FROM`.
-- 로컬 시크릿은 **`.dev.vars`**(gitignore). 프론트 공개 설정은 `frontend/.env.local` (선택: `NEXT_PUBLIC_BRAND_NAME`, `NEXT_PUBLIC_ADSENSE_CLIENT`. `NEXT_PUBLIC_API_URL` 은 같은 도메인이라 비워 둠).
+- 로컬 시크릿은 **`.dev.vars`**(gitignore). 프론트 공개 설정은 `frontend/.env.local` (선택: `NEXT_PUBLIC_BRAND_NAME`, `NEXT_PUBLIC_ADSENSE_CLIENT`, `NEXT_PUBLIC_SITE_URL`(SEO 기준 주소, 기본 운영 주소). `NEXT_PUBLIC_API_URL` 은 같은 도메인이라 비워 둠).
 - 워커 코드에서 `process.env` 금지 — 값은 핸들러 인자 `env` 로만 접근.
 
 ## 소통
