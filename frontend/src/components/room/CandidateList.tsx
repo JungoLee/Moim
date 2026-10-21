@@ -24,6 +24,20 @@ type Described = {
 /** 후보 한 개를 사람이 읽는 말로 */
 function describeCandidate(c: Candidate, total: number, members: User[]): Described {
   const range = fmtKeyRange(c.start, c.end);
+  if (c.kind === 'near') {
+    const names = (c.missingIds || [])
+      .map((id) => members.find((m) => m._id === id))
+      .filter((m): m is User => !!m)
+      .map(displayName)
+      .join('·');
+    return {
+      range,
+      tag: `전원은 아니지만 · ${c.can}/${total}명`,
+      desc: `안 되는 사람 · ${names}`,
+      n: `${c.can}/${total}`,
+      tone: 'warn',
+    };
+  }
   if (c.kind === 'partial') {
     const yes = total - c.afterIds.length;
     const names = c.afterIds
@@ -69,6 +83,8 @@ type Props = {
   isOwner: boolean;
   total: number;
   members: User[];
+  /** 전원은 안 되지만 가장 많이 되는 날(보조 후보) */
+  near: Candidate[];
   /** 후보가 없을 때 안내에 쓴다 */
   markedIds: Set<string>;
   meId: string;
@@ -80,7 +96,7 @@ type Props = {
 /**
  * 후보 목록 — 1순위는 큰 카드, 방장만 [확정]. 확정된 방은 맨 위에 '확정된 날짜' 카드(방장: 바꾸기·확정 취소).
  */
-export default function CandidateList({ cands, confirmed, isOwner, total, members, markedIds, meId, onConfirm, onUnconfirm }: Props) {
+export default function CandidateList({ cands, confirmed, isOwner, total, members, near, markedIds, meId, onConfirm, onUnconfirm }: Props) {
   const waiting = waitingInfo(members, markedIds, meId);
   const [changing, setChanging] = useState(false);
   const showList = !confirmed || (isOwner && changing);
@@ -147,6 +163,44 @@ export default function CandidateList({ cands, confirmed, isOwner, total, member
           </ol>
         ))}
 
+      {showList && near.length > 0 && (
+        <div className={styles.near}>
+          <p className={styles.nearHead}>
+            <strong>전원은 아니지만 많이 되는 날</strong>
+            <span>전원이 되는 날이 없을 때를 위한 보조 후보예요.</span>
+          </p>
+          <ol className={styles.list}>
+            {near.map((c) => {
+              const d = describeCandidate(c, total, members);
+              const btnText = confirmed ? '이 날로 바꾸기' : '이 날로 확정';
+              return (
+                <li key={`near-${c.start}`} className={styles.item} data-tone="warn" data-near>
+                  <span className={styles.n} aria-hidden="true">
+                    {d.n}
+                  </span>
+                  <span className={styles.main}>
+                    <strong className={styles.date}>{d.range}</strong>
+                    <span className={styles.desc}>
+                      {c.can}/{total}명 · {d.desc}
+                    </span>
+                  </span>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      className={styles.btn}
+                      onClick={() => onConfirm(c, !!confirmed)}
+                      aria-label={`${btnText}, ${d.range}, ${c.can}명만 가능`}
+                    >
+                      {btnText}
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
+
       {showList && cands.length > 0 && (
         <p className={styles.note}>
           {isOwner ? `확정하면 ${total}명 모두의 캘린더에 비공개 일정으로 들어가요.` : '방장이 확정할 수 있어요.'}
@@ -162,6 +216,7 @@ type StripProps = {
   isOwner: boolean;
   total: number;
   members: User[];
+  near: Candidate[];
   markedIds: Set<string>;
   meId: string;
   onConfirm: (c: Candidate, changing: boolean) => void;
@@ -172,7 +227,7 @@ type StripProps = {
 };
 
 /** 모바일 아래 탭 위에 붙는 띠 — 확정된 날짜, 없으면 1순위 후보 + [확정] */
-export function CandidateStrip({ cands, confirmed, isOwner, total, members, markedIds, meId, onConfirm, onMore, onInvite }: StripProps) {
+export function CandidateStrip({ cands, confirmed, isOwner, total, members, near, markedIds, meId, onConfirm, onMore, onInvite }: StripProps) {
   if (confirmed) {
     return (
       <div className={styles.strip} data-state="confirmed">
@@ -185,6 +240,33 @@ export function CandidateStrip({ cands, confirmed, isOwner, total, members, mark
             바꾸기
           </button>
         )}
+      </div>
+    );
+  }
+  if (cands.length === 0 && near.length > 0) {
+    const first = near[0];
+    const d = describeCandidate(first, total, members);
+    return (
+      <div className={styles.strip} data-state="near">
+        <span className={styles.stripMain}>
+          <span className={styles.stripTag}>{d.tag}</span>
+          <strong className={styles.stripDate}>{d.range}</strong>
+          <span className={styles.stripDesc}>{d.desc}</span>
+        </span>
+        <span className={styles.stripSide}>
+          {isOwner ? (
+            <button type="button" className="ui-btn ui-btn--primary" onClick={() => onConfirm(first, false)}>
+              확정
+            </button>
+          ) : (
+            <span className={styles.stripWait}>방장이 확정해요</span>
+          )}
+          {near.length > 1 && (
+            <button type="button" className={styles.stripMore} onClick={onMore}>
+              {near.length}개 보기
+            </button>
+          )}
+        </span>
       </div>
     );
   }

@@ -51,7 +51,8 @@
 .cell,
 .outside {
   position: relative;
-  min-height: rem(84);
+  // PC: 한 달 6줄이어도 1440×900 한 화면에 다 들어오게(예전 84 에서는 마지막 줄이 잘렸다)
+  min-height: rem(60);
   border-radius: var(--r-md);
 
   @include mobile {
@@ -81,7 +82,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: rem(8) rem(10);
+  padding: rem(6) rem(10);
   border: 1px solid var(--c-line);
   background: var(--heat-0);
   color: var(--c-text);

@@ -49,13 +49,16 @@ export function heatLevel(s: DaySummary | undefined, total: number): number {
 }
 
 export type Candidate = {
-  kind: 'run' | 'full' | 'partial';
+  kind: 'run' | 'full' | 'partial' | 'near';
   start: string; // 'YYYY-MM-DD'
   end: string; // 끝 포함
   days: number;
   /** partial: 저녁 이후 표시한 사람 id 와 모일 수 있는 시각 */
   afterIds: string[];
   afterMax: string;
+  /** near: 되는 사람 수와 안 되는(또는 아직 안 찍은) 사람 id */
+  can?: number;
+  missingIds?: string[];
 };
 
 /**
@@ -103,4 +106,42 @@ export function candidates(
     afterMax: summary[k].afterMax,
   }));
   return [...runs, ...singles, ...partials].slice(0, limit);
+}
+
+/**
+ * 보조 후보 — 전원이 안 되는 날 중 '가장 많이 되는 날'. 절반 이상이 되는 날(저녁 이후 포함)을 되는 사람 수 순으로.
+ * 전원 후보·시간 맞추면 되는 후보(candidates)와 겹치는 날은 뺀다. 날짜 하나씩, 최대 limit 개.
+ */
+export function nearCandidates(
+  availabilities: Record<string, Mark[]>,
+  memberIds: string[],
+  todayKey: string,
+  limit = 3
+): Candidate[] {
+  const total = memberIds.length;
+  if (total < 3) return []; // 2명이면 '둘 중 하나'뿐이라 후보랄 게 없다
+  const canByDate: Record<string, Set<string>> = {};
+  for (const [uid, marks] of Object.entries(availabilities)) {
+    for (const m of marks) {
+      if (m.date < todayKey || m.status === 'no') continue;
+      (canByDate[m.date] ||= new Set()).add(uid);
+    }
+  }
+  const out: Candidate[] = [];
+  for (const [date, set] of Object.entries(canByDate)) {
+    const can = memberIds.filter((id) => set.has(id)).length;
+    if (can >= total || can < 2 || can * 2 < total) continue;
+    out.push({
+      kind: 'near',
+      start: date,
+      end: date,
+      days: 1,
+      afterIds: [],
+      afterMax: '',
+      can,
+      missingIds: memberIds.filter((id) => !set.has(id)),
+    });
+  }
+  out.sort((a, b) => (b.can ?? 0) - (a.can ?? 0) || a.start.localeCompare(b.start));
+  return out.slice(0, limit);
 }

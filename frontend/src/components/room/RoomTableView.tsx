@@ -16,6 +16,7 @@ import RoomMobileHead, { HeadIconButton } from './RoomMobileHead';
 import RoomSettingsModal from './RoomSettingsModal';
 import RoomShareModal from './RoomShareModal';
 import SheetPanel from './SheetPanel';
+import type { Candidate } from '@/lib/roomCandidates';
 import type { RoomApi } from './useRoom';
 import styles from './RoomTableView.module.scss';
 
@@ -41,7 +42,7 @@ export default function RoomTableView({ r }: { r: RoomApi }) {
     });
   };
   const editLabel = editing ? '고치기 끝' : '내 줄 고치기';
-  const onConfirm = (c: { start: string; end: string }, changing: boolean) => void r.confirm({ start: c.start, end: c.end }, changing);
+  const onConfirm = (c: Candidate, changing: boolean) => void r.confirm({ start: c.start, end: c.end }, changing, c);
 
   return (
     <div className={`ui-page ${styles.page}`} data-has-strip>
@@ -171,6 +172,7 @@ export default function RoomTableView({ r }: { r: RoomApi }) {
               isOwner={r.isOwner}
               total={r.total}
               members={r.members}
+              near={r.near}
               markedIds={r.markedIds}
               meId={r.meId}
               onConfirm={onConfirm}
@@ -205,6 +207,7 @@ export default function RoomTableView({ r }: { r: RoomApi }) {
         isOwner={r.isOwner}
         total={r.total}
         members={r.members}
+        near={r.near}
         markedIds={r.markedIds}
         meId={r.meId}
         onConfirm={onConfirm}

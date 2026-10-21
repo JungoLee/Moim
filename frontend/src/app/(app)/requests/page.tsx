@@ -49,6 +49,8 @@ export default function Requests() {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  // 고른 시간에 상대가 바쁜가 — 알리기만 하고 막지 않는다
+  const [toBusy, setToBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -93,6 +95,29 @@ export default function Requests() {
       }),
     [events, sent]
   );
+
+  // 받는 사람·날짜·시간을 고르면 그 시간에 상대가 바쁜지 확인한다(시간만 받는다 — 제목·내용은 받지 않는다)
+  useEffect(() => {
+    setToBusy(false);
+    if (!createOpen || !toId || !date) return undefined;
+    if (!allDay && endTime <= startTime) return undefined;
+    let alive = true;
+    const from = allDay ? allDayIsoRange(date, date).start : new Date(`${date}T${startTime}`).toISOString();
+    const to = allDay ? allDayIsoRange(date, date).end : new Date(`${date}T${endTime}`).toISOString();
+    const t = setTimeout(() => {
+      api<{ busy: { start: string; end: string }[] }>(`/api/calendar/${toId}/busy?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
+        .then((r) => {
+          if (alive) setToBusy(r.busy.length > 0);
+        })
+        .catch(() => {});
+    }, 300);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [createOpen, toId, date, allDay, startTime, endTime]);
+
+  const toFriend = friends.find((f) => f.user._id === toId)?.user;
 
   async function send(e: FormEvent) {
     e.preventDefault();
@@ -311,6 +336,12 @@ export default function Requests() {
                 </div>
               )}
             </div>
+
+            {toBusy && toFriend && (
+              <Notice warn>
+                {displayName(toFriend)} 님은 그 시간에 다른 일정이 있어요. 그래도 요청은 보낼 수 있어요.
+              </Notice>
+            )}
 
             <div className="ui-field">
               <label className="ui-label" htmlFor="req-title">

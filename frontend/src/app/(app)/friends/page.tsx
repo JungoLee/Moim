@@ -241,16 +241,16 @@ function FriendItem({ friend, tiers, onAdd }: { friend: Friend; tiers: Tier[]; o
 
   return (
     <li className={`ui-row ${s.row}`}>
-      <Avatar src={u.picture} name={name} id={u._id} />
-      <span className="ui-row__main">
-        <span className="ui-row__title">{name}</span>
-        <span className="ui-row__sub">{u.email}</span>
-      </span>
+      {/* 줄을 누르면 그 친구의 캘린더 */}
+      <Link className={s.who} href={`/u?id=${u._id}`} aria-label={`${name} 님의 캘린더 보기`}>
+        <Avatar src={u.picture} name={name} id={u._id} />
+        <span className="ui-row__main">
+          <span className="ui-row__title">{name}</span>
+          <span className="ui-row__sub">{u.email}</span>
+        </span>
+        <Icon name="chevron-right" size={16} className={s.go} />
+      </Link>
       <span className={`ui-row__side ${s.side}`}>
-        <Link className="ui-btn ui-btn--sm" href={`/u?id=${u._id}`}>
-          <Icon name="calendar" size={16} />
-          캘린더
-        </Link>
         <Link className="ui-btn ui-btn--sm" href={`/requests?to=${u._id}`}>
           <Icon name="send" size={16} />
           시간 요청

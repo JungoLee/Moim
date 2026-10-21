@@ -16,13 +16,14 @@ import { confirmDialog } from '@/lib/confirm';
 import { DEFAULT_TIER_COLOR } from '@/lib/colors';
 import { displayName } from '@/lib/format';
 import { toast } from '@/lib/toast';
-import type { Tier } from '@/lib/types';
+import type { JoinedTier, Tier } from '@/lib/types';
 import s from './page.module.scss';
 
 const STACK_MAX = 5; // 카드에 겹쳐 보이는 아바타 수
 
 export default function Tiers() {
   const [tiers, setTiers] = useState<Tier[] | null>(null);
+  const [joined, setJoined] = useState<JoinedTier[]>([]);
   const [pageErr, setPageErr] = useState('');
 
   // 만들기 · 코드 가입 · 설정 팝업
@@ -38,7 +39,17 @@ export default function Tiers() {
   const [settingsErr, setSettingsErr] = useState('');
   const [busy, setBusy] = useState(false); // 눌러서 보내는 중 — 두 번 눌러 중복으로 만들어지지 않게
 
+  const loadJoined = useCallback(async () => {
+    try {
+      const res = await api<{ tiers: JoinedTier[] }>('/api/tiers/joined');
+      setJoined(res.tiers);
+    } catch {
+      /* 못 불러와도 내 그룹은 쓸 수 있다 */
+    }
+  }, []);
+
   const load = useCallback(async () => {
+    void loadJoined();
     try {
       const res = await api<{ tiers: Tier[] }>('/api/tiers');
       setTiers(res.tiers);
@@ -47,7 +58,7 @@ export default function Tiers() {
       setTiers((prev) => prev ?? []);
       setPageErr(err instanceof Error ? err.message : '그룹을 불러오지 못했어요.');
     }
-  }, []);
+  }, [loadJoined]);
 
   useEffect(() => {
     load();
@@ -119,6 +130,24 @@ export default function Tiers() {
       load();
     } catch (err) {
       setSettingsErr(err instanceof Error ? err.message : '삭제하지 못했어요');
+    }
+  }
+
+  async function leaveTier(t: JoinedTier) {
+    const who = displayName(t.owner);
+    const ok = await confirmDialog({
+      message: `'${t.name}' 그룹에서 나갈까요?
+${who} 님이 이 그룹에만 열어 둔 비공개 일정을 더는 자세히 볼 수 없어요. ${who} 님의 일정은 그대로예요. 코드를 다시 넣으면 다시 들어올 수 있어요.`,
+      confirmText: '그룹 나가기',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await api(`/api/tiers/${t._id}/leave`, { method: 'POST' });
+      toast(`'${t.name}' 그룹에서 나왔어요`, 'success');
+      void loadJoined();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : '나가지 못했어요', 'error');
     }
   }
 
@@ -240,6 +269,34 @@ export default function Tiers() {
             </li>
           ))}
         </ul>
+      )}
+
+      {joined.length > 0 && (
+        <section className="ui-card" aria-labelledby="joined-title">
+          <div className="ui-card__head">
+            <h2 id="joined-title" className="ui-card__title">
+              내가 들어간 그룹
+            </h2>
+            <span className="ui-card__sub">{joined.length}개</span>
+          </div>
+          <p className="ui-help">친구가 만든 그룹에 코드로 들어간 거예요. 그 친구가 이 그룹에만 열어 둔 비공개 일정을 자세히 볼 수 있어요.</p>
+          <ul className="ui-list">
+            {joined.map((t) => (
+              <li key={t._id} className="ui-row">
+                <span className={s.dot} style={{ background: t.color || DEFAULT_TIER_COLOR }} aria-hidden />
+                <span className="ui-row__main">
+                  <span className="ui-row__title">{t.name}</span>
+                  <span className="ui-row__sub">만든 사람 · {displayName(t.owner)}</span>
+                </span>
+                <span className="ui-row__side">
+                  <button type="button" className="ui-btn ui-btn--sm" onClick={() => leaveTier(t)} aria-label={`${t.name} 그룹 나가기`}>
+                    나가기
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {createOpen && (

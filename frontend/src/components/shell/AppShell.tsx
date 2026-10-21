@@ -232,7 +232,6 @@ function ShellFrame({ pathname, children }: { pathname: string; children: ReactN
       <header className={styles.mobilebar} data-hidden={barHidden || undefined} onFocus={showBar}>
         <BrandMark size={26} />
         <span className="ui-spacer" />
-        <ThemeSwitch />
         {avatarBtn(styles.topAvatar)}
       </header>
 

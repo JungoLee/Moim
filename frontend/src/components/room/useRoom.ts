@@ -7,7 +7,7 @@ import { toast } from '@/lib/toast';
 import { allDayIsoRange, fmtKeyRange, startOfDay, todayKey } from '@/lib/datetime';
 import { displayName } from '@/lib/format';
 import { getHolidays } from '@/lib/holidays';
-import { candidates, summarize } from '@/lib/roomCandidates';
+import { candidates, nearCandidates, summarize } from '@/lib/roomCandidates';
 import type { Candidate, DaySummary } from '@/lib/roomCandidates';
 import { useShell } from '@/components/shell/ShellContext';
 import type { AvailStatus, Mark, RoomComment, RoomDetail, User } from '@/lib/types';
@@ -150,6 +150,11 @@ export function useRoom(roomId: string) {
 
   const summary = useMemo<Record<string, DaySummary>>(() => summarize(memberAvail), [memberAvail]);
   const cands = useMemo<Candidate[]>(() => candidates(summary, total, todayKey()), [summary, total]);
+  /** 전원은 아니지만 가장 많이 되는 날(보조 후보) */
+  const near = useMemo<Candidate[]>(
+    () => nearCandidates(memberAvail, members.map((m) => m._id), todayKey()),
+    [memberAvail, members]
+  );
   const markedIds = useMemo(() => {
     const s = new Set<string>();
     for (const [uid, marks] of Object.entries(memberAvail)) if (marks.length > 0) s.add(uid);
@@ -280,11 +285,21 @@ export function useRoom(roomId: string) {
   // ── 확정 ─────────────────────────────────────────────
   /** 방장이 날짜 확정 — 확인창 → 서버 → 토스트. 했으면 true */
   const confirm = useCallback(
-    async (range: { start: string; end: string }, changing = false) => {
+    async (range: { start: string; end: string }, changing = false, cand?: Candidate) => {
       const label = fmtKeyRange(range.start, range.end);
+      // 전원이 안 되는 날(보조 후보)이면 누가 안 되는지 먼저 알린다
+      let warn = '';
+      if (cand?.kind === 'near') {
+        const names = (cand.missingIds || [])
+          .map((id) => members.find((m) => m._id === id))
+          .filter((m): m is User => !!m)
+          .map(displayName)
+          .join('·');
+        warn = `\n${total}명 중 ${cand.can}명만 되는 날이에요. 안 되는 사람: ${names}.`;
+      }
       const ok = await confirmDialog({
         title: changing ? '확정 날짜를 바꿀까요?' : undefined,
-        message: `${label}로 확정할까요? 멤버 ${total}명의 캘린더에 비공개 일정으로 들어가요.`,
+        message: `${label}로 확정할까요?${warn}\n멤버 ${total}명의 캘린더에 비공개 일정으로 들어가요.`,
         confirmText: changing ? '바꾸기' : '확정',
       });
       if (!ok) return false;
@@ -303,7 +318,7 @@ export function useRoom(roomId: string) {
         return false;
       }
     },
-    [roomId, total, reload, refreshRooms]
+    [roomId, total, members, reload, refreshRooms]
   );
 
   /** 방장이 확정 취소 */
@@ -342,6 +357,7 @@ export function useRoom(roomId: string) {
     myMarks,
     summary,
     cands,
+    near,
     markedIds,
     markedCount,
     holidays,

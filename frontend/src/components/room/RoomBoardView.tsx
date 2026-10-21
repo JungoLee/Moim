@@ -116,7 +116,7 @@ export default function RoomBoardView({ r }: { r: RoomApi }) {
           <div className={`ui-tabs ${styles.tabs}`} role="tablist" aria-label="후보와 대화">
             <button type="button" role="tab" id="room-tab-cands" aria-selected={tab === 'cands'} aria-controls="room-panel" onClick={() => setTab('cands')}>
               후보 날짜
-              <span className="ui-chip ui-chip--muted">{r.cands.length}</span>
+              <span className="ui-chip ui-chip--muted">{r.cands.length + r.near.length}</span>
             </button>
             <button type="button" role="tab" id="room-tab-chat" aria-selected={tab === 'chat'} aria-controls="room-panel" onClick={() => setTab('chat')} data-guide="room-chat">
               대화
@@ -137,9 +137,10 @@ export default function RoomBoardView({ r }: { r: RoomApi }) {
                   isOwner={r.isOwner}
                   total={r.total}
                   members={r.members}
+                  near={r.near}
                   markedIds={r.markedIds}
                   meId={r.meId}
-                  onConfirm={(c, changing) => void r.confirm({ start: c.start, end: c.end }, changing)}
+                  onConfirm={(c, changing) => void r.confirm({ start: c.start, end: c.end }, changing, c)}
                   onUnconfirm={() => void r.unconfirm()}
                 />
               </div>
@@ -173,9 +174,10 @@ export default function RoomBoardView({ r }: { r: RoomApi }) {
         isOwner={r.isOwner}
         total={r.total}
         members={r.members}
+        near={r.near}
         markedIds={r.markedIds}
         meId={r.meId}
-        onConfirm={(c, changing) => void r.confirm({ start: c.start, end: c.end }, changing)}
+        onConfirm={(c, changing) => void r.confirm({ start: c.start, end: c.end }, changing, c)}
         onMore={() => openSheet('cands')}
         onInvite={() => setShareOpen(true)}
       />

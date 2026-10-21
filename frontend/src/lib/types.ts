@@ -38,6 +38,14 @@ export type Tier = {
   members: User[];
 };
 
+/** 코드로 가입해 내가 멤버로 들어간 남의 그룹 */
+export type JoinedTier = {
+  _id: string;
+  name: string;
+  color?: string;
+  owner: User;
+};
+
 export type Friend = {
   friendshipId: string;
   user: User;

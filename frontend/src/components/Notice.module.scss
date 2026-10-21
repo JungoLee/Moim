@@ -17,6 +17,11 @@
   }
 }
 
+.warn {
+  background: var(--c-warn-soft);
+  color: var(--c-warn-text);
+}
+
 .ok {
   background: var(--c-accent-soft);
   color: var(--c-accent-text);

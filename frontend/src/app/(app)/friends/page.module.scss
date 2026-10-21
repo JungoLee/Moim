@@ -21,6 +21,29 @@
   }
 }
 
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 1 1 auto;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .go {
+    color: var(--c-text);
+  }
+
+  &:hover :global(.ui-row__title) {
+    text-decoration: underline;
+  }
+}
+
+.go {
+  flex-shrink: 0;
+  color: var(--c-text-3);
+}
+
 .side {
   @include narrow {
     flex: 1 1 100%;
