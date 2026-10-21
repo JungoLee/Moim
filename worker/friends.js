@@ -43,11 +43,11 @@ export async function received(request, env, params, body, userId) {
 // 친구 요청 보내기 (이메일로)
 export async function send(request, env, params, body, userId) {
   const email = body?.email;
-  if (!email) return fail('email 이 필요합니다.');
+  if (!email) return fail('이메일을 넣어 주세요.');
   const db = env.DB;
   const target = await db.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
-  if (!target) return fail('해당 이메일의 사용자가 없습니다.', 404);
-  if (target.id === userId) return fail('자기 자신에게는 요청할 수 없습니다.');
+  if (!target) return fail('이 이메일로 가입한 사람이 없어요.', 404);
+  if (target.id === userId) return fail('나에게는 요청할 수 없어요.');
 
   const existing = await db
     .prepare(
@@ -56,7 +56,7 @@ export async function send(request, env, params, body, userId) {
     )
     .bind(userId, target.id, target.id, userId)
     .first();
-  if (existing) return fail('이미 친구이거나 요청이 진행 중입니다.', 409);
+  if (existing) return fail('이미 친구이거나 요청이 오가는 중이에요.', 409);
 
   const id = newId();
   const ts = nowIso();
@@ -75,7 +75,7 @@ export async function send(request, env, params, body, userId) {
 
 // 요청 수락
 export async function accept(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const r = await db
     .prepare(
@@ -84,7 +84,7 @@ export async function accept(request, env, params, body, userId) {
     )
     .bind(nowIso(), params.id, userId)
     .run();
-  if (!r.meta.changes) return fail('요청을 찾을 수 없습니다.', 404);
+  if (!r.meta.changes) return fail('요청을 찾을 수 없어요.', 404);
   const row = await db.prepare('SELECT * FROM friendships WHERE id = ?').bind(params.id).first();
   return json({
     ok: true,
@@ -101,12 +101,12 @@ export async function accept(request, env, params, body, userId) {
 
 // 요청 거절 (행 삭제)
 export async function decline(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const r = await env.DB.prepare(
     `DELETE FROM friendships WHERE id = ? AND recipient = ? AND status = 'pending'`
   )
     .bind(params.id, userId)
     .run();
-  if (!r.meta.changes) return fail('요청을 찾을 수 없습니다.', 404);
+  if (!r.meta.changes) return fail('요청을 찾을 수 없어요.', 404);
   return json({ ok: true });
 }

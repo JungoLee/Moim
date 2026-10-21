@@ -7,7 +7,7 @@ function buildLoginMail(code, env) {
   return {
     brand,
     subject: `[${brand}] 로그인 인증 코드: ${code}`,
-    text: `${brand} 로그인 인증 코드입니다.\n\n${code}\n\n10분 안에 입력해주세요. 본인이 요청하지 않았다면 이 메일을 무시하세요.`,
+    text: `${brand} 로그인 인증 코드예요.\n\n${code}\n\n10분 안에 입력해 주세요. 내가 요청한 게 아니라면 이 메일은 그대로 두세요.`,
     // 메일 클라이언트 호환을 위해 인라인 스타일만 쓴다 — 코드가 한눈에 들어오는 카드형
     html: `
       <div style="margin:0;padding:32px 16px;background:#f4f5f7;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif">
@@ -18,17 +18,17 @@ function buildLoginMail(code, env) {
           <div style="padding:18px 28px 28px">
             <h1 style="margin:0 0 6px;font-size:19px;color:#111827">로그인 인증 코드</h1>
             <p style="margin:0 0 18px;font-size:14px;line-height:1.7;color:#6b7280">
-              아래 코드를 로그인 화면에 입력해주세요.<br/>코드는 <strong style="color:#111827">10분</strong> 동안 유효합니다.
+              아래 코드를 로그인 화면에 입력해 주세요.<br/>코드는 <strong style="color:#111827">10분</strong> 동안 쓸 수 있어요.
             </p>
             <div style="padding:18px 8px;text-align:center;background:#f6f7fb;border:1px dashed #c7cbe8;border-radius:10px">
               <span style="font-size:24px;font-weight:800;letter-spacing:5px;color:#1f2937;font-family:Consolas,monospace">${code}</span>
             </div>
             <p style="margin:18px 0 0;font-size:12px;line-height:1.7;color:#9ca3af">
-              본인이 요청하지 않았다면 이 메일은 무시하세요 — 코드를 모르는 사람은 로그인할 수 없습니다.
+              내가 요청한 게 아니라면 이 메일은 그대로 두세요. 코드를 모르는 사람은 로그인할 수 없어요.
             </p>
           </div>
           <div style="padding:14px 28px;background:#fafafa;border-top:1px solid #f0f0f2">
-            <p style="margin:0;font-size:11px;color:#b3b8c2">이 메일은 ${brand}(moim.opnae.com) 로그인 시도로 발송됐습니다.</p>
+            <p style="margin:0;font-size:11px;color:#b3b8c2">이 메일은 ${brand}(moim.opnae.com) 로그인 시도로 보냈어요.</p>
           </div>
         </div>
       </div>`,

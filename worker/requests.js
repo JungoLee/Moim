@@ -39,13 +39,13 @@ export async function sent(request, env, params, body, userId) {
 // 요청 보내기
 export async function create(request, env, params, body, userId) {
   const { to, start, end, title, message, allDay } = body || {};
-  if (!isId(to)) return fail('대상이 올바르지 않습니다.');
-  if (to === userId) return fail('본인에게는 요청할 수 없습니다.');
+  if (!isId(to)) return fail('받는 사람을 다시 골라 주세요.');
+  if (to === userId) return fail('나에게는 요청할 수 없어요.');
   const startIso = toIso(start);
   const endIso = toIso(end);
-  if (!startIso || !endIso) return fail('시작/종료 시간이 필요합니다.');
+  if (!startIso || !endIso) return fail('시작과 끝 시각을 넣어 주세요.');
   const db = env.DB;
-  if (!(await areFriends(db, userId, to))) return fail('친구에게만 시간 요청을 보낼 수 있습니다.', 403);
+  if (!(await areFriends(db, userId, to))) return fail('친구에게만 시간 요청을 보낼 수 있어요.', 403);
 
   const id = newId();
   const ts = nowIso();
@@ -63,13 +63,13 @@ export async function create(request, env, params, body, userId) {
 
 // 수락 → 양쪽 캘린더에 일정 자동 생성
 export async function accept(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const tr = await db
     .prepare(`SELECT * FROM time_requests WHERE id = ? AND to_user = ? AND status = 'pending'`)
     .bind(params.id, userId)
     .first();
-  if (!tr) return fail('요청을 찾을 수 없습니다.', 404);
+  if (!tr) return fail('요청을 찾을 수 없어요.', 404);
 
   // 일정 클릭 시 "누가 언제 요청했는지" 보이도록 출처를 스냅샷으로 남긴다
   const { results: users } = await db
@@ -100,31 +100,31 @@ export async function accept(request, env, params, body, userId) {
     .prepare(`UPDATE time_requests SET status = 'accepted', updated_at = ? WHERE id = ? AND status = 'pending'`)
     .bind(ts, tr.id)
     .run();
-  if (!r.meta.changes) return fail('이미 처리된 요청입니다.', 409);
+  if (!r.meta.changes) return fail('이미 처리된 요청이에요.', 409);
   await db.batch([mkEvent(tr.to_user), mkEvent(tr.from_user)]);
   return json({ ok: true });
 }
 
 // 거절
 export async function decline(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const r = await env.DB.prepare(
     `UPDATE time_requests SET status = 'declined', updated_at = ? WHERE id = ? AND to_user = ? AND status = 'pending'`
   )
     .bind(nowIso(), params.id, userId)
     .run();
-  if (!r.meta.changes) return fail('요청을 찾을 수 없습니다.', 404);
+  if (!r.meta.changes) return fail('요청을 찾을 수 없어요.', 404);
   return json({ ok: true });
 }
 
 // 보낸 요청 취소(대기중만)
 export async function remove(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const r = await env.DB.prepare(
     `DELETE FROM time_requests WHERE id = ? AND from_user = ? AND status = 'pending'`
   )
     .bind(params.id, userId)
     .run();
-  if (!r.meta.changes) return fail('취소할 요청을 찾을 수 없습니다.', 404);
+  if (!r.meta.changes) return fail('취소할 요청을 찾을 수 없어요. 이미 답을 받았을 수 있어요.', 404);
   return json({ ok: true });
 }

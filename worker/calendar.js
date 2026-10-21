@@ -42,7 +42,7 @@ export async function friendsBusy(request, env, params, body, userId) {
   const url = new URL(request.url);
   const from = toIso(url.searchParams.get('from'));
   const to = toIso(url.searchParams.get('to'));
-  if (!from || !to || from > to) return fail('from/to 가 필요합니다.');
+  if (!from || !to || from > to) return fail('조회할 기간을 알 수 없어요.');
   const db = env.DB;
   const friendIds = `SELECT recipient FROM friendships WHERE status = 'accepted' AND requester = ?
                      UNION SELECT requester FROM friendships WHERE status = 'accepted' AND recipient = ?`;
@@ -66,12 +66,12 @@ export async function friendsBusy(request, env, params, body, userId) {
 
 export async function get(request, env, params, body, userId) {
   const { userId: targetId } = params;
-  if (!isId(targetId)) return fail('잘못된 id 입니다.');
+  if (!isId(targetId)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const range = rangeClause(new URL(request.url));
 
   const ownerRow = await db.prepare('SELECT id, name, nickname, email, picture FROM users WHERE id = ?').bind(targetId).first();
-  if (!ownerRow) return fail('사용자를 찾을 수 없습니다.', 404);
+  if (!ownerRow) return fail('사용자를 찾을 수 없어요.', 404);
   const owner = userBrief(ownerRow); // 닉네임 포함 — 화면은 닉네임을 먼저 쓴다
 
   const { results } = await db
@@ -86,7 +86,7 @@ export async function get(request, env, params, body, userId) {
   }
 
   // 캘린더 열람 권한 = 친구 관계
-  if (!(await areFriends(db, userId, targetId))) return fail('이 사용자의 캘린더를 볼 권한이 없습니다.', 403);
+  if (!(await areFriends(db, userId, targetId))) return fail('친구만 캘린더를 볼 수 있어요.', 403);
 
   // owner 의 그룹 중 내가 멤버인 것들 → 비공개 일정 상세 열람 가능
   const { results: myTiers } = await db

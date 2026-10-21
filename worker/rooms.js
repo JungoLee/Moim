@@ -84,7 +84,7 @@ export async function list(request, env, params, body, userId) {
 // 방 생성 (생성자를 멤버로 포함)
 export async function create(request, env, params, body, userId) {
   const name = body?.name;
-  if (!name || !name.trim()) return fail('name 이 필요합니다.');
+  if (!name || !name.trim()) return fail('이름을 넣어 주세요.');
   const db = env.DB;
   const id = newId();
   const ts = nowIso();
@@ -101,10 +101,10 @@ export async function create(request, env, params, body, userId) {
 // 코드로 입장 (멱등)
 export async function join(request, env, params, body, userId) {
   const code = body?.code;
-  if (!code) return fail('code 가 필요합니다.');
+  if (!code) return fail('코드를 넣어 주세요.');
   const db = env.DB;
   const room = await db.prepare('SELECT id, name FROM rooms WHERE code = ?').bind(code.trim().toUpperCase()).first();
-  if (!room) return fail('해당 코드의 방이 없습니다.', 404);
+  if (!room) return fail('이 코드의 모임이 없어요. 코드를 다시 확인해 주세요.', 404);
   await db
     .prepare('INSERT OR IGNORE INTO room_members (room_id, user_id) VALUES (?, ?)')
     .bind(room.id, userId)
@@ -114,11 +114,11 @@ export async function join(request, env, params, body, userId) {
 
 // 방 상세 (멤버 + 가용성 + 댓글)
 export async function detail(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const room = await db.prepare('SELECT * FROM rooms WHERE id = ?').bind(params.id).first();
-  if (!room) return fail('방을 찾을 수 없습니다.', 404);
-  if (!(await isMember(db, room.id, room.owner, userId))) return fail('이 방의 멤버가 아닙니다.', 403);
+  if (!room) return fail('모임을 찾을 수 없어요.', 404);
+  if (!(await isMember(db, room.id, room.owner, userId))) return fail('이 모임의 멤버가 아니에요.', 403);
 
   const [{ results: members }, { results: marks }, { results: comments }] = await db.batch([
     db
@@ -165,11 +165,11 @@ export async function detail(request, env, params, body, userId) {
 
 // 내 가능 날짜 저장 (전체 교체)
 export async function putAvailability(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const room = await db.prepare('SELECT id, owner FROM rooms WHERE id = ?').bind(params.id).first();
-  if (!room) return fail('방을 찾을 수 없습니다.', 404);
-  if (!(await isMember(db, room.id, room.owner, userId))) return fail('이 방의 멤버가 아닙니다.', 403);
+  if (!room) return fail('모임을 찾을 수 없어요.', 404);
+  if (!(await isMember(db, room.id, room.owner, userId))) return fail('이 모임의 멤버가 아니에요.', 403);
 
   const clean = cleanMarks(body?.marks);
   const stmts = [
@@ -186,13 +186,13 @@ export async function putAvailability(request, env, params, body, userId) {
 
 // 댓글 작성
 export async function addComment(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const text = (body?.text || '').trim();
-  if (!text) return fail('내용을 입력하세요.');
+  if (!text) return fail('내용을 입력해 주세요.');
   const db = env.DB;
   const room = await db.prepare('SELECT id, owner FROM rooms WHERE id = ?').bind(params.id).first();
-  if (!room) return fail('방을 찾을 수 없습니다.', 404);
-  if (!(await isMember(db, room.id, room.owner, userId))) return fail('이 방의 멤버가 아닙니다.', 403);
+  if (!room) return fail('모임을 찾을 수 없어요.', 404);
+  if (!(await isMember(db, room.id, room.owner, userId))) return fail('이 모임의 멤버가 아니에요.', 403);
 
   const me = await db.prepare('SELECT name, nickname FROM users WHERE id = ?').bind(userId).first();
   const author = me?.nickname || me?.name || '';
@@ -205,29 +205,29 @@ export async function addComment(request, env, params, body, userId) {
 
 // 댓글 삭제 (작성자 또는 방장)
 export async function removeComment(request, env, params, body, userId) {
-  if (!isId(params.id) || !isId(params.commentId)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id) || !isId(params.commentId)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const room = await db.prepare('SELECT id, owner FROM rooms WHERE id = ?').bind(params.id).first();
-  if (!room) return fail('방을 찾을 수 없습니다.', 404);
+  if (!room) return fail('모임을 찾을 수 없어요.', 404);
   const c = await db
     .prepare('SELECT id, user_id FROM room_comments WHERE id = ? AND room_id = ?')
     .bind(params.commentId, room.id)
     .first();
-  if (!c) return fail('댓글을 찾을 수 없습니다.', 404);
-  if (c.user_id !== userId && room.owner !== userId) return fail('삭제 권한이 없습니다.', 403);
+  if (!c) return fail('메시지를 찾을 수 없어요.', 404);
+  if (c.user_id !== userId && room.owner !== userId) return fail('메시지는 쓴 사람과 방장만 지울 수 있어요.', 403);
   await db.prepare('DELETE FROM room_comments WHERE id = ?').bind(c.id).run();
   return json({ ok: true });
 }
 
 // 방 설정 변경 (방장만): 이름 / URL 가입 허용
 export async function update(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const b = body || {};
   const sets = [];
   const args = [];
   if (b.name !== undefined) {
     const name = String(b.name).trim();
-    if (!name) return fail('이름이 비어 있습니다.');
+    if (!name) return fail('이름을 비워 둘 수 없어요.');
     sets.push('name = ?');
     args.push(name);
   }
@@ -235,21 +235,21 @@ export async function update(request, env, params, body, userId) {
     sets.push('join_by_url = ?');
     args.push(b.joinByUrl ? 1 : 0);
   }
-  if (!sets.length) return fail('변경할 내용이 없습니다.');
+  if (!sets.length) return fail('바꿀 내용이 없어요.');
 
   const r = await env.DB.prepare(`UPDATE rooms SET ${sets.join(', ')}, updated_at = ? WHERE id = ? AND owner = ?`)
     .bind(...args, nowIso(), params.id, userId)
     .run();
-  if (!r.meta.changes) return fail('방을 찾을 수 없거나 권한이 없습니다.', 404);
+  if (!r.meta.changes) return fail('모임을 찾을 수 없거나 방장이 아니에요.', 404);
   return json({ ok: true });
 }
 
 // 초대 코드 재발급 (방장만) — 기존 코드/링크 무효화
 export async function regenerateCode(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const room = await db.prepare('SELECT id FROM rooms WHERE id = ? AND owner = ?').bind(params.id, userId).first();
-  if (!room) return fail('방을 찾을 수 없거나 권한이 없습니다.', 404);
+  if (!room) return fail('모임을 찾을 수 없거나 방장이 아니에요.', 404);
   const code = await generateUniqueCode(db, 'rooms');
   await db.prepare('UPDATE rooms SET code = ?, updated_at = ? WHERE id = ?').bind(code, nowIso(), room.id).run();
   return json({ ok: true, code });
@@ -258,11 +258,11 @@ export async function regenerateCode(request, env, params, body, userId) {
 // 멤버 강퇴 (방장만, 방장 본인은 불가)
 export async function removeMember(request, env, params, body, userId) {
   const { id, userId: memberId } = params;
-  if (!isId(id) || !isId(memberId)) return fail('잘못된 id 입니다.');
+  if (!isId(id) || !isId(memberId)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const room = await db.prepare('SELECT id, owner FROM rooms WHERE id = ? AND owner = ?').bind(id, userId).first();
-  if (!room) return fail('방을 찾을 수 없거나 권한이 없습니다.', 404);
-  if (memberId === room.owner) return fail('방장은 강퇴할 수 없습니다.');
+  if (!room) return fail('모임을 찾을 수 없거나 방장이 아니에요.', 404);
+  if (memberId === room.owner) return fail('방장은 내보낼 수 없어요.');
   await db.batch([
     db.prepare('DELETE FROM room_members WHERE room_id = ? AND user_id = ?').bind(id, memberId),
     db.prepare('DELETE FROM room_availability_marks WHERE room_id = ? AND user_id = ?').bind(id, memberId),
@@ -272,43 +272,43 @@ export async function removeMember(request, env, params, body, userId) {
 
 // URL 가입 — 코드 없이 입장. 방장이 허용(joinByUrl)했을 때만 자동 가입, 아니면 코드 필요.
 export async function joinByUrl(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const room = await db.prepare('SELECT * FROM rooms WHERE id = ?').bind(params.id).first();
-  if (!room) return fail('방을 찾을 수 없습니다.', 404);
+  if (!room) return fail('모임을 찾을 수 없어요.', 404);
   if (await isMember(db, room.id, room.owner, userId)) {
     return json({ ok: true, roomId: room.id, name: room.name });
   }
-  if (!room.join_by_url) return fail('초대 코드로 입장하세요.', 403, { needCode: true });
+  if (!room.join_by_url) return fail('초대 코드로 들어와 주세요.', 403, { needCode: true });
   await db.prepare('INSERT OR IGNORE INTO room_members (room_id, user_id) VALUES (?, ?)').bind(room.id, userId).run();
   return json({ ok: true, roomId: room.id, name: room.name });
 }
 
 // 방 삭제 (owner 만)
 export async function remove(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const r = await env.DB.prepare('DELETE FROM rooms WHERE id = ? AND owner = ?').bind(params.id, userId).run();
-  if (!r.meta.changes) return fail('방을 찾을 수 없거나 권한이 없습니다.', 404);
+  if (!r.meta.changes) return fail('모임을 찾을 수 없거나 방장이 아니에요.', 404);
   return json({ ok: true });
 }
 
 // 날짜 확정 (방장만) — 이전 확정 일정을 지우고 멤버 모두의 캘린더에 비공개 종일 일정을 만든다.
 // start·end 는 브라우저가 만든 ISO(첫날 00:00 · 끝날 23:59 로컬) — 일정 화면의 종일 규칙과 같게 하려고 받는다.
 export async function confirm(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const b = body || {};
   const startDate = typeof b.startDate === 'string' ? b.startDate : '';
   const endDate = typeof b.endDate === 'string' ? b.endDate : '';
-  if (!DATE_RE.test(startDate) || !DATE_RE.test(endDate) || startDate > endDate) return fail('날짜가 올바르지 않습니다.');
+  if (!DATE_RE.test(startDate) || !DATE_RE.test(endDate) || startDate > endDate) return fail('날짜를 다시 확인해 주세요.');
   const startIso = toIso(b.start);
   const endIso = toIso(b.end);
-  if (!startIso || !endIso || startIso > endIso) return fail('시각이 올바르지 않습니다.');
-  if (Date.parse(endIso) - Date.parse(startIso) > 31 * 86_400_000) return fail('확정 기간은 31일까지입니다.');
+  if (!startIso || !endIso || startIso > endIso) return fail('시각을 다시 확인해 주세요.');
+  if (Date.parse(endIso) - Date.parse(startIso) > 31 * 86_400_000) return fail('확정 기간은 31일까지예요.');
 
   const db = env.DB;
   const room = await db.prepare('SELECT id, name, owner FROM rooms WHERE id = ?').bind(params.id).first();
-  if (!room) return fail('방을 찾을 수 없습니다.', 404);
-  if (room.owner !== userId) return fail('방장만 날짜를 확정할 수 있습니다.', 403);
+  if (!room) return fail('모임을 찾을 수 없어요.', 404);
+  if (room.owner !== userId) return fail('방장만 날짜를 확정할 수 있어요.', 403);
 
   const [{ results: members }, { results: ownerRows }] = await db.batch([
     db.prepare('SELECT user_id FROM room_members WHERE room_id = ?').bind(room.id),
@@ -340,11 +340,11 @@ export async function confirm(request, env, params, body, userId) {
 
 // 확정 취소 (방장만) — 그 방에서 만든 일정을 지운다
 export async function unconfirm(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const room = await db.prepare('SELECT id, owner FROM rooms WHERE id = ?').bind(params.id).first();
-  if (!room) return fail('방을 찾을 수 없습니다.', 404);
-  if (room.owner !== userId) return fail('방장만 확정을 취소할 수 있습니다.', 403);
+  if (!room) return fail('모임을 찾을 수 없어요.', 404);
+  if (room.owner !== userId) return fail('방장만 확정을 취소할 수 있어요.', 403);
   const ts = nowIso();
   await db.batch([
     db.prepare(`DELETE FROM events WHERE origin_kind = 'room' AND origin_request_id = ?`).bind(room.id),

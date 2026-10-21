@@ -36,16 +36,16 @@ async function verifyRequest(request, env) {
  */
 export async function requireAuth(request, env) {
   const userId = await verifyRequest(request, env);
-  if (!userId) return { response: fail('인증이 필요합니다.', 401) };
+  if (!userId) return { response: fail('로그인이 필요해요.', 401) };
   const row = await env.DB.prepare('SELECT id FROM users WHERE id = ?').bind(userId).first();
-  if (!row) return { response: fail('탈퇴했거나 존재하지 않는 계정입니다.', 401) };
+  if (!row) return { response: fail('탈퇴했거나 없는 계정이에요.', 401) };
   return { userId };
 }
 
 /** 관리자 확인 — requireAuth 통과 후에만 호출 */
 export async function requireAdmin(env, userId) {
   const row = await env.DB.prepare('SELECT is_admin FROM users WHERE id = ?').bind(userId).first();
-  if (!row || !row.is_admin) return fail('관리자 권한이 없습니다.', 403);
+  if (!row || !row.is_admin) return fail('관리자만 볼 수 있어요.', 403);
   return null;
 }
 
@@ -171,15 +171,15 @@ async function overMailRate(request, env) {
 
 export async function emailRequest(request, env, params, body) {
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
-  if (!EMAIL_RE.test(email)) return fail('올바른 이메일을 입력해주세요.');
-  if (await overMailRate(request, env)) return fail('요청이 너무 많습니다. 내일 다시 시도해주세요.', 429);
+  if (!EMAIL_RE.test(email)) return fail('이메일 주소를 다시 확인해 주세요.');
+  if (await overMailRate(request, env)) return fail('오늘은 코드를 너무 많이 요청했어요. 내일 다시 시도해 주세요.', 429);
 
   // Mongo TTL 인덱스가 없으므로 만료된 코드는 여기서 함께 정리한다
   await env.DB.prepare('DELETE FROM login_codes WHERE expires_at < ?').bind(nowIso()).run();
 
   const existing = await env.DB.prepare('SELECT sent_at FROM login_codes WHERE email = ?').bind(email).first();
   if (existing && Date.now() - new Date(existing.sent_at).getTime() < RESEND_COOLDOWN_MS) {
-    return fail('잠시 후 다시 요청해주세요. (1분에 1회)', 429);
+    return fail('1분 뒤에 다시 요청해 주세요.', 429);
   }
 
   const code = randomFrom(CODE_CHARS, CODE_LEN);
@@ -197,7 +197,7 @@ export async function emailRequest(request, env, params, body) {
     await sendLoginCode(email, code, env);
   } catch (err) {
     console.error('[mail] 발송 실패:', err.message);
-    return fail('메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.', 500);
+    return fail('메일을 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.', 500);
   }
   return json({ ok: true, manual: !deliverable });
 }
@@ -205,17 +205,17 @@ export async function emailRequest(request, env, params, body) {
 export async function emailVerify(request, env, params, body) {
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
   const code = typeof body?.code === 'string' ? body.code.replace(/[\s-]/g, '') : '';
-  if (!EMAIL_RE.test(email) || !code) return fail('이메일과 코드를 입력해주세요.');
+  if (!EMAIL_RE.test(email) || !code) return fail('이메일과 코드를 입력해 주세요.');
 
   const db = env.DB;
   const entry = await db.prepare('SELECT * FROM login_codes WHERE email = ?').bind(email).first();
   if (!entry || new Date(entry.expires_at).getTime() < Date.now()) {
     if (entry) await db.prepare('DELETE FROM login_codes WHERE email = ?').bind(email).run();
-    return fail('코드가 만료됐어요. 다시 요청해주세요.');
+    return fail('코드가 만료됐어요. 다시 요청해 주세요.');
   }
   if (entry.attempts >= MAX_ATTEMPTS) {
     await db.prepare('DELETE FROM login_codes WHERE email = ?').bind(email).run();
-    return fail('시도 횟수를 초과했어요. 코드를 다시 요청해주세요.');
+    return fail('시도 횟수를 넘었어요. 코드를 다시 요청해 주세요.');
   }
   if (entry.code_hash !== (await hashCode(code))) {
     const attempts = entry.attempts + 1;
@@ -246,7 +246,7 @@ export async function emailVerify(request, env, params, body) {
 
 export async function getMe(request, env, params, body, userId) {
   const row = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
-  if (!row) return fail('사용자를 찾을 수 없습니다.', 404);
+  if (!row) return fail('사용자를 찾을 수 없어요.', 404);
   return json({ ok: true, user: userDoc(row) });
 }
 
@@ -261,16 +261,16 @@ export async function patchMe(request, env, params, body, userId) {
     args.push(body.nickname.trim().slice(0, 30));
   }
   if (body?.uiTheme !== undefined) {
-    if (!UI_THEMES.has(body.uiTheme)) return fail('알 수 없는 화면 테마입니다.');
+    if (!UI_THEMES.has(body.uiTheme)) return fail('알 수 없는 화면 모양이에요.');
     sets.push('ui_theme = ?');
     args.push(body.uiTheme);
   }
-  if (!sets.length) return fail('변경할 내용이 없습니다.');
+  if (!sets.length) return fail('바꿀 내용이 없어요.');
   await env.DB.prepare(`UPDATE users SET ${sets.join(', ')}, updated_at = ? WHERE id = ?`)
     .bind(...args, nowIso(), userId)
     .run();
   const row = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
-  if (!row) return fail('사용자를 찾을 수 없습니다.', 404);
+  if (!row) return fail('사용자를 찾을 수 없어요.', 404);
   return json({ ok: true, user: userDoc(row) });
 }
 
@@ -303,7 +303,7 @@ function rollForward(leave) {
 
 export async function getLeave(request, env, params, body, userId) {
   const row = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
-  if (!row) return fail('사용자를 찾을 수 없습니다.', 404);
+  if (!row) return fail('사용자를 찾을 수 없어요.', 404);
   const leave = userDoc(row).leave;
   if (rollForward(leave)) {
     await env.DB.prepare('UPDATE users SET leave_start = ?, leave_renewal = ?, updated_at = ? WHERE id = ?')
@@ -330,6 +330,6 @@ export async function putLeave(request, env, params, body, userId) {
   )
     .bind(leave.remaining, leave.start, leave.renewal, leave.maxConsec, leave.style, nowIso(), userId)
     .run();
-  if (!r.meta.changes) return fail('사용자를 찾을 수 없습니다.', 404);
+  if (!r.meta.changes) return fail('사용자를 찾을 수 없어요.', 404);
   return json({ ok: true, leave });
 }

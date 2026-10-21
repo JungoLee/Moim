@@ -148,7 +148,7 @@ export default {
           return await handler(request, env, params, body, userId);
         } catch (err) {
           console.error(`[api] ${method} ${url.pathname} 실패:`, err.message);
-          return fail('서버 오류가 발생했습니다.', 500);
+          return fail('잠시 문제가 생겼어요. 잠시 뒤 다시 시도해 주세요.', 500);
         }
       }
       return fail(`Route ${url.pathname} not found`, 404);

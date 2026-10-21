@@ -79,7 +79,7 @@ export async function create(request, env, params, body, userId) {
   const { title, start, end, allDay, location, memo, visibility, audienceTiers } = body || {};
   const startIso = toIso(start);
   const endIso = toIso(end);
-  if (!title || !startIso || !endIso) return fail('title, start, end 는 필수입니다.');
+  if (!title || !startIso || !endIso) return fail('제목과 시작·끝 시각을 넣어 주세요.');
 
   const db = env.DB;
   const isPrivate = visibility === 'private';
@@ -104,10 +104,10 @@ export async function create(request, env, params, body, userId) {
 
 // 일정 수정
 export async function update(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const row = await db.prepare('SELECT * FROM events WHERE id = ? AND owner = ?').bind(params.id, userId).first();
-  if (!row) return fail('일정을 찾을 수 없습니다.', 404);
+  if (!row) return fail('일정을 찾을 수 없어요.', 404);
 
   const b = body || {};
   const next = {
@@ -144,8 +144,8 @@ export async function update(request, env, params, body, userId) {
 
 // 일정 삭제
 export async function remove(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const r = await env.DB.prepare('DELETE FROM events WHERE id = ? AND owner = ?').bind(params.id, userId).run();
-  if (!r.meta.changes) return fail('일정을 찾을 수 없습니다.', 404);
+  if (!r.meta.changes) return fail('일정을 찾을 수 없어요.', 404);
   return json({ ok: true });
 }

@@ -48,25 +48,25 @@ export async function users(request, env) {
 
 // 관리자 권한 부여/회수
 export async function setAdmin(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const isAdmin = !!body?.isAdmin;
-  if (params.id === userId && !isAdmin) return fail('본인의 관리자 권한은 회수할 수 없습니다.');
+  if (params.id === userId && !isAdmin) return fail('내 관리자 권한은 직접 해제할 수 없어요.');
   const db = env.DB;
   const r = await db
     .prepare('UPDATE users SET is_admin = ?, updated_at = ? WHERE id = ?')
     .bind(isAdmin ? 1 : 0, nowIso(), params.id)
     .run();
-  if (!r.meta.changes) return fail('사용자를 찾을 수 없습니다.', 404);
+  if (!r.meta.changes) return fail('사용자를 찾을 수 없어요.', 404);
   const u = await db.prepare('SELECT id, name, email, is_admin FROM users WHERE id = ?').bind(params.id).first();
   return json({ ok: true, user: { _id: u.id, name: u.name, email: u.email, isAdmin: !!u.is_admin } });
 }
 
 // 회원 삭제 — 관련 데이터는 FK ON DELETE CASCADE 가 정리한다
 export async function removeUser(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
-  if (params.id === userId) return fail('본인 계정은 삭제할 수 없습니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
+  if (params.id === userId) return fail('내 계정은 여기서 탈퇴 처리할 수 없어요.');
   const r = await env.DB.prepare('DELETE FROM users WHERE id = ?').bind(params.id).run();
-  if (!r.meta.changes) return fail('사용자를 찾을 수 없습니다.', 404);
+  if (!r.meta.changes) return fail('사용자를 찾을 수 없어요.', 404);
   return json({ ok: true });
 }
 
@@ -96,9 +96,9 @@ function listing(table, key) {
 
 function removal(table, label) {
   return async (request, env, params) => {
-    if (!isId(params.id)) return fail('잘못된 id 입니다.');
+    if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
     const r = await env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(params.id).run();
-    if (!r.meta.changes) return fail(`${label}을 찾을 수 없습니다.`, 404);
+    if (!r.meta.changes) return fail(`${label}을(를) 찾을 수 없어요.`, 404);
     return json({ ok: true });
   };
 }

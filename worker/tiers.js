@@ -45,7 +45,7 @@ export async function list(request, env, params, body, userId) {
 // 그룹 생성
 export async function create(request, env, params, body, userId) {
   const { name, color } = body || {};
-  if (!name || !name.trim()) return fail('name 이 필요합니다.');
+  if (!name || !name.trim()) return fail('이름을 넣어 주세요.');
   // 색상은 #rrggbb / #rgb 형식만 허용, 아니면 기본값
   const safeColor = typeof color === 'string' && COLOR_RE.test(color) ? color : '#7c8cff';
   const db = env.DB;
@@ -62,44 +62,44 @@ export async function create(request, env, params, body, userId) {
 
 // 그룹 색상 변경 (본인 소유만)
 export async function update(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const color = body?.color;
   if (typeof color !== 'string' || !COLOR_RE.test(color)) {
-    return fail('색상 형식이 올바르지 않습니다. (#rrggbb)');
+    return fail('색 형식이 올바르지 않아요.');
   }
   const db = env.DB;
   const r = await db
     .prepare('UPDATE tiers SET color = ?, updated_at = ? WHERE id = ? AND owner = ?')
     .bind(color, nowIso(), params.id, userId)
     .run();
-  if (!r.meta.changes) return fail('그룹을 찾을 수 없습니다.', 404);
+  if (!r.meta.changes) return fail('그룹을 찾을 수 없어요.', 404);
   const row = await db.prepare('SELECT * FROM tiers WHERE id = ?').bind(params.id).first();
   return json({ ok: true, tier: tierDoc(row, []) });
 }
 
 // 그룹 삭제
 export async function remove(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const r = await env.DB.prepare('DELETE FROM tiers WHERE id = ? AND owner = ?').bind(params.id, userId).run();
-  if (!r.meta.changes) return fail('그룹을 찾을 수 없습니다.', 404);
+  if (!r.meta.changes) return fail('그룹을 찾을 수 없어요.', 404);
   return json({ ok: true });
 }
 
 // 멤버 추가 (이메일로)
 export async function addMember(request, env, params, body, userId) {
-  if (!isId(params.id)) return fail('잘못된 id 입니다.');
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
   const email = body?.email;
-  if (!email) return fail('email 이 필요합니다.');
+  if (!email) return fail('이메일을 넣어 주세요.');
   const db = env.DB;
   const tier = await db.prepare('SELECT id FROM tiers WHERE id = ? AND owner = ?').bind(params.id, userId).first();
-  if (!tier) return fail('그룹을 찾을 수 없습니다.', 404);
+  if (!tier) return fail('그룹을 찾을 수 없어요.', 404);
   const target = await db.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
-  if (!target) return fail('해당 이메일의 사용자가 없습니다.', 404);
+  if (!target) return fail('이 이메일로 가입한 사람이 없어요.', 404);
   const dup = await db
     .prepare('SELECT 1 FROM tier_members WHERE tier_id = ? AND user_id = ?')
     .bind(params.id, target.id)
     .first();
-  if (dup) return fail('이미 그룹에 포함된 사용자입니다.', 409);
+  if (dup) return fail('이미 이 그룹에 들어 있어요.', 409);
   await db.prepare('INSERT INTO tier_members (tier_id, user_id) VALUES (?, ?)').bind(params.id, target.id).run();
   return json({ ok: true });
 }
@@ -107,10 +107,10 @@ export async function addMember(request, env, params, body, userId) {
 // 멤버 제거
 export async function removeMember(request, env, params, body, userId) {
   const { id, userId: memberId } = params;
-  if (!isId(id) || !isId(memberId)) return fail('잘못된 id 입니다.');
+  if (!isId(id) || !isId(memberId)) return fail('주소가 올바르지 않아요.');
   const db = env.DB;
   const tier = await db.prepare('SELECT id FROM tiers WHERE id = ? AND owner = ?').bind(id, userId).first();
-  if (!tier) return fail('그룹을 찾을 수 없습니다.', 404);
+  if (!tier) return fail('그룹을 찾을 수 없어요.', 404);
   await db.prepare('DELETE FROM tier_members WHERE tier_id = ? AND user_id = ?').bind(id, memberId).run();
   return json({ ok: true });
 }
@@ -118,16 +118,16 @@ export async function removeMember(request, env, params, body, userId) {
 // 코드로 그룹 가입 (내가 멤버로 들어감)
 export async function join(request, env, params, body, userId) {
   const code = body?.code;
-  if (!code) return fail('code 가 필요합니다.');
+  if (!code) return fail('코드를 넣어 주세요.');
   const db = env.DB;
   const tier = await db.prepare('SELECT * FROM tiers WHERE code = ?').bind(code.trim().toUpperCase()).first();
-  if (!tier) return fail('해당 코드의 그룹이 없습니다.', 404);
-  if (tier.owner === userId) return fail('본인 그룹에는 가입할 수 없습니다.');
+  if (!tier) return fail('이 코드의 그룹이 없어요. 코드를 다시 확인해 주세요.', 404);
+  if (tier.owner === userId) return fail('내가 만든 그룹에는 가입할 수 없어요.');
   const dup = await db
     .prepare('SELECT 1 FROM tier_members WHERE tier_id = ? AND user_id = ?')
     .bind(tier.id, userId)
     .first();
-  if (dup) return fail('이미 가입한 그룹입니다.', 409);
+  if (dup) return fail('이미 가입한 그룹이에요.', 409);
   await db.prepare('INSERT INTO tier_members (tier_id, user_id) VALUES (?, ?)').bind(tier.id, userId).run();
   return json({ ok: true, tierName: tier.name });
 }
