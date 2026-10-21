@@ -207,6 +207,21 @@ export default function Dashboard() {
 
   async function remove() {
     if (!modal?.editId) return;
+    // 일정 하나만 지워진다 — 시간 요청·모임 확정으로 생긴 일정은 다른 사람 캘린더에 그대로 남는다는 말을 붙인다
+    const kind = modal.origin?.kind;
+    const extra =
+      kind === 'timeRequest'
+        ? '\n상대방 캘린더의 같은 일정은 그대로 남아요.'
+        : kind === 'room'
+          ? '\n모임의 확정 날짜와 다른 멤버의 일정은 그대로예요.'
+          : '';
+    const title = modal.initial.title.trim() || '새 일정';
+    const ok = await confirmDialog({
+      message: `'${title}' 일정을 삭제할까요?\n되돌릴 수 없어요.${extra}`,
+      confirmText: '삭제',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api(`/api/events/${modal.editId}`, { method: 'DELETE' });
       setModal(null);

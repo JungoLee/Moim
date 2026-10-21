@@ -34,8 +34,6 @@ export default function RoomTableView({ r }: { r: RoomApi }) {
   const confirmedRange = room.confirmed ? fmtKeyRange(room.confirmed.start, room.confirmed.end) : '';
   const all = r.total > 0 && r.markedCount === r.total;
   const progress = all ? `${r.total}명 모두 찍음` : `${r.total}명 중 ${r.markedCount}명 찍음`;
-  const hasStrip = !!room.confirmed || r.cands.length > 0;
-
   const toggleEditing = () => {
     setEditing((v) => {
       if (!v) setFilter('all'); // 고칠 때는 모든 날짜가 보여야 한다
@@ -46,7 +44,7 @@ export default function RoomTableView({ r }: { r: RoomApi }) {
   const onConfirm = (c: { start: string; end: string }, changing: boolean) => void r.confirm({ start: c.start, end: c.end }, changing);
 
   return (
-    <div className={`ui-page ${styles.page}`} data-has-strip={hasStrip || undefined}>
+    <div className={`ui-page ${styles.page}`} data-has-strip>
       {/* 모바일 남색 머리 */}
       <div className={styles.mobileTop}>
         <RoomMobileHead name={room.name} sub={room.confirmed ? `확정 ${confirmedRange}` : `${r.month.getMonth() + 1}월 · ${progress}`}>
@@ -173,6 +171,8 @@ export default function RoomTableView({ r }: { r: RoomApi }) {
               isOwner={r.isOwner}
               total={r.total}
               members={r.members}
+              markedIds={r.markedIds}
+              meId={r.meId}
               onConfirm={onConfirm}
               onUnconfirm={() => void r.unconfirm()}
             />
@@ -205,8 +205,11 @@ export default function RoomTableView({ r }: { r: RoomApi }) {
         isOwner={r.isOwner}
         total={r.total}
         members={r.members}
+        markedIds={r.markedIds}
+        meId={r.meId}
         onConfirm={onConfirm}
         onMore={() => setSheet('cands')}
+        onInvite={() => setShareOpen(true)}
       />
 
       {shareOpen && <RoomShareModal room={room} onClose={() => setShareOpen(false)} />}

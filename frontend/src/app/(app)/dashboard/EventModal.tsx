@@ -8,6 +8,7 @@ import TimeSelect from '@/components/TimeSelect';
 import Icon from '@/components/Icon';
 import { DEFAULT_TIER_COLOR } from '@/lib/colors';
 import { fmtDayShort, fmtTime } from '@/lib/datetime';
+import { toast } from '@/lib/toast';
 import type { MoimEvent, Tier } from '@/lib/types';
 import styles from './dashboard.module.scss';
 
@@ -74,6 +75,13 @@ export default function EventModal({ mode, initial, tiers, markedDates, origin, 
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!f.startDate || !f.endDate || saving) return;
+    // 끝이 시작보다 앞서면 달력에 이상하게 그려진다 — 저장하기 전에 알린다
+    const start = f.allDay ? f.startDate : `${f.startDate}T${f.startTime}`;
+    const end = f.allDay ? f.endDate : `${f.endDate}T${f.endTime}`;
+    if (end < start) {
+      toast(f.allDay ? '끝나는 날은 시작하는 날과 같거나 뒤여야 해요' : '끝나는 때는 시작하는 때보다 뒤여야 해요', 'error');
+      return;
+    }
     setSaving(true);
     try {
       await onSave(f);
@@ -118,7 +126,7 @@ export default function EventModal({ mode, initial, tiers, markedDates, origin, 
           <input
             id={`${formId}-title`}
             className="ui-input"
-            placeholder="일정 제목"
+            placeholder="비우면 ‘새 일정’으로 저장돼요"
             value={f.title}
             onChange={(e) => set('title', e.target.value)}
           />

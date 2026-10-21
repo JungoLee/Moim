@@ -111,8 +111,8 @@ export default function LeavePlanner() {
       setError('갱신일은 시작일보다 뒤여야 해요.');
       return;
     }
-    const rem = parseFloat(remaining) || 0;
-    const maxC = parseInt(maxConsec, 10) || 5;
+    const rem = Math.max(0, parseFloat(remaining) || 0);
+    const maxC = Math.min(20, Math.max(1, parseInt(maxConsec, 10) || 5));
 
     const years: number[] = [];
     for (let y = from.getFullYear(); y <= to.getFullYear(); y++) years.push(y);
@@ -201,7 +201,7 @@ export default function LeavePlanner() {
               <span className="ui-label">시작일</span>
               <DatePicker value={start} onChange={setStart} block ariaLabel="시작일" />
               <span className="ui-help">
-                기본은 오늘({fmtDay(todayMidnight())})이에요. 지난 날을 고르면 오늘부터 계산해요.
+                기본은 오늘, {fmtDay(todayMidnight())}이에요. 지난 날을 고르면 오늘부터 계산해요.
               </span>
             </div>
             <div className="ui-field">
@@ -239,6 +239,7 @@ export default function LeavePlanner() {
               <Icon name="sun" size={18} />
               계획 만들기
             </button>
+            {!getToken() && <p className="ui-help">로그인하면 넣은 조건이 저장돼서 다음에도 그대로 불러와요.</p>}
           </form>
         </section>
 

@@ -115,7 +115,9 @@ export default function HomeBoard({ data }: { data: HomeData }) {
                     {list.map((e) => (
                       <div key={e._id} className={styles.ev} style={{ '--ev': eventColor(e) } as CSSProperties}>
                         <span className={`ui-num ${styles.evTime}`}>{e.allDay ? '종일' : fmtTime(new Date(e.start))}</span>
-                        <span className={styles.evTitle}>{e.title || '(제목 없음)'}</span>
+                        <span className={styles.evTitle} title={e.title}>
+                          {e.title || '(제목 없음)'}
+                        </span>
                       </div>
                     ))}
                   </li>

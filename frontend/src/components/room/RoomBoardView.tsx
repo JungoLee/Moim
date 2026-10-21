@@ -35,7 +35,6 @@ export default function RoomBoardView({ r }: { r: RoomApi }) {
   const progress = all ? `${r.total}명 모두 찍음` : `${r.total}명 중 ${r.markedCount}명 찍음`;
   const last = r.comments.length ? r.comments[r.comments.length - 1] : null;
   const lastAuthor = last ? r.members.find((m) => m._id === last.user) : undefined;
-  const hasStrip = !!room.confirmed || r.cands.length > 0;
 
   const openSheet = (t: Tab) => {
     setTab(t);
@@ -43,7 +42,7 @@ export default function RoomBoardView({ r }: { r: RoomApi }) {
   };
 
   return (
-    <div className={`ui-page ${styles.page}`} data-has-strip={hasStrip || undefined}>
+    <div className={`ui-page ${styles.page}`} data-has-strip>
       <RoomMobileHead name={room.name} sub={room.confirmed ? `확정 ${confirmedRange}` : progress}>
         <HeadIconButton icon="share" label="초대" onClick={() => setShareOpen(true)} />
         <HeadIconButton icon="settings" label="모임 설정" onClick={() => setSettingsOpen(true)} />
@@ -138,6 +137,8 @@ export default function RoomBoardView({ r }: { r: RoomApi }) {
                   isOwner={r.isOwner}
                   total={r.total}
                   members={r.members}
+                  markedIds={r.markedIds}
+                  meId={r.meId}
                   onConfirm={(c, changing) => void r.confirm({ start: c.start, end: c.end }, changing)}
                   onUnconfirm={() => void r.unconfirm()}
                 />
@@ -172,8 +173,11 @@ export default function RoomBoardView({ r }: { r: RoomApi }) {
         isOwner={r.isOwner}
         total={r.total}
         members={r.members}
+        markedIds={r.markedIds}
+        meId={r.meId}
         onConfirm={(c, changing) => void r.confirm({ start: c.start, end: c.end }, changing)}
         onMore={() => openSheet('cands')}
+        onInvite={() => setShareOpen(true)}
       />
 
       {shareOpen && <RoomShareModal room={room} onClose={() => setShareOpen(false)} />}

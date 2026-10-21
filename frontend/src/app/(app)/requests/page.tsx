@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
+import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import PeopleTabs from '@/components/people/PeopleTabs';
 import DatePicker from '@/components/DatePicker';
@@ -10,6 +11,7 @@ import TimeSelect from '@/components/TimeSelect';
 import Modal from '@/components/Modal';
 import Avatar from '@/components/Avatar';
 import Icon from '@/components/Icon';
+import Notice from '@/components/Notice';
 import { useShell } from '@/components/shell/ShellContext';
 import { api } from '@/lib/api';
 import { REQUEST_COLOR } from '@/lib/colors';
@@ -32,6 +34,7 @@ type View = 'received' | 'sent';
 export default function Requests() {
   const { refreshInbox } = useShell();
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [loadErr, setLoadErr] = useState('');
   const [received, setReceived] = useState<TimeRequest[] | null>(null);
   const [sent, setSent] = useState<TimeRequest[] | null>(null);
   const [events, setEvents] = useState<MoimEvent[]>([]);
@@ -59,8 +62,10 @@ export default function Requests() {
       setEvents(ev.events);
       setReceived(r.requests);
       setSent(sn.requests);
+      setLoadErr('');
     } catch {
       /* 401 이면 api() 가 로그아웃 처리 */
+      setLoadErr('요청을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요.');
       setReceived((p) => p ?? []);
       setSent((p) => p ?? []);
     }
@@ -73,6 +78,8 @@ export default function Requests() {
     if (to) {
       setToId(to);
       setCreateOpen(true);
+      // 새로고침했을 때 보내기 창이 또 열리지 않게 주소에서 지운다
+      window.history.replaceState(null, '', window.location.pathname);
     }
   }, [load]);
 
@@ -144,7 +151,9 @@ export default function Requests() {
   }
 
   const pendingReceived = (received || []).filter((r) => r.status === 'pending').length;
-  const list = view === 'received' ? received : sent;
+  // 답할 요청이 위에 — 같은 상태끼리는 서버가 준 순서 그대로
+  const rank = (r: TimeRequest) => (r.status === 'pending' ? 0 : 1);
+  const list = ((view === 'received' ? received : sent) ?? null)?.slice().sort((a, b) => rank(a) - rank(b)) ?? null;
 
   return (
     <div className="ui-page">
@@ -159,6 +168,8 @@ export default function Requests() {
         }
       />
       <PeopleTabs />
+
+      {loadErr && <Notice>{loadErr}</Notice>}
 
       <section className="ui-card" data-guide="req-list" aria-label="시간 요청 목록">
         <div className="ui-card__head">
@@ -186,7 +197,7 @@ export default function Requests() {
             <span className="ui-skeleton" />
             <span className="ui-skeleton" />
           </div>
-        ) : list.length === 0 ? (
+        ) : list.length === 0 && loadErr ? null : list.length === 0 ? (
           <div className="ui-empty">
             <span className="ui-empty__icon" aria-hidden>
               <Icon name="clock" size={24} />
@@ -264,6 +275,11 @@ export default function Requests() {
           <form id="req-send-form" className="ui-form" onSubmit={send}>
             <div className="ui-field">
               <span className="ui-label">누구에게</span>
+              {friends.length === 0 && (
+                <p className="ui-help">
+                  시간 요청은 친구에게만 보낼 수 있어요. <Link href="/friends">친구 추가하러 가기</Link>
+                </p>
+              )}
               <Select
                 value={toId}
                 onChange={setToId}
@@ -298,7 +314,7 @@ export default function Requests() {
 
             <div className="ui-field">
               <label className="ui-label" htmlFor="req-title">
-                제목
+                제목 <span className="ui-muted">(비우면 ‘시간 요청’)</span>
               </label>
               <input
                 id="req-title"

@@ -51,9 +51,9 @@ function NotFound({ text }: { text: string }) {
         <span className="ui-empty__icon">
           <Icon name="lock" size={24} />
         </span>
-        <strong className="ui-empty__title">이 모임의 멤버가 아니에요</strong>
+        <strong className="ui-empty__title">이 모임에 들어갈 수 없어요</strong>
         <span className="ui-empty__text">{text}</span>
-        <span className="ui-empty__text">방장에게 받은 초대 코드로 들어갈 수 있어요.</span>
+        <span className="ui-empty__text">지워졌거나 멤버가 아닐 수 있어요. 방장에게 받은 초대 코드로 들어갈 수 있어요.</span>
         <Link href="/rooms" className="ui-btn ui-btn--primary">
           모임 목록으로
         </Link>

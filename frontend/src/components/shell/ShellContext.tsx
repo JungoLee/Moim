@@ -16,6 +16,8 @@ type ShellValue = {
   inbox: Inbox;
   /** 불러오기 전 null */
   rooms: RoomSummary[] | null;
+  /** 모임 목록을 못 불러왔는가 — 비어 보이는 것과 구분한다 */
+  roomsError: boolean;
   refreshMe: () => Promise<void>;
   refreshInbox: () => Promise<void>;
   refreshRooms: () => Promise<void>;
@@ -27,6 +29,7 @@ const ShellContext = createContext<ShellValue>({
   me: null,
   inbox: EMPTY_INBOX,
   rooms: null,
+  roomsError: false,
   refreshMe: async () => {},
   refreshInbox: async () => {},
   refreshRooms: async () => {},
@@ -36,6 +39,7 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<User | null | undefined>(undefined);
   const [inbox, setInbox] = useState<Inbox>(EMPTY_INBOX);
   const [rooms, setRooms] = useState<RoomSummary[] | null>(null);
+  const [roomsError, setRoomsError] = useState(false);
 
   const refreshMe = useCallback(async () => {
     try {
@@ -64,8 +68,10 @@ export function ShellProvider({ children }: { children: ReactNode }) {
     try {
       const r = await api<{ rooms: RoomSummary[] }>('/api/rooms');
       setRooms(r.rooms);
+      setRoomsError(false);
     } catch {
-      setRooms([]);
+      setRoomsError(true);
+      setRooms((prev) => prev ?? []);
     }
   }, []);
 
@@ -80,8 +86,8 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   }, [refreshMe, refreshInbox, refreshRooms]);
 
   const value = useMemo(
-    () => ({ me, inbox, rooms, refreshMe, refreshInbox, refreshRooms }),
-    [me, inbox, rooms, refreshMe, refreshInbox, refreshRooms]
+    () => ({ me, inbox, rooms, roomsError, refreshMe, refreshInbox, refreshRooms }),
+    [me, inbox, rooms, roomsError, refreshMe, refreshInbox, refreshRooms]
   );
   return <ShellContext.Provider value={value}>{children}</ShellContext.Provider>;
 }

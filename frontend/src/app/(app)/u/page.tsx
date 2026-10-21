@@ -131,7 +131,7 @@ export default function FriendCalendar() {
       ) : (
         <>
           <Calendar events={events} />
-          {loaded && events.length === 0 && <p className="ui-muted">표시할 일정이 없어요</p>}
+          {loaded && events.length === 0 && <p className="ui-muted">보이는 일정이 아직 없어요. 비공개 일정은 있으면 “바쁨”으로 보여요.</p>}
         </>
       )}
     </div>

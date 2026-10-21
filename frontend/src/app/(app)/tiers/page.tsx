@@ -36,6 +36,7 @@ export default function Tiers() {
   const [settingsId, setSettingsId] = useState('');
   const [memberEmail, setMemberEmail] = useState('');
   const [settingsErr, setSettingsErr] = useState('');
+  const [busy, setBusy] = useState(false); // 눌러서 보내는 중 — 두 번 눌러 중복으로 만들어지지 않게
 
   const load = useCallback(async () => {
     try {
@@ -70,10 +71,11 @@ export default function Tiers() {
 
   async function createTier(e: FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || busy) return;
     setCreateErr('');
+    setBusy(true);
     try {
-      await api('/api/tiers', { method: 'POST', body: { name, color } });
+      await api('/api/tiers', { method: 'POST', body: { name: name.trim(), color } });
       setName('');
       setCreateOpen(false);
       toast('그룹을 만들었어요', 'success');
@@ -81,25 +83,35 @@ export default function Tiers() {
     } catch (err) {
       setCreateErr(err instanceof Error ? err.message : '그룹을 만들지 못했어요');
     }
+    setBusy(false);
   }
 
   async function joinByCode(e: FormEvent) {
     e.preventDefault();
-    if (!joinCode.trim()) return;
+    if (!joinCode.trim() || busy) return;
     setJoinErr('');
+    setBusy(true);
     try {
       const res = await api<{ tierName: string }>('/api/tiers/join', { method: 'POST', body: { code: joinCode } });
       setJoinCode('');
       setJoinOpen(false);
-      toast(`'${res.tierName}' 그룹에 가입했어요`, 'success');
+      toast(`'${res.tierName}' 그룹에 들어갔어요. 이제 그 그룹을 만든 사람의 비공개 일정 중 이 그룹에 열어 둔 것을 자세히 볼 수 있어요`, 'success');
       load();
     } catch (err) {
       setJoinErr(err instanceof Error ? err.message : '가입하지 못했어요');
     }
+    setBusy(false);
   }
 
-  async function deleteTier(id: string) {
-    if (!(await confirmDialog({ message: '이 그룹을 삭제할까요? 되돌릴 수 없어요.', confirmText: '삭제', danger: true }))) return;
+  async function deleteTier(tier: Tier) {
+    const ok = await confirmDialog({
+      message: `'${tier.name}' 그룹을 삭제할까요?
+되돌릴 수 없어요. 멤버 ${tier.members.length}명은 친구로 그대로 있지만, 이 그룹에만 자세히 보이게 해 둔 비공개 일정은 아무에게도 자세히 보이지 않아요.`,
+      confirmText: '그룹 삭제',
+      danger: true,
+    });
+    if (!ok) return;
+    const id = tier._id;
     try {
       await api(`/api/tiers/${id}`, { method: 'DELETE' });
       setSettingsId('');
@@ -240,8 +252,8 @@ export default function Tiers() {
               <button type="button" className="ui-btn" onClick={() => setCreateOpen(false)}>
                 취소
               </button>
-              <button type="submit" form="tier-create-form" className="ui-btn ui-btn--primary" disabled={!name.trim()}>
-                만들기
+              <button type="submit" form="tier-create-form" className="ui-btn ui-btn--primary" disabled={busy || !name.trim()}>
+                {busy ? '만드는 중…' : '만들기'}
               </button>
             </div>
           }
@@ -278,8 +290,8 @@ export default function Tiers() {
               <button type="button" className="ui-btn" onClick={() => setJoinOpen(false)}>
                 취소
               </button>
-              <button type="submit" form="tier-join-form" className="ui-btn ui-btn--primary" disabled={!joinCode.trim()}>
-                가입
+              <button type="submit" form="tier-join-form" className="ui-btn ui-btn--primary" disabled={busy || !joinCode.trim()}>
+                {busy ? '가입하는 중…' : '가입'}
               </button>
             </div>
           }
@@ -297,6 +309,7 @@ export default function Tiers() {
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value)}
               />
+              <span className="ui-help">친구가 만든 그룹의 코드를 넣으면, 그 친구가 이 그룹에 열어 둔 비공개 일정을 자세히 볼 수 있어요.</span>
             </div>
             {joinErr && <Notice>{joinErr}</Notice>}
           </form>
@@ -314,7 +327,7 @@ export default function Tiers() {
           onClose={() => setSettingsId('')}
           footer={
             <div className="ui-actions">
-              <button type="button" className="ui-btn ui-btn--danger" onClick={() => deleteTier(settingsTier._id)}>
+              <button type="button" className="ui-btn ui-btn--danger" onClick={() => deleteTier(settingsTier)}>
                 <Icon name="trash" size={16} />
                 그룹 삭제
               </button>

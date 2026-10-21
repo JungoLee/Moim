@@ -25,7 +25,7 @@
 // 개요 — 숫자 카드 격자
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(rem(160), 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr)); // 카드 6개 — 3×2 로 떨어지게
   gap: var(--sp-4);
   margin: 0;
 
@@ -123,6 +123,57 @@
 
   > * + * {
     margin-left: var(--sp-2);
+  }
+}
+
+// 휴대폰 — 가로로 밀지 않고 행마다 카드처럼 쌓는다(단추가 화면 밖으로 나가지 않게)
+@include narrow {
+  .table {
+    min-width: 0;
+
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    table,
+    tbody,
+    tr,
+    td {
+      display: block;
+    }
+
+    tr {
+      padding: var(--sp-3) var(--sp-4);
+      border-top: 1px solid var(--c-line);
+    }
+
+    tbody tr:first-child {
+      border-top: 0;
+    }
+
+    td {
+      padding: rem(2) 0;
+      border-top: 0;
+      white-space: normal;
+    }
+
+    .meta {
+      display: inline-block;
+      margin-right: var(--sp-3);
+    }
+
+    .actions {
+      margin-top: var(--sp-2);
+      text-align: left;
+
+      > * + * {
+        margin-left: var(--sp-2);
+      }
+    }
   }
 }
 

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CodeBoxes from '@/components/CodeBoxes';
 import Icon from '@/components/Icon';
+import Notice from '@/components/Notice';
 import Modal from '@/components/Modal';
 import PageHeader from '@/components/PageHeader';
 import { useShell } from '@/components/shell/ShellContext';
@@ -27,7 +28,7 @@ export default function RoomsPage() {
 function Rooms() {
   const router = useRouter();
   const params = useSearchParams();
-  const { rooms, refreshRooms } = useShell();
+  const { rooms, roomsError, refreshRooms } = useShell();
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
 
@@ -63,6 +64,17 @@ function Rooms() {
         }
       />
 
+      {roomsError && (
+        <>
+          <Notice>모임을 불러오지 못했어요. 목록이 비어 보여도 모임이 사라진 건 아니에요.</Notice>
+          <div>
+            <button type="button" className="ui-btn ui-btn--sm" onClick={() => void refreshRooms()}>
+              다시 불러오기
+            </button>
+          </div>
+        </>
+      )}
+
       <div data-guide="rooms-list">
         {rooms === null ? (
           <div className={styles.grid} aria-busy="true" aria-label="모임을 불러오는 중">
@@ -70,7 +82,7 @@ function Rooms() {
               <span key={i} className={`ui-skeleton ${styles.skCard}`} />
             ))}
           </div>
-        ) : rooms.length === 0 ? (
+        ) : rooms.length === 0 && roomsError ? null : rooms.length === 0 ? (
           <div className="ui-empty">
             <span className="ui-empty__icon">
               <Icon name="rooms" size={24} />

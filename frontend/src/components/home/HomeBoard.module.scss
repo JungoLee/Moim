@@ -201,6 +201,11 @@
 
 .evTitle {
   overflow-wrap: anywhere;
+  // 긴 제목이 좁은 칸에서 한 글자씩 길게 늘어지지 않게 — 네 줄까지만
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
 }
 
 // ── 내 모임 카드 ──────────────────────────────────────

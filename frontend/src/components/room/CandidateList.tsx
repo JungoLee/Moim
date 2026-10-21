@@ -48,12 +48,30 @@ function describeCandidate(c: Candidate, total: number, members: User[]): Descri
   };
 }
 
+/** 후보가 아직 없을 때 — 왜 없는지와 다음에 할 일 (데스크톱 빈 칸 · 모바일 아래 띠 공용) */
+export type Waiting = { tag: string; desc: string; alone: boolean };
+
+export function waitingInfo(members: User[], markedIds: Set<string>, meId: string): Waiting {
+  const total = members.length;
+  if (total <= 1) return { tag: '아직 나 혼자예요', desc: '초대해서 친구를 불러 보세요', alone: true };
+  const unmarked = members.filter((m) => !markedIds.has(m._id));
+  if (unmarked.length === 0) {
+    return { tag: '겹치는 날이 아직 없어요', desc: '가능한 날을 조금씩 더 표시해 보세요', alone: false };
+  }
+  const names = unmarked.map((m) => (m._id === meId ? '나' : displayName(m)));
+  const shown = names.slice(0, 2).join('·') + (names.length > 2 ? ` 외 ${names.length - 2}명` : '');
+  return { tag: `${total - unmarked.length}/${total}명 찍음`, desc: `아직 안 찍은 사람 · ${shown}`, alone: false };
+}
+
 type Props = {
   cands: Candidate[];
   confirmed: RoomConfirmed | null;
   isOwner: boolean;
   total: number;
   members: User[];
+  /** 후보가 없을 때 안내에 쓴다 */
+  markedIds: Set<string>;
+  meId: string;
   /** changing = 이미 확정된 방에서 날짜를 바꾸는 중 */
   onConfirm: (c: Candidate, changing: boolean) => void;
   onUnconfirm: () => void;
@@ -62,7 +80,8 @@ type Props = {
 /**
  * 후보 목록 — 1순위는 큰 카드, 방장만 [확정]. 확정된 방은 맨 위에 '확정된 날짜' 카드(방장: 바꾸기·확정 취소).
  */
-export default function CandidateList({ cands, confirmed, isOwner, total, members, onConfirm, onUnconfirm }: Props) {
+export default function CandidateList({ cands, confirmed, isOwner, total, members, markedIds, meId, onConfirm, onUnconfirm }: Props) {
+  const waiting = waitingInfo(members, markedIds, meId);
   const [changing, setChanging] = useState(false);
   const showList = !confirmed || (isOwner && changing);
 
@@ -92,7 +111,8 @@ export default function CandidateList({ cands, confirmed, isOwner, total, member
       {showList &&
         (cands.length === 0 ? (
           <p className={styles.empty}>
-            아직 모두 되는 날이 없어요. 가능한 날을 표시하면 모두 되는 날을 찾아 드려요.
+            <strong>{waiting.tag}.</strong> {waiting.desc}.
+            {!waiting.alone && waiting.tag.endsWith('찍음') && ' 모두 찍으면 겹치는 날을 찾아 드려요.'}
           </p>
         ) : (
           <ol className={styles.list}>
@@ -142,13 +162,17 @@ type StripProps = {
   isOwner: boolean;
   total: number;
   members: User[];
+  markedIds: Set<string>;
+  meId: string;
   onConfirm: (c: Candidate, changing: boolean) => void;
   /** '모두 보기' — 후보 시트 열기 */
   onMore: () => void;
+  /** 혼자인 방에서 [초대] */
+  onInvite: () => void;
 };
 
 /** 모바일 아래 탭 위에 붙는 띠 — 확정된 날짜, 없으면 1순위 후보 + [확정] */
-export function CandidateStrip({ cands, confirmed, isOwner, total, members, onConfirm, onMore }: StripProps) {
+export function CandidateStrip({ cands, confirmed, isOwner, total, members, markedIds, meId, onConfirm, onMore, onInvite }: StripProps) {
   if (confirmed) {
     return (
       <div className={styles.strip} data-state="confirmed">
@@ -164,7 +188,24 @@ export function CandidateStrip({ cands, confirmed, isOwner, total, members, onCo
       </div>
     );
   }
-  if (cands.length === 0) return null;
+  if (cands.length === 0) {
+    const w = waitingInfo(members, markedIds, meId);
+    return (
+      <div className={styles.strip} data-state="waiting">
+        <span className={styles.stripMain}>
+          <span className={styles.stripTag}>{w.tag}</span>
+          <span className={styles.stripDesc}>{w.desc}</span>
+        </span>
+        {w.alone && (
+          <span className={styles.stripSide}>
+            <button type="button" className="ui-btn ui-btn--primary" onClick={onInvite}>
+              초대하기
+            </button>
+          </span>
+        )}
+      </div>
+    );
+  }
   const first = cands[0];
   const d = describeCandidate(first, total, members);
   return (

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import Avatar from '@/components/Avatar';
 import Icon from '@/components/Icon';
+import { useShell } from '@/components/shell/ShellContext';
 import { api } from '@/lib/api';
 import { confirmDialog } from '@/lib/confirm';
 import { displayName } from '@/lib/format';
@@ -61,6 +62,7 @@ function Loading() {
 }
 
 export default function Admin() {
+  const { me } = useShell();
   const [tab, setTab] = useState<Tab>('overview');
   const [stats, setStats] = useState<Stats | null>(null);
   const [users, setUsers] = useState<User[] | null>(null);
@@ -76,7 +78,7 @@ export default function Admin() {
       setUsers(u.users);
       setError('');
     } catch (e) {
-      setError(e instanceof Error ? e.message : '권한이 없어요.');
+      setError(e instanceof Error ? e.message : '운영 정보를 불러오지 못했어요.');
     }
   }, []);
 
@@ -127,7 +129,8 @@ export default function Admin() {
   }
 
   async function deleteEntity(kind: 'rooms' | 'tiers', e: Entity) {
-    if (!(await confirmDialog({ message: `'${e.name}' 을(를) 삭제할까요?`, confirmText: '삭제', danger: true }))) return;
+    if (!(await confirmDialog({ message: `'${e.name}' ${kind === 'rooms' ? '모임' : '그룹'}을 삭제할까요?
+멤버 ${e.memberCount}명 모두에게서 사라지고, 되돌릴 수 없어요.`, confirmText: '삭제', danger: true }))) return;
     try {
       await api(`/api/admin/${kind}/${e._id}`, { method: 'DELETE' });
       toast('삭제했어요', 'success');
@@ -147,9 +150,14 @@ export default function Admin() {
               <Icon name="lock" size={24} />
             </span>
             <p className="ui-empty__title">{error}</p>
-            <Link className="ui-btn ui-btn--primary" href="/home">
-              홈으로
-            </Link>
+            <div className="ui-actions">
+              <button type="button" className="ui-btn" onClick={() => void load()}>
+                다시 불러오기
+              </button>
+              <Link className="ui-btn ui-btn--primary" href="/home">
+                홈으로
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -269,12 +277,18 @@ export default function Admin() {
                     <td className={s.meta}>{u.email}</td>
                     <td className={s.meta}>{fmtDate(u.createdAt)}</td>
                     <td className={s.actions}>
-                      <button type="button" className="ui-btn ui-btn--sm" onClick={() => toggleAdmin(u)}>
-                        {u.isAdmin ? '관리자 해제' : '관리자 지정'}
-                      </button>
-                      <button type="button" className="ui-btn ui-btn--danger ui-btn--sm" onClick={() => deleteUser(u)}>
-                        탈퇴
-                      </button>
+                      {u._id === me?._id ? (
+                        <span className="ui-muted">내 계정</span>
+                      ) : (
+                        <>
+                          <button type="button" className="ui-btn ui-btn--sm" onClick={() => toggleAdmin(u)}>
+                            {u.isAdmin ? '관리자 해제' : '관리자 지정'}
+                          </button>
+                          <button type="button" className="ui-btn ui-btn--danger ui-btn--sm" onClick={() => deleteUser(u)}>
+                            탈퇴 처리
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
