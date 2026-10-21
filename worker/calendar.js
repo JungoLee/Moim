@@ -64,6 +64,24 @@ export async function friendsBusy(request, env, params, body, userId) {
   });
 }
 
+// 친구 한 명의 바쁜 시간 — 시간 요청을 보낼 때 "그 시간에 바쁜지" 경고용.
+// 공개 범위 규칙: 친구에게만, 일정의 제목·장소·메모·공개 여부는 싣지 않고 시간만(비공개 일정도 "바쁨"으로는 이미 보인다).
+export async function busyOf(request, env, params, body, userId) {
+  const { userId: targetId } = params;
+  if (!isId(targetId)) return fail('주소가 올바르지 않아요.');
+  const url = new URL(request.url);
+  const from = toIso(url.searchParams.get('from'));
+  const to = toIso(url.searchParams.get('to'));
+  if (!from || !to || from > to) return fail('조회할 기간을 알 수 없어요.');
+  const db = env.DB;
+  if (!(await areFriends(db, userId, targetId))) return fail('친구만 캘린더를 볼 수 있어요.', 403);
+  const { results } = await db
+    .prepare('SELECT start, end, all_day FROM events WHERE owner = ? AND start < ? AND end > ? ORDER BY start ASC LIMIT 100')
+    .bind(targetId, to, from)
+    .all();
+  return json({ ok: true, busy: results.map((e) => ({ start: e.start, end: e.end, allDay: !!e.all_day })) });
+}
+
 export async function get(request, env, params, body, userId) {
   const { userId: targetId } = params;
   if (!isId(targetId)) return fail('주소가 올바르지 않아요.');

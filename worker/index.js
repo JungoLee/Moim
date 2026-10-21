@@ -41,11 +41,14 @@ const ROUTES = [
   // 캘린더(타인)
   ['GET', '/api/calendar/friends', calendar.friendsBusy, true], // :userId 보다 먼저 — 'friends' 도 id 모양이라
   ['GET', '/api/calendar/:userId', calendar.get, true],
+  ['GET', '/api/calendar/:userId/busy', calendar.busyOf, true],
 
   // 그룹
   ['GET', '/api/tiers', tiers.list, true],
   ['POST', '/api/tiers', tiers.create, true],
   ['POST', '/api/tiers/join', tiers.join, true],
+  ['GET', '/api/tiers/joined', tiers.joined, true],
+  ['POST', '/api/tiers/:id/leave', tiers.leave, true],
   ['PATCH', '/api/tiers/:id', tiers.update, true],
   ['DELETE', '/api/tiers/:id', tiers.remove, true],
   ['POST', '/api/tiers/:id/members', tiers.addMember, true],

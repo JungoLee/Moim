@@ -42,6 +42,36 @@ export async function list(request, env, params, body, userId) {
   return json({ ok: true, tiers: tiers.map((t) => tierDoc(t, byTier[t.id] || [])) });
 }
 
+// 내가 멤버로 들어간 남의 그룹 — 코드로 가입한 것. 멤버 목록·코드는 싣지 않는다(주인만 본다)
+export async function joined(request, env, params, body, userId) {
+  const { results } = await env.DB
+    .prepare(
+      `SELECT t.id, t.name, t.color, t.created_at,
+              u.id AS o_id, u.name AS o_name, u.nickname AS o_nickname, u.picture AS o_picture
+       FROM tier_members m JOIN tiers t ON t.id = m.tier_id JOIN users u ON u.id = t.owner
+       WHERE m.user_id = ? ORDER BY t.created_at ASC`
+    )
+    .bind(userId)
+    .all();
+  return json({
+    ok: true,
+    tiers: results.map((r) => ({
+      _id: r.id,
+      name: r.name,
+      color: r.color,
+      owner: userBrief({ id: r.o_id, name: r.o_name, nickname: r.o_nickname, email: '', picture: r.o_picture }), // 이메일은 싣지 않는다
+    })),
+  });
+}
+
+// 내가 들어간 그룹에서 나가기 — 주인의 일정은 그대로, 나는 그 그룹에 열린 비공개 일정을 더 이상 자세히 못 본다
+export async function leave(request, env, params, body, userId) {
+  if (!isId(params.id)) return fail('주소가 올바르지 않아요.');
+  const r = await env.DB.prepare('DELETE FROM tier_members WHERE tier_id = ? AND user_id = ?').bind(params.id, userId).run();
+  if (!r.meta.changes) return fail('들어가 있는 그룹을 찾을 수 없어요.', 404);
+  return json({ ok: true });
+}
+
 // 그룹 생성
 export async function create(request, env, params, body, userId) {
   const { name, color } = body || {};

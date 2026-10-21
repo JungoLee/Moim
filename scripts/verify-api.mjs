@@ -137,6 +137,8 @@ const run = async () => {
   log(addMem.status === 200, '그룹 멤버 추가(이메일)');
   const tierList2 = await call('/api/tiers', { token: tokenA });
   log(tierList2.data.tiers.find((t) => t._id === tierId)?.members?.length === 1, '그룹 멤버 반영');
+  const joinedB = await call('/api/tiers/joined', { token: tokenB });
+  log(joinedB.data?.tiers?.some((t) => t._id === tierId && t.owner?._id === idA && !t.owner.email), '내가 들어간 그룹 목록(주인 이메일 미노출)');
 
   // 10. 일정 생성 (공개)
   const ev = await call('/api/events', {
@@ -181,6 +183,13 @@ const run = async () => {
   log(cal.status === 200 && cal.data.relation === 'friend' && detailed === 2, '친구 캘린더(그룹 멤버 → 비공개도 상세)', `상세 ${detailed}/2`);
 
   // 16. 그룹에서 B 제거 → 비공개 일정이 "바쁨"으로
+  const busyQ = `from=${encodeURIComponent('2020-01-01T00:00:00.000Z')}&to=${encodeURIComponent('2099-01-01T00:00:00.000Z')}`;
+  const busyRes = await call(`/api/calendar/${idA}/busy?${busyQ}`, { token: tokenB });
+  log(busyRes.status === 200 && busyRes.data.busy?.length > 0 && !('title' in busyRes.data.busy[0]) && !('_id' in busyRes.data.busy[0]), '상대 바쁜 시간(시간만, 제목·id 없음)');
+  const leaveNo = await call(`/api/tiers/${tierId}/leave`, { method: 'POST', token: tokenB });
+  log(leaveNo.status === 200, '내가 들어간 그룹 나가기');
+  const leaveAgain = await call(`/api/tiers/${tierId}/leave`, { method: 'POST', token: tokenB });
+  log(leaveAgain.status === 404, '이미 나온 그룹 다시 나가기 → 404');
   await call(`/api/tiers/${tierId}/members/${idB}`, { method: 'DELETE', token: tokenA });
   const cal2 = await call(`/api/calendar/${idA}`, { token: tokenB });
   const busy = cal2.data?.events?.filter((e) => e.busy);
