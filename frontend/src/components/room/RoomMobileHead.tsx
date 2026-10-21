@@ -30,17 +30,19 @@ export default function RoomMobileHead({ name, sub, children }: Props) {
 }
 
 type IconBtnProps = {
-  icon: 'chat' | 'share' | 'settings';
+  icon: 'chat' | 'share' | 'settings' | 'help';
   label: string;
   onClick: () => void;
   /** 안 읽은 수 (0 이면 안 보임) */
   badge?: number;
+  /** 사용 가이드 대상 이름 (data-guide) */
+  guide?: string;
 };
 
 /** 머리 오른쪽 아이콘 단추 (바탕에서 글자색을 물려받는다) */
-export function HeadIconButton({ icon, label, onClick, badge = 0 }: IconBtnProps) {
+export function HeadIconButton({ icon, label, onClick, badge = 0, guide }: IconBtnProps) {
   return (
-    <button type="button" className={styles.iconBtn} onClick={onClick} aria-label={label} title={label}>
+    <button type="button" className={styles.iconBtn} onClick={onClick} aria-label={label} title={label} data-guide={guide}>
       <Icon name={icon} size={20} />
       {badge > 0 && (
         <span className={`ui-badge ${styles.badge}`} aria-hidden="true">

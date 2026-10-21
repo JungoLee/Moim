@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Icon from '@/components/Icon';
 import { fmtMonth } from '@/lib/datetime';
 import styles from './MonthNav.module.scss';
@@ -12,10 +13,12 @@ type Props = {
   className?: string;
   /** 라벨을 '11월' 처럼 짧게 */
   short?: boolean;
+  /** 오른쪽 끝에 붙일 것(휴대폰에서만 보인다 — 사용 가이드 단추) */
+  trailing?: ReactNode;
 };
 
 /** ‹ 2026년 11월 › — 달 이동 */
-export default function MonthNav({ month, onShift, onToday, className, short }: Props) {
+export default function MonthNav({ month, onShift, onToday, className, short, trailing }: Props) {
   return (
     <div className={[styles.nav, className].filter(Boolean).join(' ')} role="group" aria-label="달 이동">
       <button type="button" className="ui-btn ui-btn--ghost ui-btn--icon ui-btn--sm" onClick={() => onShift(-1)} aria-label="이전 달">
@@ -32,6 +35,7 @@ export default function MonthNav({ month, onShift, onToday, className, short }: 
           오늘
         </button>
       )}
+      {trailing && <span className={styles.trailing}>{trailing}</span>}
     </div>
   );
 }

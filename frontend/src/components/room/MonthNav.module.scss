@@ -1,9 +1,18 @@
 @use '@/styles/rem' as *;
+@use '@/styles/bp' as *;
 
 .nav {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-1);
+}
+
+.trailing {
+  margin-left: auto;
+
+  @include desktop {
+    display: none; // PC 는 화면 머리의 ? 가 있다
+  }
 }
 
 .label {

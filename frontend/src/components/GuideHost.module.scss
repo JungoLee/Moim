@@ -62,6 +62,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.end {
+  font-size: rem(13);
+  color: var(--c-text-3);
+}
+
 .actions {
   display: flex;
   align-items: center;

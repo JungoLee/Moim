@@ -378,15 +378,17 @@ $bp-narrow: 600px;  // 미만 = 한 줄 배치, 팝업은 아래에서 올라오
 ## 11. 사용 가이드 대상 (`data-guide`)
 
 `lib/guide.ts` 가 이 이름으로 스포트라이트를 건다(모임 방 키는 `'/rooms/:id'` — 실제 주소 `/rooms/detail` 에 대응). 화면을 고칠 때 같은 역할의 요소에 그대로 붙인다(없으면 그 스텝은 자동으로 건너뛴다). 화면 머리의 `?` 버튼은 `help`.
-모바일(<900) 모임 방은 화면 머리(`PageHeader`)가 없어 `?` 버튼이 없다 — 가이드는 데스크톱에서만 시작된다. 표 보기의 `room-modes` 는 [내 줄 고치기]를 켰을 때만 있다.
+모바일(<900) 모임 방은 화면 머리(`PageHeader`)가 없어서 `?` 를 따로 둔다(2.2.1) — 보드는 달 이동 줄 오른쪽 끝(`HelpButton`), 표는 남색 머리의 [내 줄 고치기] 옆. 표 보기의 `room-modes` 는 [내 줄 고치기]를 켰을 때만 있다.
+
+**가이드 규칙(2.2.1)** — 한 화면 3~7단계, 한 단계 두 문장 안, 해요체, 단추 이름은 화면 그대로 `[ ]` 로 적는다. 대상이 없거나(빈 상태·접힌 패널·테마 한쪽에만 있는 것) 크기가 0 이면 시작할 때 그 단계를 건너뛴다. 대상 선택자는 쉼표로 둘을 줄 수 있다(휴대폰 대체 대상 — 첫 번째로 보이는 것을 쓴다). 보여 줄 대상이 하나도 없으면 알림을 띄운다. 큰 대상(화면 55% 이상)은 맨 위로 올리고, 카드와 겹치면 강조 상자를 줄인다. 카드 폭은 CSS(rem)가 정하므로 재서 화면 안에 둔다. ESC·바깥 누르기(다음)·← →·Tab 은 카드 안에서만 돌고, 닫으면 열기 전 포커스로 돌아간다. 마지막 단계에는 `언제든 화면 위의 ? 단추로 다시 볼 수 있어요.` 를 붙인다.
 
 | 화면 | 이름 |
 |---|---|
 | 홈 | `home-inbox` · `home-week`(보드) · `home-free`(표) · `home-rooms` · `home-leave` |
 | 캘린더 | `cal` · `cal-new` · `cal-legend` |
-| 사람 | `people-tabs` · `friends-add` · `friends-requests` · `friends-list` · `tiers-new` · `tiers-list` · `req-new` · `req-list` |
+| 사람 | `people-tabs` · `friends-add` · `friends-requests` · `friends-list` · `tiers-new` · `tiers-list` · `tiers-joined` · `req-new` · `req-list` |
 | 모임 목록 | `rooms-new` · `rooms-join` · `rooms-list` |
-| 모임 방 | `room-members` · `room-modes` · `room-cal`(보드 달력/표 표) · `room-cands` · `room-chat` · `room-invite` |
+| 모임 방 | `room-members` · `room-edit`(표) · `room-modes` · `room-cal`(보드 달력/표 표) · `room-cands`(PC)/`room-strip`(휴대폰 아래 띠) · `room-chat`/`room-chat-btn`(휴대폰 머리 단추) · `room-invite`/`room-invite-btn`(휴대폰 머리 단추) · `help`(`?` 단추) |
 | 연차 계산 | `leave-form` · `leave-calc` · `leave-result` |
 
 ## 12. UI·UX 다듬기 기준 (2.1.0 — 2026-10-14)

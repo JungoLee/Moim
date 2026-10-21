@@ -272,7 +272,7 @@ ${who} 님이 이 그룹에만 열어 둔 비공개 일정을 더는 자세히 �
       )}
 
       {joined.length > 0 && (
-        <section className="ui-card" aria-labelledby="joined-title">
+        <section className="ui-card" aria-labelledby="joined-title" data-guide="tiers-joined">
           <div className="ui-card__head">
             <h2 id="joined-title" className="ui-card__title">
               내가 들어간 그룹

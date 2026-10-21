@@ -16,6 +16,7 @@ import RoomMobileHead, { HeadIconButton } from './RoomMobileHead';
 import RoomSettingsModal from './RoomSettingsModal';
 import RoomShareModal from './RoomShareModal';
 import SheetPanel from './SheetPanel';
+import { guideForPath, startGuide } from '@/lib/guide';
 import type { Candidate } from '@/lib/roomCandidates';
 import type { RoomApi } from './useRoom';
 import styles from './RoomTableView.module.scss';
@@ -49,16 +50,17 @@ export default function RoomTableView({ r }: { r: RoomApi }) {
       {/* 모바일 남색 머리 */}
       <div className={styles.mobileTop}>
         <RoomMobileHead name={room.name} sub={room.confirmed ? `확정 ${confirmedRange}` : `${r.month.getMonth() + 1}월 · ${progress}`}>
-          <button type="button" className={styles.editBtn} aria-pressed={editing} onClick={toggleEditing}>
+          <HeadIconButton icon="help" label="사용 가이드" onClick={() => startGuide(guideForPath('/rooms/detail') || [])} guide="help" />
+          <button type="button" className={styles.editBtn} aria-pressed={editing} onClick={toggleEditing} data-guide="room-edit">
             {editLabel}
           </button>
         </RoomMobileHead>
         <div className={styles.mobileRow}>
           <MatrixFilters value={filter} onChange={setFilter} total={r.total} />
           <span className={styles.mobileIcons}>
-            <HeadIconButton icon="share" label="초대" onClick={() => setShareOpen(true)} />
+            <HeadIconButton icon="share" label="초대" onClick={() => setShareOpen(true)} guide="room-invite-btn" />
             <HeadIconButton icon="settings" label="모임 설정" onClick={() => setSettingsOpen(true)} />
-            <HeadIconButton icon="chat" label={r.unread > 0 ? `대화 열기, 안 읽은 메시지 ${r.unread}개` : '대화 열기'} onClick={() => setSheet('chat')} badge={r.unread} />
+            <HeadIconButton icon="chat" label={r.unread > 0 ? `대화 열기, 안 읽은 메시지 ${r.unread}개` : '대화 열기'} onClick={() => setSheet('chat')} badge={r.unread} guide="room-chat-btn" />
           </span>
         </div>
       </div>
@@ -80,7 +82,7 @@ export default function RoomTableView({ r }: { r: RoomApi }) {
               <button type="button" className="ui-btn ui-btn--icon" onClick={() => setSettingsOpen(true)} aria-label="모임 설정" title="모임 설정">
                 <Icon name="settings" size={18} />
               </button>
-              <button type="button" className="ui-btn ui-btn--primary" aria-pressed={editing} onClick={toggleEditing}>
+              <button type="button" className="ui-btn ui-btn--primary" aria-pressed={editing} onClick={toggleEditing} data-guide="room-edit">
                 <Icon name="edit" size={16} />
                 {editLabel}
               </button>

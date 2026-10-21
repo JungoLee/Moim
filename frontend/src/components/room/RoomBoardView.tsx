@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Avatar from '@/components/Avatar';
+import HelpButton from '@/components/HelpButton';
 import Icon from '@/components/Icon';
 import PageHeader from '@/components/PageHeader';
 import { fmtKeyRange, fmtRelative } from '@/lib/datetime';
@@ -44,9 +45,9 @@ export default function RoomBoardView({ r }: { r: RoomApi }) {
   return (
     <div className={`ui-page ${styles.page}`} data-has-strip>
       <RoomMobileHead name={room.name} sub={room.confirmed ? `확정 ${confirmedRange}` : progress}>
-        <HeadIconButton icon="share" label="초대" onClick={() => setShareOpen(true)} />
+        <HeadIconButton icon="share" label="초대" onClick={() => setShareOpen(true)} guide="room-invite-btn" />
         <HeadIconButton icon="settings" label="모임 설정" onClick={() => setSettingsOpen(true)} />
-        <HeadIconButton icon="chat" label={r.unread > 0 ? `대화 열기, 안 읽은 메시지 ${r.unread}개` : '대화 열기'} onClick={() => openSheet('chat')} badge={r.unread} />
+        <HeadIconButton icon="chat" label={r.unread > 0 ? `대화 열기, 안 읽은 메시지 ${r.unread}개` : '대화 열기'} onClick={() => openSheet('chat')} badge={r.unread} guide="room-chat-btn" />
       </RoomMobileHead>
 
       <div className={styles.deskHead}>
@@ -76,7 +77,7 @@ export default function RoomBoardView({ r }: { r: RoomApi }) {
       <div className="ui-grid-2">
         <section className={styles.calCard} aria-label="겹침 달력">
           <div className={styles.calHead}>
-            <MonthNav month={r.month} onShift={r.shiftMonth} onToday={r.goToday} />
+            <MonthNav month={r.month} onShift={r.shiftMonth} onToday={r.goToday} trailing={<HelpButton />} />
             <ModeBar
               className={styles.modes}
               mode={r.mode}

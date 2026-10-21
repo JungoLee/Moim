@@ -230,7 +230,7 @@ type StripProps = {
 export function CandidateStrip({ cands, confirmed, isOwner, total, members, near, markedIds, meId, onConfirm, onMore, onInvite }: StripProps) {
   if (confirmed) {
     return (
-      <div className={styles.strip} data-state="confirmed">
+      <div className={styles.strip} data-guide="room-strip" data-state="confirmed">
         <span className={styles.stripMain}>
           <span className={styles.stripTag}>확정된 날짜</span>
           <strong className={styles.stripDate}>{fmtKeyRange(confirmed.start, confirmed.end)}</strong>
@@ -247,7 +247,7 @@ export function CandidateStrip({ cands, confirmed, isOwner, total, members, near
     const first = near[0];
     const d = describeCandidate(first, total, members);
     return (
-      <div className={styles.strip} data-state="near">
+      <div className={styles.strip} data-guide="room-strip" data-state="near">
         <span className={styles.stripMain}>
           <span className={styles.stripTag}>{d.tag}</span>
           <strong className={styles.stripDate}>{d.range}</strong>
@@ -273,7 +273,7 @@ export function CandidateStrip({ cands, confirmed, isOwner, total, members, near
   if (cands.length === 0) {
     const w = waitingInfo(members, markedIds, meId);
     return (
-      <div className={styles.strip} data-state="waiting">
+      <div className={styles.strip} data-guide="room-strip" data-state="waiting">
         <span className={styles.stripMain}>
           <span className={styles.stripTag}>{w.tag}</span>
           <span className={styles.stripDesc}>{w.desc}</span>
@@ -291,7 +291,7 @@ export function CandidateStrip({ cands, confirmed, isOwner, total, members, near
   const first = cands[0];
   const d = describeCandidate(first, total, members);
   return (
-    <div className={styles.strip}>
+    <div className={styles.strip} data-guide="room-strip">
       <span className={styles.stripMain}>
         <span className={styles.stripTag}>{d.tag}</span>
         <strong className={styles.stripDate}>{d.range}</strong>
